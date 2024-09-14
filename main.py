@@ -8,6 +8,9 @@ from UserApis import UserLogin, AddNewUser
 import secrets
 import json
 from datetime import timedelta
+from jwt import DecodeError
+from jwt.exceptions import PyJWTError as DecodeError
+
 
 
 app = Flask(__name__)
