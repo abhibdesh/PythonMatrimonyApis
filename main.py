@@ -42,4 +42,4 @@ api.add_resource(UserLogin, '/UserLogin')
 api.add_resource(AddNewUser, '/AddUser')
 
 if __name__ == "__main__":
-    app.run(debug=True)
+    app.run()
