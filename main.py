@@ -15,7 +15,7 @@ from jwt.exceptions import PyJWTError as DecodeError
 
 app = Flask(__name__)
 api = Api(app)
-CORS(app)
+CORS(app, resources={r"/*": {"origins": "*", "methods": ["GET", "POST"]}})
 service_account_key = './Config/FirebaseCreds.json'
 with open('./Config/Creds.json') as f:
     config = json.load(f)
@@ -42,4 +42,4 @@ api.add_resource(UserLogin, '/UserLogin')
 api.add_resource(AddNewUser, '/AddUser')
 
 if __name__ == "__main__":
-    app.run()
+    app.run(debug=True)
