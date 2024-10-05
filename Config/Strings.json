@@ -1,0 +1,8 @@
+{
+    "MESSAGE_VARIABLE" : "message",
+    "SUCCESS_STRING" : "success",
+    "FAILURE_STRING" : "failure",
+    "METHOD_NAME":"methodName",
+    "API_NAME":"apiName",
+    "MESSAGE_VALUE":"data"
+}
