@@ -1,4 +1,4 @@
-from flask import request, jsonify
+from flask import make_response, request, jsonify
 from flask_restful import Resource
 from firebase_admin import firestore
 from bcrypt import gensalt, checkpw, hashpw
@@ -7,7 +7,7 @@ from pymongo import MongoClient
 import json
 from jwt import DecodeError
 from jwt.exceptions import PyJWTError as DecodeError
-import datetime
+from datetime import datetime
 
 
 with open('./Config/Creds.json') as f:
@@ -46,9 +46,9 @@ class UserLogin(Resource):
 class AddNewUser(Resource):
     def post(self):
         # Old Data
-        email = request.json['email']
-        password = request.json['password']
-        phoneNumber = request.json['phoneNumber']
+        # email = request.json['email']
+        # password = request.json['password']
+        # phoneNumber = request.json['phoneNumber']
 
         # New Form Data
         UserId = request.json['UserId']
@@ -89,40 +89,65 @@ class AddNewUser(Resource):
         selectedIncome = request.json['selectedIncome']
         eatingHabits = request.json['eatingHabits']
         expectedGana = request.json['expectedGana']
+        DisabilityYN = request.json['DisabilityYN']
+        Charan = request.json['Charan']
+        Naadi = request.json['Naadi']
+        
 
         try:
             if UserId == "0":
-                query = {"UserEmail": email}
+                query = {"UserEmail": Email}
                 projection = {"_id": 0}
                 collection = db.get_collection('User')
                 data = collection.find_one(query,projection)
-
+                print(Email)
                 if data:
+                    print("ALETREXISTS")
                     return jsonify({MessageVariable: FailureString, msgVal: "User Already Exists"})
                 else:
                     top_user = collection.find().sort('UserId', -1).limit(1)
+                    print(top_user)
                     for user in top_user:
                         print(user['UserId']+1)
-                    hashed_pass = hash_password(password)
-                    id = collection.insert_one({"UserEmail":email,"UserPassword":
-                                                hashed_pass.decode('utf-8'),"PhoneNumber":phoneNumber,
-                                                "CreatedDatetime": datetime.datetime.now,
+                    print("HHHHHHHEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEE")
+                    hashed_pass = hash_password(UserPassword)
+                    print(hashed_pass)
+                    current_time = datetime.now()
+                    id = collection.insert_one({"UserEmail":Email,"UserPassword":hashed_pass.decode('utf-8'),"PhoneNumber":PhoneNumber,
+                                                "LookinFor":LookinFor ,"ChoosingFor":ChoosingFor,"firstName":firstName ,
+                                                "lastName":lastName,"Address":Address,"CurrentAddress":CurrentAddress,
+                                                "birthDate":birthDate, "birthTime":birthTime,
+                                                "BirthPlace":BirthPlace,"Raas":Raas,
+                                                "Height": Height,"BloodGrp":BloodGrp,"DegDip":DegDip,
+                                                "Field":Field, "JobBis":JobBis , "IncomeGroup":IncomeGroup,
+                                                "Eating":Eating,"Gotra":Gotra, "Dosha":Dosha, "Gana":Gana,         
+                                                "Devak":Devak, "Nakshatra":Nakshatra,"FamilyType":FamilyType,
+                                                "Siblings":Siblings,"EduSiblings":EduSiblings,
+                                                "Property":Property, "EduMother":EduMother,"EduFather":EduFather,
+                                                "MotherFamily":MotherFamily, "FatherFamily":FatherFamily,
+                                                "selectedEducations":selectedEducations,
+                                                "selectedIncome":selectedIncome,
+                                                "eatingHabits" : eatingHabits,
+                                                "expectedGana":expectedGana, "DisabilityYN":DisabilityYN,
+                                                "Charan":Charan, "Naadi":Naadi,
+                                                "CreatedDatetime": current_time,
                                                 "CreatedBy":"User",
                                                 "IsActive":True,
                                                 "IsDeleted":False,
                                                 "UserRole":"2",
                                                 "UserPaid":False,
-                                                "UserId": user['UserId'] + 1
+                                                 "UserId": 
+                                                 top_user['UserId'] + 
+                                                 1
                                                 })
                     return jsonify({MessageVariable:SuccessString})
-            else
-                return jsonify({MessageVariable:'SuccessString'})
-
         except ValueError as e:
             print(f"Error checking password: {e}")
             collection = db.get_collection('ErrorLogs')
-            log = collection.insert_one({"Method":"AddNewUser-UserApi.py","Exception":e,"Time":datetime.datetime.now,"UserEmail":email,"PhoneNumber":phoneNumber})
+            log = collection.insert_one({"Method":"AddNewUser-UserApi.py","Exception":e,"Time":datetime.datetime.now,"UserEmail":Email})
             return jsonify({MessageVariable: FailureString, msgVal: "Something Went Wrong"})
+        
+   
         
 def ValidateUser(email, password):
     try:
