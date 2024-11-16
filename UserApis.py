@@ -45,34 +45,79 @@ class UserLogin(Resource):
 
 class AddNewUser(Resource):
     def post(self):
+        # Old Data
         email = request.json['email']
         password = request.json['password']
         phoneNumber = request.json['phoneNumber']
 
-        try:
-            query = {"UserEmail": email}
-            projection = {"_id": 0}
-            collection = db.get_collection('User')
-            data = collection.find_one(query,projection)
+        # New Form Data
+        UserId = request.json['UserId']
+        LookinFor = request.json['LookinFor']
+        ChoosingFor = request.json['ChoosingFor']
+        UserPassword = request.json['UserPassword']
+        firstName = request.json['firstName']
+        lastName = request.json['lastName']
+        PhoneNumber = request.json['PhoneNumber']
+        Email = request.json['Email']
+        Address = request.json['Address']
+        CurrentAddress = request.json['CurrentAddress']
+        birthDate = request.json['birthDate']
+        birthTime = request.json['birthTime']
+        BirthPlace = request.json['BirthPlace']
+        Raas = request.json['Raas']
+        Height = request.json['Height']
+        BloodGrp = request.json['BloodGrp']
+        DegDip = request.json['DegDip']
+        Field = request.json['Field']
+        JobBis = request.json['JobBis']
+        IncomeGroup = request.json['IncomeGroup']
+        Eating = request.json['Eating']
+        Gotra = request.json['Gotra']
+        Dosha = request.json['Dosha']
+        Gana = request.json['Gana']
+        Devak = request.json['Devak']
+        Nakshatra = request.json['Nakshatra']
+        FamilyType = request.json['FamilyType']
+        Siblings = request.json['Siblings']
+        EduSiblings = request.json['EduSiblings']
+        Property = request.json['Property']
+        EduMother = request.json['EduMother']
+        EduFather = request.json['EduFather']
+        MotherFamily = request.json['MotherFamily']
+        FatherFamily = request.json['FatherFamily']
+        selectedEducations = request.json['selectedEducations']
+        selectedIncome = request.json['selectedIncome']
+        eatingHabits = request.json['eatingHabits']
+        expectedGana = request.json['expectedGana']
 
-            if data:
-                return jsonify({MessageVariable: FailureString, msgVal: "User Already Exists"})
-            else:
-                top_user = collection.find().sort('UserId', -1).limit(1)
-                for user in top_user:
-                    print(user['UserId']+1)
-                hashed_pass = hash_password(password)
-                id = collection.insert_one({"UserEmail":email,"UserPassword":
-                                            hashed_pass.decode('utf-8'),"PhoneNumber":phoneNumber,
-                                            "CreatedDatetime": datetime.datetime.now,
-                                            "CreatedBy":"User",
-                                            "IsActive":True,
-                                            "IsDeleted":False,
-                                            "UserRole":"2",
-                                            "UserPaid":False,
-                                            "UserId": user['UserId'] + 1
-                                            })
-                return jsonify({MessageVariable:SuccessString})
+        try:
+            if UserId == "0":
+                query = {"UserEmail": email}
+                projection = {"_id": 0}
+                collection = db.get_collection('User')
+                data = collection.find_one(query,projection)
+
+                if data:
+                    return jsonify({MessageVariable: FailureString, msgVal: "User Already Exists"})
+                else:
+                    top_user = collection.find().sort('UserId', -1).limit(1)
+                    for user in top_user:
+                        print(user['UserId']+1)
+                    hashed_pass = hash_password(password)
+                    id = collection.insert_one({"UserEmail":email,"UserPassword":
+                                                hashed_pass.decode('utf-8'),"PhoneNumber":phoneNumber,
+                                                "CreatedDatetime": datetime.datetime.now,
+                                                "CreatedBy":"User",
+                                                "IsActive":True,
+                                                "IsDeleted":False,
+                                                "UserRole":"2",
+                                                "UserPaid":False,
+                                                "UserId": user['UserId'] + 1
+                                                })
+                    return jsonify({MessageVariable:SuccessString})
+            else
+                return jsonify({MessageVariable:'SuccessString'})
+
         except ValueError as e:
             print(f"Error checking password: {e}")
             collection = db.get_collection('ErrorLogs')
