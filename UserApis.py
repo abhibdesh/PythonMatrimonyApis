@@ -109,7 +109,6 @@ class AddNewUser(Resource):
                     print(top_user)
                     for user in top_user:
                         print(user['UserId']+1)
-                    print("HHHHHHHEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEE")
                     hashed_pass = hash_password(UserPassword)
                     print(hashed_pass)
                     current_time = datetime.now()
@@ -148,14 +147,33 @@ class AddNewUser(Resource):
             return jsonify({MessageVariable: FailureString, msgVal: "Something Went Wrong"})
         
    
+
+class FetchAllUsers(Resource):
+    def post(self):
+        filters = request.json['filters']
+        projection = {"_id": 0}
+        dataList = []
+        try:
+            collection = db.get_collection('User')
+            data = collection.find(filters,projection)
+            for u in data:
+                dataList.append(u)
+            return jsonify({MessageVariable:SuccessString,"data": dataList})
+        except ValueError as e:
+            print(f"Error checking password: {e}")
+            collection = db.get_collection('ErrorLogs')
+            log = collection.insert_one({"Method":"AddNewUser-UserApi.py","Exception":e,"Time":datetime.datetime.now})
+            return jsonify({MessageVariable: FailureString, msgVal: "Something Went Wrong"})
         
+
+
+
 def ValidateUser(email, password):
     try:
         query = {"UserEmail": email}
         projection = {"_id": 0}
         collection = db.get_collection('User')
         data = collection.find_one(query,projection)
-        
         if data and checkpw(password.encode('utf-8'), data["UserPassword"].encode('utf-8')):
             return data 
         else:

@@ -4,7 +4,7 @@ from flask_cors import CORS
 from flask_jwt_extended import JWTManager, jwt_required, get_jwt_identity
 import firebase_admin
 from firebase_admin import credentials
-from UserApis import UserLogin, AddNewUser
+from UserApis import UserLogin, AddNewUser, FetchAllUsers
 import secrets
 import json
 from datetime import timedelta
@@ -40,6 +40,9 @@ class HelloWorld(Resource):
 api.add_resource(HelloWorld, '/HelloWorld')
 api.add_resource(UserLogin, '/UserLogin')
 api.add_resource(AddNewUser, '/AddUser')
+api.add_resource(FetchAllUsers, '/GetClients')
+
+
 
 
 
