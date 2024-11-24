@@ -151,8 +151,13 @@ class AddNewUser(Resource):
 class FetchAllUsers(Resource):
     def post(self):
         filters = request.json['filters']
-        projection = {"_id": 0}
+        isPaidUser = request.json["isPaid"]
+        if isPaidUser:
+            projection = {"_id": 0,"UserPassword":0}
+        else:
+            projection = {"_id": 0,"UserPassword":0,"UserEmail":0,"PhoneNumber":0}
         dataList = []
+        print(projection)
         try:
             collection = db.get_collection('User')
             data = collection.find(filters,projection)
