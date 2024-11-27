@@ -92,7 +92,7 @@ class AddNewUser(Resource):
         DisabilityYN = request.json['DisabilityYN']
         Charan = request.json['Charan']
         Naadi = request.json['Naadi']
-        
+        userIdNew= 0
 
         try:
             if UserId == "0":
@@ -108,6 +108,7 @@ class AddNewUser(Resource):
                     top_user = collection.find().sort('UserId', -1).limit(1)
                     print(top_user)
                     for user in top_user:
+                        userIdNew = user['UserId']+1
                         print(user['UserId']+1)
                     hashed_pass = hash_password(UserPassword)
                     print(hashed_pass)
@@ -136,8 +137,7 @@ class AddNewUser(Resource):
                                                 "UserRole":"2",
                                                 "UserPaid":False,
                                                  "UserId": 
-                                                 top_user['UserId'] + 
-                                                 1
+                                                 userIdNew
                                                 })
                     return jsonify({MessageVariable:SuccessString})
         except ValueError as e:
@@ -152,6 +152,7 @@ class FetchAllUsers(Resource):
     def post(self):
         filters = request.json['filters']
         isPaidUser = request.json["isPaid"]
+        page = request.json['pageNumber']
         if isPaidUser:
             projection = {"_id": 0,"UserPassword":0}
         else:
@@ -162,6 +163,8 @@ class FetchAllUsers(Resource):
             collection = db.get_collection('User')
             data = collection.find(filters,projection)
             for u in data:
+                top_data = {}
+                next_Data = {}
                 dataList.append(u)
             return jsonify({MessageVariable:SuccessString,"data": dataList})
         except ValueError as e:
