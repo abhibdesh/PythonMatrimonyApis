@@ -10,6 +10,7 @@ from jwt.exceptions import PyJWTError as DecodeError
 from datetime import datetime
 
 
+
 with open('./Config/Creds.json') as f:
     config = json.load(f)
     mongoURI = config['uri']
@@ -153,20 +154,39 @@ class FetchAllUsers(Resource):
         filters = request.json['filters']
         isPaidUser = request.json["isPaid"]
         page = request.json['pageNumber']
+        rowsPerPage = request.json['rowsPerPage']
         if isPaidUser:
             projection = {"_id": 0,"UserPassword":0}
         else:
             projection = {"_id": 0,"UserPassword":0,"UserEmail":0,"PhoneNumber":0}
-        dataList = []
-        print(projection)
+        finaldataList = []
+        priorDataList = []
         try:
             collection = db.get_collection('User')
             data = collection.find(filters,projection)
             for u in data:
-                top_data = {}
-                next_Data = {}
-                dataList.append(u)
-            return jsonify({MessageVariable:SuccessString,"data": dataList})
+                print(u)
+                print('____________________________')
+                birth_time = datetime.fromisoformat((u['birthTime']))
+                time_only = birth_time.time()
+                top_data = {"Name":u['firstName'] + ' ' + u["lastName"],
+                    "Address" :  u['Address'] +',' + u["CurrentAddress"],
+                    "Education" : u["DegDip"] + ',' + u['Field'],
+                    "Income" : u["JobBis"] + ", earns around " + u['IncomeGroup'],
+                    "Userid" : u['UserId']
+                 }
+                next_Data = {
+                    "Birthdate": datetime.fromisoformat((u['birthDate']).rstrip("Z")).date(),
+                    "Birthtime":  str(time_only),
+                    "BirthPlace" : u['BirthPlace'],
+                    "Bloodgroup" : u["BloodGrp"]
+
+                }
+                dictt = {"topData": top_data, "next_data": [next_Data]}
+                #next_Data.add
+                finaldataList.append(dictt)
+                
+            return jsonify({MessageVariable:SuccessString,"users": finaldataList})
         except ValueError as e:
             print(f"Error checking password: {e}")
             collection = db.get_collection('ErrorLogs')
