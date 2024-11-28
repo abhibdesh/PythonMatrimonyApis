@@ -172,7 +172,7 @@ class FetchAllUsers(Resource):
                 top_data = {"Name":u['firstName'] + ' ' + u["lastName"],
                     "Address" :  u['Address'] +',' + u["CurrentAddress"],
                     "Education" : u["DegDip"] + ',' + u['Field'],
-                    "Income" : u["JobBis"] + ", earns around " + u['IncomeGroup'],
+                    "Income" : u["JobBis"] + ", earns " + u['IncomeGroup'],
                     "Userid" : u['UserId']
                  }
                 next_Data = {
