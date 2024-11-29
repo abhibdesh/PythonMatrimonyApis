@@ -5,6 +5,7 @@ from flask_jwt_extended import JWTManager, jwt_required, get_jwt_identity
 import firebase_admin
 from firebase_admin import credentials
 from UserApis import UserLogin, AddNewUser, FetchAllUsers
+from GetMasters import GetNewUserFormMasters
 import secrets
 import json
 from datetime import timedelta
@@ -43,6 +44,7 @@ api.add_resource(HelloWorld, '/HelloWorld')
 api.add_resource(UserLogin, '/UserLogin')
 api.add_resource(AddNewUser, '/AddUser')
 api.add_resource(FetchAllUsers, '/GetClients')
+api.add_resource(GetNewUserFormMasters,'/GetNewUserFormMasters')
 
 
 

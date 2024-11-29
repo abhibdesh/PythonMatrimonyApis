@@ -115,7 +115,7 @@ class AddNewUser(Resource):
                     print(hashed_pass)
                     current_time = datetime.now()
                     id = collection.insert_one({"UserEmail":Email,"UserPassword":hashed_pass.decode('utf-8'),"PhoneNumber":PhoneNumber,
-                                                "LookinFor":LookinFor ,"ChoosingFor":ChoosingFor,"firstName":firstName ,
+                                                "LookingFor":LookinFor ,"ChoosingFor":ChoosingFor,"firstName":firstName ,
                                                 "lastName":lastName,"Address":Address,"CurrentAddress":CurrentAddress,
                                                 "birthDate":birthDate, "birthTime":birthTime,
                                                 "BirthPlace":BirthPlace,"Raas":Raas,
