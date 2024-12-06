@@ -70,6 +70,7 @@ class AddNewUser(Resource):
         BloodGrp = request.json['BloodGrp']
         DegDip = request.json['DegDip']
         Field = request.json['Field']
+        image = request.json['image']
         degreeName = request.json['degreeName']
         JobBis = request.json['JobBis']
         IncomeGroup = request.json['IncomeGroup']
@@ -115,32 +116,32 @@ class AddNewUser(Resource):
                     hashed_pass = hash_password(UserPassword)
                     print(hashed_pass)
                     current_time = datetime.now()
-                    # id = collection.insert_one({"UserEmail":Email,"UserPassword":hashed_pass.decode('utf-8'),"PhoneNumber":PhoneNumber,
-                    #                             "LookingFor":LookinFor ,"ChoosingFor":ChoosingFor,"firstName":firstName ,
-                    #                             "lastName":lastName,"Address":Address,"CurrentAddress":CurrentAddress,
-                    #                             "birthDate":birthDate, "birthTime":birthTime,
-                    #                             "BirthPlace":BirthPlace,"Raas":Raas,
-                    #                             "Height": Height,"BloodGrp":BloodGrp,"DegDip":DegDip,
-                    #                             "Field":Field, "JobBis":JobBis , "IncomeGroup":IncomeGroup,
-                    #                             "Eating":Eating,"Gotra":Gotra, "Dosha":Dosha, "Gana":Gana,         
-                    #                             "Devak":Devak, "Nakshatra":Nakshatra,"FamilyType":FamilyType,
-                    #                             "Siblings":Siblings,"EduSiblings":EduSiblings,
-                    #                             "Property":Property, "EduMother":EduMother,"EduFather":EduFather,
-                    #                             "MotherFamily":MotherFamily, "FatherFamily":FatherFamily,
-                    #                             "selectedEducations":selectedEducations,"degreeName":degreeName,
-                    #                             "selectedIncome":selectedIncome,
-                    #                             "eatingHabits" : eatingHabits,
-                    #                             "expectedGana":expectedGana, "DisabilityYN":DisabilityYN,
-                    #                             "Charan":Charan, "Naadi":Naadi,
-                    #                             "CreatedDatetime": current_time,
-                    #                             "CreatedBy":"User",
-                    #                             "IsActive":True,
-                    #                             "IsDeleted":False,
-                    #                             "UserRole":"2",
-                    #                             "UserPaid":False,
-                    #                              "UserId": 
-                    #                              userIdNew
-                    #                             })
+                    id = collection.insert_one({"UserEmail":Email,"UserPassword":hashed_pass.decode('utf-8'),"PhoneNumber":PhoneNumber,
+                                                "LookingFor":LookinFor ,"ChoosingFor":ChoosingFor,"firstName":firstName ,
+                                                "lastName":lastName,"Address":Address,"CurrentAddress":CurrentAddress,
+                                                "birthDate":birthDate, "birthTime":birthTime,
+                                                "BirthPlace":BirthPlace,"Raas":Raas,
+                                                "Height": Height,"BloodGrp":BloodGrp,"DegDip":DegDip,
+                                                "Field":Field, "JobBis":JobBis , "IncomeGroup":IncomeGroup,
+                                                "Eating":Eating,"Gotra":Gotra, "Dosha":Dosha, "Gana":Gana,         
+                                                "Devak":Devak, "Nakshatra":Nakshatra,"FamilyType":FamilyType,
+                                                "Siblings":Siblings,"EduSiblings":EduSiblings,
+                                                "Property":Property, "EduMother":EduMother,"EduFather":EduFather,
+                                                "MotherFamily":MotherFamily, "FatherFamily":FatherFamily,
+                                                "selectedEducations":selectedEducations,"degreeName":degreeName,
+                                                "selectedIncome":selectedIncome,
+                                                "eatingHabits" : eatingHabits,
+                                                "expectedGana":expectedGana, "DisabilityYN":DisabilityYN,
+                                                "Charan":Charan, "Naadi":Naadi,
+                                                "CreatedDatetime": current_time,
+                                                "CreatedBy":"User",
+                                                "IsActive":True,
+                                                "IsDeleted":False,
+                                                "UserRole":"2",
+                                                "UserPaid":False,
+                                                 "UserId": 
+                                                 userIdNew
+                                                })
                     access_token = create_access_token(identity=Email)            
                     userData = {
                         "UserId":userIdNew,
@@ -190,6 +191,7 @@ class FetchAllUsers(Resource):
                     "Birthtime":  str(time_only),
                     "BirthPlace" : u['BirthPlace'],
                     "Bloodgroup" : u["BloodGrp"]
+                    , "image": u['image']
 
                 }
                 dictt = {"topData": top_data, "next_data": [next_Data]}
