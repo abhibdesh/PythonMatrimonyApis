@@ -103,7 +103,6 @@ class AddNewUser(Resource):
                 projection = {"_id": 0}
                 collection = db.get_collection('User')
                 data = collection.find_one(query,projection)
-                print(Email)
                 if data:
                     print("ALETREXISTS")
                     return jsonify({MessageVariable: FailureString, msgVal: "User Already Exists"})
@@ -114,7 +113,6 @@ class AddNewUser(Resource):
                         userIdNew = user['UserId']+1
                         print(user['UserId']+1)
                     hashed_pass = hash_password(UserPassword)
-                    print(hashed_pass)
                     current_time = datetime.now()
                     id = collection.insert_one({"UserEmail":Email,"UserPassword":hashed_pass.decode('utf-8'),"PhoneNumber":PhoneNumber,
                                                 "LookingFor":LookinFor ,"ChoosingFor":ChoosingFor,"firstName":firstName ,
@@ -140,7 +138,8 @@ class AddNewUser(Resource):
                                                 "UserRole":"2",
                                                 "UserPaid":False,
                                                  "UserId": 
-                                                 userIdNew
+                                                 userIdNew,
+                                                 "image":image
                                                 })
                     access_token = create_access_token(identity=Email)            
                     userData = {
@@ -181,8 +180,8 @@ class FetchAllUsers(Resource):
                 birth_time = datetime.fromisoformat((u['birthTime']))
                 time_only = birth_time.time()
                 top_data = {"Name":u['firstName'] + ' ' + u["lastName"],
-                    "Address" :  u['Address'] +',' + u["CurrentAddress"],
-                    "Education" : u["DegDip"] + ',' + u['Field'],
+                    "Address" :  str(u['Address']) +',' + str(u["CurrentAddress"]),
+                    "Education" : str(u["DegDip"]) + ',' + str(u['Field']),
                     "Income" : u["JobBis"] + ", earns " + u['IncomeGroup'],
                     "Userid" : u['UserId']
                  }
