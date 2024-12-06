@@ -70,6 +70,7 @@ class AddNewUser(Resource):
         BloodGrp = request.json['BloodGrp']
         DegDip = request.json['DegDip']
         Field = request.json['Field']
+        degreeName = request.json['degreeName']
         JobBis = request.json['JobBis']
         IncomeGroup = request.json['IncomeGroup']
         Eating = request.json['Eating']
@@ -94,7 +95,7 @@ class AddNewUser(Resource):
         Charan = request.json['Charan']
         Naadi = request.json['Naadi']
         userIdNew= 0
-
+        
         try:
             if UserId == "0":
                 query = {"UserEmail": Email}
@@ -114,33 +115,42 @@ class AddNewUser(Resource):
                     hashed_pass = hash_password(UserPassword)
                     print(hashed_pass)
                     current_time = datetime.now()
-                    id = collection.insert_one({"UserEmail":Email,"UserPassword":hashed_pass.decode('utf-8'),"PhoneNumber":PhoneNumber,
-                                                "LookingFor":LookinFor ,"ChoosingFor":ChoosingFor,"firstName":firstName ,
-                                                "lastName":lastName,"Address":Address,"CurrentAddress":CurrentAddress,
-                                                "birthDate":birthDate, "birthTime":birthTime,
-                                                "BirthPlace":BirthPlace,"Raas":Raas,
-                                                "Height": Height,"BloodGrp":BloodGrp,"DegDip":DegDip,
-                                                "Field":Field, "JobBis":JobBis , "IncomeGroup":IncomeGroup,
-                                                "Eating":Eating,"Gotra":Gotra, "Dosha":Dosha, "Gana":Gana,         
-                                                "Devak":Devak, "Nakshatra":Nakshatra,"FamilyType":FamilyType,
-                                                "Siblings":Siblings,"EduSiblings":EduSiblings,
-                                                "Property":Property, "EduMother":EduMother,"EduFather":EduFather,
-                                                "MotherFamily":MotherFamily, "FatherFamily":FatherFamily,
-                                                "selectedEducations":selectedEducations,
-                                                "selectedIncome":selectedIncome,
-                                                "eatingHabits" : eatingHabits,
-                                                "expectedGana":expectedGana, "DisabilityYN":DisabilityYN,
-                                                "Charan":Charan, "Naadi":Naadi,
-                                                "CreatedDatetime": current_time,
-                                                "CreatedBy":"User",
-                                                "IsActive":True,
-                                                "IsDeleted":False,
-                                                "UserRole":"2",
-                                                "UserPaid":False,
-                                                 "UserId": 
-                                                 userIdNew
-                                                })
-                    return jsonify({MessageVariable:SuccessString})
+                    # id = collection.insert_one({"UserEmail":Email,"UserPassword":hashed_pass.decode('utf-8'),"PhoneNumber":PhoneNumber,
+                    #                             "LookingFor":LookinFor ,"ChoosingFor":ChoosingFor,"firstName":firstName ,
+                    #                             "lastName":lastName,"Address":Address,"CurrentAddress":CurrentAddress,
+                    #                             "birthDate":birthDate, "birthTime":birthTime,
+                    #                             "BirthPlace":BirthPlace,"Raas":Raas,
+                    #                             "Height": Height,"BloodGrp":BloodGrp,"DegDip":DegDip,
+                    #                             "Field":Field, "JobBis":JobBis , "IncomeGroup":IncomeGroup,
+                    #                             "Eating":Eating,"Gotra":Gotra, "Dosha":Dosha, "Gana":Gana,         
+                    #                             "Devak":Devak, "Nakshatra":Nakshatra,"FamilyType":FamilyType,
+                    #                             "Siblings":Siblings,"EduSiblings":EduSiblings,
+                    #                             "Property":Property, "EduMother":EduMother,"EduFather":EduFather,
+                    #                             "MotherFamily":MotherFamily, "FatherFamily":FatherFamily,
+                    #                             "selectedEducations":selectedEducations,"degreeName":degreeName,
+                    #                             "selectedIncome":selectedIncome,
+                    #                             "eatingHabits" : eatingHabits,
+                    #                             "expectedGana":expectedGana, "DisabilityYN":DisabilityYN,
+                    #                             "Charan":Charan, "Naadi":Naadi,
+                    #                             "CreatedDatetime": current_time,
+                    #                             "CreatedBy":"User",
+                    #                             "IsActive":True,
+                    #                             "IsDeleted":False,
+                    #                             "UserRole":"2",
+                    #                             "UserPaid":False,
+                    #                              "UserId": 
+                    #                              userIdNew
+                    #                             })
+                    access_token = create_access_token(identity=Email)            
+                    userData = {
+                        "UserId":userIdNew,
+                        "firstName" :firstName,
+                        "access_token" : access_token,
+                        "UserPaid": False,
+                        "IsActive": True,
+                        "UserRole":2
+                        }
+                    return jsonify({MessageVariable:SuccessString,"data" : userData})
         except ValueError as e:
             print(f"Error checking password: {e}")
             collection = db.get_collection('ErrorLogs')
