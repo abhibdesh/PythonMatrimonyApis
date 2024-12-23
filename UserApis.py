@@ -11,6 +11,7 @@ from datetime import datetime
 
 
 
+
 with open('./Config/Creds.json') as f:
     config = json.load(f)
     mongoURI = config['uri']
@@ -114,10 +115,16 @@ class AddNewUser(Resource):
                         print(user['UserId']+1)
                     hashed_pass = hash_password(UserPassword)
                     current_time = datetime.now()
+                    print(birthTime)
+                    print("00000000000000000000")
+                    date_object = datetime.strptime(birthTime[:24], "%a %b %d %Y %H:%M:%S")
+                    time = date_object.time()
+                    print(time)  
+
                     id = collection.insert_one({"UserEmail":Email,"UserPassword":hashed_pass.decode('utf-8'),"PhoneNumber":PhoneNumber,
                                                 "LookingFor":LookinFor ,"ChoosingFor":ChoosingFor,"firstName":firstName ,
                                                 "lastName":lastName,"Address":Address,"CurrentAddress":CurrentAddress,
-                                                "birthDate":birthDate, "birthTime":birthTime,
+                                                "birthDate":birthDate, "birthTime":time.strftime("%H:%M:%S"),
                                                 "BirthPlace":BirthPlace,"Raas":Raas,
                                                 "Height": Height,"BloodGrp":BloodGrp,"DegDip":DegDip,
                                                 "Field":Field, "JobBis":JobBis , "IncomeGroup":IncomeGroup,
@@ -165,6 +172,7 @@ class FetchAllUsers(Resource):
         isPaidUser = request.json["isPaid"]
         page = request.json['pageNumber']
         rowsPerPage = request.json['rowsPerPage']
+        Userid = request.json['Userid']
         if isPaidUser:
             projection = {"_id": 0,"UserPassword":0}
         else:
@@ -172,22 +180,26 @@ class FetchAllUsers(Resource):
         finaldataList = []
         priorDataList = []
         try:
+            filters["IsDeleted"] = False
+            newFilter = {"UserId":{"$ne" : Userid},"IsDeleted":False}
             collection = db.get_collection('User')
-            data = collection.find(filters,projection)
+            print(newFilter)
+            data = collection.find(newFilter,projection)
             for u in data:
-                print(u)
+                #print(u)
+                income = "Income Details Not Provided"
+                if u["JobBis"] != "" and u['IncomeGroup'] !="":
+                    income = u["JobBis"] + ", earns " + u['IncomeGroup']
                 print('____________________________')
-                birth_time = datetime.fromisoformat((u['birthTime']))
-                time_only = birth_time.time()
                 top_data = {"Name":u['firstName'] + ' ' + u["lastName"],
                     "Address" :  str(u['Address']) +',' + str(u["CurrentAddress"]),
                     "Education" : str(u["DegDip"]) + ',' + str(u['Field']),
-                    "Income" : u["JobBis"] + ", earns " + u['IncomeGroup'],
+                    "Income" :income,
                     "Userid" : u['UserId']
                  }
                 next_Data = {
                     "Birthdate": datetime.fromisoformat((u['birthDate']).rstrip("Z")).date(),
-                    "Birthtime":  str(time_only),
+                    "Birthtime":  u['birthTime'],
                     "BirthPlace" : u['BirthPlace'],
                     "Bloodgroup" : u["BloodGrp"]
                     , "image": u['image']
@@ -201,7 +213,7 @@ class FetchAllUsers(Resource):
         except ValueError as e:
             print(f"Error checking password: {e}")
             collection = db.get_collection('ErrorLogs')
-            log = collection.insert_one({"Method":"AddNewUser-UserApi.py","Exception":e,"Time":datetime.datetime.now})
+            log = collection.insert_one({"Method":"AddNewUser-UserApi.py","Exception":e,"Time":datetime.now})
             return jsonify({MessageVariable: FailureString, msgVal: "Something Went Wrong"})
         
 
