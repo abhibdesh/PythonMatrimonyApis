@@ -4,7 +4,7 @@ from flask_cors import CORS
 from flask_jwt_extended import JWTManager, jwt_required, get_jwt_identity
 import firebase_admin
 from firebase_admin import credentials
-from UserApis import UserLogin, AddNewUser, FetchAllUsers
+from UserApis import UserLogin, AddNewUser, FetchAllUsers, FetchMyProfile,LogoutUser
 from GetMasters import GetNewUserFormMasters
 import secrets
 import json
@@ -14,10 +14,14 @@ from jwt.exceptions import PyJWTError as DecodeError
 
 
 
+
 app = Flask(__name__)
 api = Api(app)
 CORS(app
-    #  , resources={r"/*": {"origins": "http://localhost:5173"}}
+     , resources={r"/*": {"origins": "http://localhost:5173"
+                        #   "allow_headers": "Authorization"
+                          }
+                  }
      )
 service_account_key = './Config/FirebaseCreds.json'
 with open('./Config/Creds.json') as f:
@@ -39,12 +43,20 @@ class HelloWorld(Resource):
             print(e)
             return {"data": "HelloWorld!!!"}
 
+@app.after_request
+def after_request(response):
+    response.headers.add('Access-Control-Allow-Origin', 'http://localhost:5173')
+    response.headers.add('Access-Control-Allow-Headers', 'Content-Type, Authorization')
+    response.headers.add('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS')
+    return response
 
 api.add_resource(HelloWorld, '/HelloWorld')
 api.add_resource(UserLogin, '/UserLogin')
 api.add_resource(AddNewUser, '/AddUser')
 api.add_resource(FetchAllUsers, '/GetClients')
 api.add_resource(GetNewUserFormMasters,'/GetNewUserFormMasters')
+api.add_resource(FetchMyProfile,'/FetchMyProfile')
+api.add_resource(LogoutUser,'/LogoutUser')
 
 
 

@@ -1,8 +1,9 @@
-from flask import make_response, request, jsonify
+from flask import Flask, jsonify, request
+from flask_cors import cross_origin
 from flask_restful import Resource
 from firebase_admin import firestore
 from bcrypt import gensalt, checkpw, hashpw
-from flask_jwt_extended import create_access_token
+from flask_jwt_extended import create_access_token, jwt_required, get_jwt_header
 from pymongo import MongoClient
 import json
 from jwt import DecodeError
@@ -34,14 +35,20 @@ class UserLogin(Resource):
             email = request.json.get('email')
             password = request.json.get('password')
             user_data = ValidateUser(email, password)  
-            access_token = create_access_token(identity=email)            
+            access_token = create_access_token(identity=email) 
+            collection = db.get_collection('User')
+            # collection.update_one()
             if user_data:
                 return jsonify({MessageVariable: SuccessString, msgVal: user_data, 'accessToken': access_token})
             else:
                 return jsonify({MessageVariable: FailureString, msgVal: "Invalid Credentials"})
-        except ValueError as e:
-            collection = db.get_collection('ErrorLogs')
-            log = collection.insert_one({"Method":"UserLogin-UserApi.py","Exception":e,"Time":datetime.datetime.now,"UserEmail":email})
+        except Exception as e:
+            print("hfsdshgfshgd")
+            collectiona = db.get_collection("ErrorLogs")
+            current = datetime.now()
+            print("jsgdghsdjf")
+            log = collectiona.insert_one({"Method":"UserLogin-UserApi.py","Exception":e,"Time":current,"UserEmail":email})
+            print(log)
             return jsonify({MessageVariable: FailureString, msgVal: "We Apologize For The Inconvenience.Please Try Again Later"})
 
 
@@ -120,6 +127,7 @@ class AddNewUser(Resource):
                     date_object = datetime.strptime(birthTime[:24], "%a %b %d %Y %H:%M:%S")
                     time = date_object.time()
                     print(time)  
+                    access_token = create_access_token(identity=Email) 
 
                     id = collection.insert_one({"UserEmail":Email,"UserPassword":hashed_pass.decode('utf-8'),"PhoneNumber":PhoneNumber,
                                                 "LookingFor":LookinFor ,"ChoosingFor":ChoosingFor,"firstName":firstName ,
@@ -139,6 +147,8 @@ class AddNewUser(Resource):
                                                 "expectedGana":expectedGana, "DisabilityYN":DisabilityYN,
                                                 "Charan":Charan, "Naadi":Naadi,
                                                 "CreatedDatetime": current_time,
+                                                "LastLogin":current_time,
+                                                # "accessToken":access_token,
                                                 "CreatedBy":"User",
                                                 "IsActive":True,
                                                 "IsDeleted":False,
@@ -148,7 +158,6 @@ class AddNewUser(Resource):
                                                  userIdNew,
                                                  "image":image
                                                 })
-                    access_token = create_access_token(identity=Email)            
                     userData = {
                         "UserId":userIdNew,
                         "firstName" :firstName,
@@ -164,7 +173,42 @@ class AddNewUser(Resource):
             log = collection.insert_one({"Method":"AddNewUser-UserApi.py","Exception":e,"Time":datetime.datetime.now,"UserEmail":Email})
             return jsonify({MessageVariable: FailureString, msgVal: "Something Went Wrong"})
         
-   
+
+class LogoutUser(Resource):
+    # @jwt_required
+    def post(self):
+        try:
+            print("Request Headers:", request.headers)
+            userid = request.json["UserId"]
+            collection = db.get_collection("User")
+            print(userid)
+            # collection.update_one({})
+            return jsonify({"message": "User logged out successfully"})
+
+        except Exception as e:
+            print(e)
+            return jsonify({"message": "User logged out successfully"})
+
+class FetchMyProfile(Resource):
+    def post(self):
+        userid = request.json["UserId"]
+        try:
+            print("f")
+            projection = {"_id": 0,"UserPassword":0}
+            newFilter = {"UserId" : userid}
+            collection = db.get_collection('User')
+            data = collection.find(newFilter,projection)
+            myProfile = []
+            for u in data:
+                myProfile.append(u)
+            return jsonify({MessageVariable:SuccessString,"data": myProfile})
+
+        except ValueError as e:
+            collection = db.get_collection('ErrorLogs')
+            log = collection.insert_one({"Method":"fetchMyProfile-UserApi.py","Exception":e,"Time":datetime.now})
+            return jsonify({MessageVariable: FailureString, msgVal: "Something Went Wrong"})
+        
+
 
 class FetchAllUsers(Resource):
     def post(self):
