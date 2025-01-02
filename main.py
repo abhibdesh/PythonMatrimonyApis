@@ -18,8 +18,9 @@ from jwt.exceptions import PyJWTError as DecodeError
 app = Flask(__name__)
 api = Api(app)
 CORS(app
-     , resources={r"/*": {"origins": "http://localhost:5173"
-                        #   "allow_headers": "Authorization"
+     , resources={r"/*": {
+        #"origins": "http://localhost:5173"
+                          "allow_headers": "Authorization"
                           }
                   }
      )
@@ -43,12 +44,12 @@ class HelloWorld(Resource):
             print(e)
             return {"data": "HelloWorld!!!"}
 
-@app.after_request
-def after_request(response):
-    response.headers.add('Access-Control-Allow-Origin', 'http://localhost:5173')
-    response.headers.add('Access-Control-Allow-Headers', 'Content-Type, Authorization')
-    response.headers.add('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS')
-    return response
+# @app.after_request
+# def after_request(response):
+#     response.headers.add('Access-Control-Allow-Origin', 'http://localhost:5173')
+#     response.headers.add('Access-Control-Allow-Headers', 'Content-Type, Authorization')
+#     response.headers.add('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS')
+#     return response
 
 api.add_resource(HelloWorld, '/HelloWorld')
 api.add_resource(UserLogin, '/UserLogin')
