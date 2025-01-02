@@ -179,6 +179,8 @@ class LogoutUser(Resource):
     def post(self):
         try:
             print("Request Headers:", request.headers)
+            current_user = get_jwt_identity()
+            print("Authenticated User:", current_user)
             userid = request.json["UserId"]
             collection = db.get_collection("User")
             print(userid)
