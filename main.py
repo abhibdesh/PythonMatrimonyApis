@@ -18,11 +18,11 @@ from jwt.exceptions import PyJWTError as DecodeError
 app = Flask(__name__)
 api = Api(app)
 CORS(app
-    #  , resources={r"/*": {
-    #     #"origins": "http://localhost:5173"
-    #                       "allow_headers": "Authorization"
-    #                       }
-    #               }
+     , resources={r"/*": {
+        "origins": "http://localhost:5173"
+                          "allow_headers": "Authorization"
+                          }
+                  }
      )
 service_account_key = './Config/FirebaseCreds.json'
 with open('./Config/Creds.json') as f:
