@@ -16,7 +16,7 @@ app = Flask(__name__)
 api = Api(app)
 CORS(app
      , resources={r"/*": {
-        "origins": "http://localhost:5173"
+        "origins": "http://localhost:5173",
                           "allow_headers": "Authorization"
                           }
                   }
