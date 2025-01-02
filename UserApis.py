@@ -175,19 +175,17 @@ class AddNewUser(Resource):
         
 
 class LogoutUser(Resource):
-    @jwt_required
+    @jwt_required()
     def post(self):
         try:
             print("Request Headers:", request.headers)
             current_user = get_jwt_identity()
             print("Authenticated User:", current_user)
-            #userid = request.json["UserId"]
-            #print(userid)
-            return jsonify({"message": "User logged out successfully"})
-
+            return jsonify({MessageVariable: "Done"})
         except Exception as e:
-            print(e)
-            return jsonify({"message": "User logged out successfully"})
+            print("Error:", e)
+            return jsonify({"message": "An error occurred during logout", "error": str(e)}), 500
+
 
 class FetchMyProfile(Resource):
     def post(self):

@@ -27,7 +27,7 @@ with open('./Config/Creds.json') as f:
     mongoURI = config['uri']
 cred = credentials.Certificate(service_account_key)
 firebase_admin.initialize_app(cred)
-app.config['JWT_SECRET_KEY'] = secrets.token_urlsafe(32)
+app.config['JWT_SECRET_KEY'] = "asdfghjklpoiuytrewfgvbndcksdhfjgjhejbdsjbcsbh"
 app.config['JWT_ACCESS_TOKEN_EXPIRES'] = timedelta(hours=1)
 jwt = JWTManager(app)
 
