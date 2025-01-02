@@ -175,14 +175,14 @@ class AddNewUser(Resource):
         
 
 class LogoutUser(Resource):
-    #@jwt_required
+    @jwt_required
     def post(self):
         try:
             print("Request Headers:", request.headers)
             current_user = get_jwt_identity()
             print("Authenticated User:", current_user)
-            userid = request.json["UserId"]
-            print(userid)
+            #userid = request.json["UserId"]
+            #print(userid)
             return jsonify({"message": "User logged out successfully"})
 
         except Exception as e:
