@@ -11,6 +11,7 @@ import json
 from datetime import timedelta
 from jwt import DecodeError
 from jwt.exceptions import PyJWTError as DecodeError
+import os
 
 app = Flask(__name__)
 api = Api(app)
@@ -27,7 +28,8 @@ with open('./Config/Creds.json') as f:
     mongoURI = config['uri']
 cred = credentials.Certificate(service_account_key)
 firebase_admin.initialize_app(cred)
-app.config['JWT_SECRET_KEY'] = "asdfghjklpoiuytrewfgvbndcksdhfjgjhejbdsjbcsbh"
+app.config['JWT_SECRET_KEY'] = os.getenv('SECERT_KEY')
+# app.config['JWT_SECRET_KEY'] = "asdfghjklpoiuytrewfgvbndcksdhfjgjhejbdsjbcsbh" # Dummy Key 
 app.config['JWT_ACCESS_TOKEN_EXPIRES'] = timedelta(hours=1)
 jwt = JWTManager(app)
 
@@ -55,11 +57,6 @@ api.add_resource(FetchAllUsers, '/GetClients')
 api.add_resource(GetNewUserFormMasters,'/GetNewUserFormMasters')
 api.add_resource(FetchMyProfile,'/FetchMyProfile')
 api.add_resource(LogoutUser,'/LogoutUser')
-
-
-
-
-
 
 if __name__ == "__main__":
     app.run(debug=True)
