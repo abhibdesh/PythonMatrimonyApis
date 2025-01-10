@@ -96,13 +96,17 @@ class AddNewUser(Resource):
         EduFather = request.json['EduFather']
         MotherFamily = request.json['MotherFamily']
         FatherFamily = request.json['FatherFamily']
-        selectedEducations = request.json['selectedEducations']
         selectedIncome = request.json['selectedIncome']
         eatingHabits = request.json['eatingHabits']
         expectedGana = request.json['expectedGana']
         DisabilityYN = request.json['DisabilityYN']
         Charan = request.json['Charan']
         Naadi = request.json['Naadi']
+        selectedEducations = request.json['selectedEducations']
+        expectedNakshatra = request.json['expectedNakshatra']
+        expectedAgeGap = request.json['expectedAgeGap']
+        strictMatch = request.json['strictMatch']
+        selectedLocatities = request.json['selectedLocatities']
         userIdNew= 0
         
         try:
@@ -146,8 +150,11 @@ class AddNewUser(Resource):
                                                 "eatingHabits" : eatingHabits,
                                                 "expectedGana":expectedGana, "DisabilityYN":DisabilityYN,
                                                 "Charan":Charan, "Naadi":Naadi,
-                                                "CreatedDatetime": current_time,
+                                                "CreatedDatetime": current_time,"selectedLocatities":selectedLocatities,
                                                 "LastLogin":current_time,
+                                                "expectedNakshatra":expectedNakshatra,
+                                                "expectedAgeGap":expectedAgeGap,
+                                                "strictMatch":strictMatch,
                                                 # "accessToken":access_token,
                                                 "CreatedBy":"User",
                                                 "IsActive":True,
