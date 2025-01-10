@@ -177,7 +177,7 @@ class AddNewUser(Resource):
         except ValueError as e:
             print(f"Error checking password: {e}")
             collection = db.get_collection('ErrorLogs')
-            log = collection.insert_one({"Method":"AddNewUser-UserApi.py","Exception":e,"Time":datetime.datetime.now,"UserEmail":Email})
+            log = collection.insert_one({"Method":"AddNewUser-UserApi.py","Exception":e,"Time":datetime.now,"UserEmail":Email})
             return jsonify({MessageVariable: FailureString, msgVal: "Something Went Wrong"})
         
 
@@ -221,19 +221,25 @@ class FetchAllUsers(Resource):
         isPaidUser = request.json["isPaid"]
         page = request.json['pageNumber']
         rowsPerPage = request.json['rowsPerPage']
-        Userid = request.json['Userid']
+        Userid = request.json["Userid"]
         if isPaidUser:
-            projection = {"_id": 0,"UserPassword":0}
+            projection = {"_id": 0,"UserPassword":0
+                        #   , "image":0
+                          }
         else:
             projection = {"_id": 0,"UserPassword":0,"UserEmail":0,"PhoneNumber":0}
         finaldataList = []
         priorDataList = []
         try:
             filters["IsDeleted"] = False
-            newFilter = {"UserId":{"$ne" : Userid},"IsDeleted":False}
             collection = db.get_collection('User')
-            print(newFilter)
+            currentUser = collection.find_one({"UserId":Userid},projection)
+            print(currentUser)
+           
+            newFilter = {"UserId":{"$ne" : [Userid]},"IsDeleted":False,"LookingFor":currentUser["LookingFor"]}
+
             data = collection.find(newFilter,projection)
+
             for u in data:
                 #print(u)
                 income = "Income Details Not Provided"
@@ -251,7 +257,7 @@ class FetchAllUsers(Resource):
                     "Birthtime":  u['birthTime'],
                     "BirthPlace" : u['BirthPlace'],
                     "Bloodgroup" : u["BloodGrp"]
-                    , "image": u['image']
+                   , "image": u['image']
 
                 }
                 dictt = {"topData": top_data, "next_data": [next_Data]}
