@@ -107,6 +107,7 @@ class AddNewUser(Resource):
         expectedAgeGap = request.json['expectedAgeGap']
         strictMatch = request.json['strictMatch']
         selectedLocatities = request.json['selectedLocatities']
+        CompanyName = request.json['CompanyName']
         userIdNew= 0
         
         try:
@@ -148,6 +149,7 @@ class AddNewUser(Resource):
                                                 "selectedEducations":selectedEducations,"degreeName":degreeName,
                                                 "selectedIncome":selectedIncome,
                                                 "eatingHabits" : eatingHabits,
+                                                "CompanyName":CompanyName,
                                                 "expectedGana":expectedGana, "DisabilityYN":DisabilityYN,
                                                 "Charan":Charan, "Naadi":Naadi,
                                                 "CreatedDatetime": current_time,"selectedLocatities":selectedLocatities,
@@ -219,59 +221,86 @@ class FetchAllUsers(Resource):
     def post(self):
         filters = request.json['filters']
         isPaidUser = request.json["isPaid"]
-        page = request.json['pageNumber']
-        rowsPerPage = request.json['rowsPerPage']
+        page = int(request.json['pageNumber'])
+        rowsPerPage = int(request.json['rowsPerPage'])
         Userid = request.json["Userid"]
-        if isPaidUser:
-            projection = {"_id": 0,"UserPassword":0
-                        #   , "image":0
-                          }
-        else:
-            projection = {"_id": 0,"UserPassword":0,"UserEmail":0,"PhoneNumber":0}
+
+        print(filters)
+
+        projection = {"_id": 0, "UserPassword": 0,"image":0}
+        if not isPaidUser:
+            projection.update({"UserEmail": 0, "PhoneNumber": 0})
+
         finaldataList = []
-        priorDataList = []
         try:
             filters["IsDeleted"] = False
             collection = db.get_collection('User')
-            currentUser = collection.find_one({"UserId":Userid},projection)
-            print(currentUser)
-           
-            newFilter = {"UserId":{"$ne" : [Userid]},"IsDeleted":False,"LookingFor":currentUser["LookingFor"]}
+            count = collection.count_documents({})
+            print(count)
+            currentUser = collection.find_one({"UserId": Userid}, projection)
+            
+            # print(currentUser)
 
-            data = collection.find(newFilter,projection)
+            if not currentUser:
+                return jsonify({"message": "User not found", "users": []})
+
+            newFilter = {"UserId": {"$ne": Userid}, "IsDeleted": False,
+                "LookingFor":
+                # {"$ne":
+                 currentUser.get("LookingFor")
+                #  } ,
+            }
+
+            total_count = collection.count_documents(newFilter) 
+            print("total_count")
+            print("total_count")
+            print(total_count)
+            data = (
+                collection.find(newFilter, projection)
+                .skip((page - 1) * rowsPerPage) 
+                .limit(rowsPerPage)  
+            )
 
             for u in data:
-                #print(u)
                 income = "Income Details Not Provided"
-                if u["JobBis"] != "" and u['IncomeGroup'] !="":
+                if u["JobBis"] and u['IncomeGroup']:
                     income = u["JobBis"] + ", earns " + u['IncomeGroup']
-                print('____________________________')
-                top_data = {"Name":u['firstName'] + ' ' + u["lastName"],
-                    "Address" :  str(u['Address']) +',' + str(u["CurrentAddress"]),
-                    "Education" : str(u["DegDip"]) + ',' + str(u['Field']),
-                    "Income" :income,
-                    "Userid" : u['UserId']
-                 }
+
+                top_data = {
+                    "Name": u['firstName'] + ' ' + u["lastName"],
+                    "Address": str(u['Address']) + ', ' + str(u["CurrentAddress"]),
+                    "Education": str(u["DegDip"]) + ', ' + str(u['Field']),
+                    "Income": income,
+                    "Userid": u['UserId']
+                }
+
                 next_Data = {
                     "Birthdate": datetime.fromisoformat((u['birthDate']).rstrip("Z")).date(),
-                    "Birthtime":  u['birthTime'],
-                    "BirthPlace" : u['BirthPlace'],
-                    "Bloodgroup" : u["BloodGrp"]
-                   , "image": u['image']
-
+                    "Birthtime": u['birthTime'],
+                    "BirthPlace": u['BirthPlace'],
+                    "Bloodgroup": u["BloodGrp"]
+                    # ,"image": u['image']
                 }
-                dictt = {"topData": top_data, "next_data": [next_Data]}
-                #next_Data.add
-                finaldataList.append(dictt)
-                
-            return jsonify({MessageVariable:SuccessString,"users": finaldataList})
-        except ValueError as e:
-            print(f"Error checking password: {e}")
-            collection = db.get_collection('ErrorLogs')
-            log = collection.insert_one({"Method":"AddNewUser-UserApi.py","Exception":e,"Time":datetime.now})
-            return jsonify({MessageVariable: FailureString, msgVal: "Something Went Wrong"})
-        
 
+                finaldataList.append({"topData": top_data, "next_data": [next_Data]})
+
+            return jsonify({
+                "message": "Success",
+                "users": finaldataList,
+                "totalCount": total_count,  
+                "currentPage": page,
+                "rowsPerPage": rowsPerPage
+            })
+        except Exception as e:
+            print(f"Error fetching users: {e}")
+            error_collection = db.get_collection('ErrorLogs')
+            error_collection.insert_one({
+                "Method": "FetchAllUsers",
+                "Exception": str(e),
+                "Time": datetime.now()
+            })
+            return jsonify({"message": "Failure", "error": "Something Went Wrong"})
+        
 
 
 def ValidateUser(email, password):
