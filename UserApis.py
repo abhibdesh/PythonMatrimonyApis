@@ -54,13 +54,8 @@ class UserLogin(Resource):
 
 class AddNewUser(Resource):
     def post(self):
-        # Old Data
-        # email = request.json['email']
-        # password = request.json['password']
-        # phoneNumber = request.json['phoneNumber']
-
-        # New Form Data
         UserId = request.json['UserId']
+        # Step 1 
         LookinFor = request.json['LookinFor']
         ChoosingFor = request.json['ChoosingFor']
         UserPassword = request.json['UserPassword']
@@ -76,10 +71,14 @@ class AddNewUser(Resource):
         Raas = request.json['Raas']
         Height = request.json['Height']
         BloodGrp = request.json['BloodGrp']
+        DisabilityYN = request.json['DisabilityYN']
+        Disablity = request.json['Disablity']
+        # Step 2
         DegDip = request.json['DegDip']
         Field = request.json['Field']
         image = request.json['image']
         degreeName = request.json['degreeName']
+        CompanyName = request.json['CompanyName']
         JobBis = request.json['JobBis']
         IncomeGroup = request.json['IncomeGroup']
         Eating = request.json['Eating']
@@ -88,6 +87,9 @@ class AddNewUser(Resource):
         Gana = request.json['Gana']
         Devak = request.json['Devak']
         Nakshatra = request.json['Nakshatra']
+        Charan = request.json['Charan']
+        Naadi = request.json['Naadi']
+        #Step 3
         FamilyType = request.json['FamilyType']
         Siblings = request.json['Siblings']
         EduSiblings = request.json['EduSiblings']
@@ -96,28 +98,26 @@ class AddNewUser(Resource):
         EduFather = request.json['EduFather']
         MotherFamily = request.json['MotherFamily']
         FatherFamily = request.json['FatherFamily']
+        #Step 4
         selectedIncome = request.json['selectedIncome']
         eatingHabits = request.json['eatingHabits']
-        expectedGana = request.json['expectedGana']
-        DisabilityYN = request.json['DisabilityYN']
-        Charan = request.json['Charan']
-        Naadi = request.json['Naadi']
+        expectedGana = request.json['expectedGana']     
         selectedEducations = request.json['selectedEducations']
         expectedNakshatra = request.json['expectedNakshatra']
         expectedAgeGap = request.json['expectedAgeGap']
         strictMatch = request.json['strictMatch']
         selectedLocatities = request.json['selectedLocatities']
-        CompanyName = request.json['CompanyName']
         userIdNew= 0
         
         try:
+
             if UserId == "0":
                 query = {"UserEmail": Email}
                 projection = {"_id": 0}
                 collection = db.get_collection('User')
                 data = collection.find_one(query,projection)
                 if data:
-                    print("ALETREXISTS")
+                    print("User Already Exists")
                     return jsonify({MessageVariable: FailureString, msgVal: "User Already Exists"})
                 else:
                     top_user = collection.find().sort('UserId', -1).limit(1)
@@ -128,36 +128,68 @@ class AddNewUser(Resource):
                     hashed_pass = hash_password(UserPassword)
                     current_time = datetime.now()
                     print(birthTime)
-                    print("00000000000000000000")
                     date_object = datetime.strptime(birthTime[:24], "%a %b %d %Y %H:%M:%S")
                     time = date_object.time()
                     print(time)  
                     access_token = create_access_token(identity=Email) 
-
-                    id = collection.insert_one({"UserEmail":Email,"UserPassword":hashed_pass.decode('utf-8'),"PhoneNumber":PhoneNumber,
-                                                "LookingFor":LookinFor ,"ChoosingFor":ChoosingFor,"firstName":firstName ,
-                                                "lastName":lastName,"Address":Address,"CurrentAddress":CurrentAddress,
-                                                "birthDate":birthDate, "birthTime":time.strftime("%H:%M:%S"),
+                    birth_date = datetime.fromisoformat(birthDate)
+                    birth_date_only = birth_date.date()
+                    today = datetime.today().date()
+                    age = today.year - birth_date_only.year - ((today.month, today.day) 
+                                                               < (birth_date_only.month,
+                                                                   birth_date_only.day))
+                    if Height =='':
+                        Height=0
+                    if Siblings =='':
+                        Siblings =0
+                    id = collection.insert_one({"UserEmail":Email,
+                                                "UserPassword":hashed_pass.decode('utf-8'),
+                                                "PhoneNumber":PhoneNumber,
+                                                "LookingFor":LookinFor ,
+                                                "ChoosingFor":ChoosingFor,
+                                                "firstName":firstName ,
+                                                "lastName":lastName,
+                                                "Address":Address,
+                                                "CurrentAddress":CurrentAddress,
+                                                "birthDate":birth_date,
+                                                "birthTime":time.strftime("%H:%M:%S"),
+                                                "age":age,
                                                 "BirthPlace":BirthPlace,"Raas":Raas,
-                                                "Height": Height,"BloodGrp":BloodGrp,"DegDip":DegDip,
-                                                "Field":Field, "JobBis":JobBis , "IncomeGroup":IncomeGroup,
-                                                "Eating":Eating,"Gotra":Gotra, "Dosha":Dosha, "Gana":Gana,         
-                                                "Devak":Devak, "Nakshatra":Nakshatra,"FamilyType":FamilyType,
-                                                "Siblings":Siblings,"EduSiblings":EduSiblings,
-                                                "Property":Property, "EduMother":EduMother,"EduFather":EduFather,
-                                                "MotherFamily":MotherFamily, "FatherFamily":FatherFamily,
-                                                "selectedEducations":selectedEducations,"degreeName":degreeName,
+                                                "Height": Height,
+                                                "BloodGrp":BloodGrp,
+                                                "Disablity":Disablity,
+                                                "DegDip":DegDip,
+                                                "Field":Field, 
+                                                "JobBis":JobBis , 
+                                                "IncomeGroup":IncomeGroup,
+                                                "Eating":Eating,
+                                                "Gotra":Gotra, 
+                                                "Dosha":Dosha, 
+                                                "Gana":Gana,         
+                                                "Devak":Devak, 
+                                                "Nakshatra":Nakshatra,
+                                                "FamilyType":FamilyType,
+                                                "Siblings":Siblings,
+                                                "EduSiblings":EduSiblings,
+                                                "Property":Property, 
+                                                "EduMother":EduMother,
+                                                "EduFather":EduFather,
+                                                "MotherFamily":MotherFamily, 
+                                                "FatherFamily":FatherFamily,
+                                                "selectedEducations":selectedEducations,
+                                                "degreeName":degreeName,
                                                 "selectedIncome":selectedIncome,
                                                 "eatingHabits" : eatingHabits,
                                                 "CompanyName":CompanyName,
-                                                "expectedGana":expectedGana, "DisabilityYN":DisabilityYN,
+                                                "expectedGana":expectedGana, 
+                                                "DisabilityYN":DisabilityYN,
                                                 "Charan":Charan, "Naadi":Naadi,
-                                                "CreatedDatetime": current_time,"selectedLocatities":selectedLocatities,
+                                                "CreatedDatetime": current_time,
+                                                "selectedLocatities":selectedLocatities,
                                                 "LastLogin":current_time,
                                                 "expectedNakshatra":expectedNakshatra,
                                                 "expectedAgeGap":expectedAgeGap,
                                                 "strictMatch":strictMatch,
-                                                # "accessToken":access_token,
                                                 "CreatedBy":"User",
                                                 "IsActive":True,
                                                 "IsDeleted":False,
@@ -226,9 +258,7 @@ class FetchAllUsers(Resource):
         rowsPerPage = int(request.json['rowsPerPage'])
         Userid = request.json["Userid"]
 
-        print(filters)
-
-        projection = {"_id": 0, "UserPassword": 0,"image":0}
+        projection = {"_id": 0, "UserPassword": 0}
         if not isPaidUser:
             projection.update({"UserEmail": 0, "PhoneNumber": 0})
 
@@ -236,26 +266,20 @@ class FetchAllUsers(Resource):
         try:
             filters["IsDeleted"] = False
             collection = db.get_collection('User')
-            count = collection.count_documents({})
-            print(count)
             currentUser = collection.find_one({"UserId": Userid}, projection)
-            
             # print(currentUser)
 
             if not currentUser:
                 return jsonify({"message": "User not found", "users": []})
 
-            newFilter = {"UserId": {"$ne": Userid}, "IsDeleted": False,
-                "LookingFor":
-                # {"$ne":
-                 currentUser.get("LookingFor")
-                #  } ,
-            }
+            newFilter = {"UserId": {"$ne": Userid}, "IsDeleted": False, "LookingFor":  currentUser.get("LookingFor")}
+            print(int(filters["selectedFromHeight"]))
+            if int(filters["selectedFromHeight"]) > 0 :
+                newFilter["Height"] = {"$gte": filters["selectedFromHeight"]}
+            print(newFilter)
 
             total_count = collection.count_documents(newFilter) 
-            print("total_count")
-            print("total_count")
-            print(total_count)
+          
             data = (
                 collection.find(newFilter, projection)
                 .skip((page - 1) * rowsPerPage) 
@@ -264,6 +288,7 @@ class FetchAllUsers(Resource):
 
             for u in data:
                 income = "Income Details Not Provided"
+                print(u["birthDate"])
                 if u["JobBis"] and u['IncomeGroup']:
                     income = u["JobBis"] + ", earns " + u['IncomeGroup']
 
@@ -276,11 +301,11 @@ class FetchAllUsers(Resource):
                 }
 
                 next_Data = {
-                    "Birthdate": datetime.fromisoformat((u['birthDate']).rstrip("Z")).date(),
+                    "Birthdate": u['birthDate'],
                     "Birthtime": u['birthTime'],
                     "BirthPlace": u['BirthPlace'],
                     "Bloodgroup": u["BloodGrp"]
-                    # ,"image": u['image']
+                     ,"image": u['image']
                 }
 
                 finaldataList.append({"topData": top_data, "next_data": [next_Data]})
