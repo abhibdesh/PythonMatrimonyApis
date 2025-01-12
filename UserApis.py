@@ -108,9 +108,7 @@ class AddNewUser(Resource):
         strictMatch = request.json['strictMatch']
         selectedLocatities = request.json['selectedLocatities']
         userIdNew= 0
-        
         try:
-
             if UserId == "0":
                 query = {"UserEmail": Email}
                 projection = {"_id": 0}
@@ -207,6 +205,7 @@ class AddNewUser(Resource):
                         "IsActive": True,
                         "UserRole":2
                         }
+                    print(userData)
                     return jsonify({MessageVariable:SuccessString,"data" : userData})
         except ValueError as e:
             print(f"Error checking password: {e}")
@@ -216,12 +215,12 @@ class AddNewUser(Resource):
         
 
 class LogoutUser(Resource):
-    # @jwt_required()
+    @jwt_required()
     def post(self):
         try:
-            # print("Request Headers:", request.headers)
-            # current_user = get_jwt_identity()
-            # print("Authenticated User:", current_user)
+            print("Request Headers:", request.headers)
+            current_user = get_jwt_identity()
+            print("Authenticated User:", current_user)
             return jsonify({MessageVariable: "Done"})
         except Exception as e:
             print("Error:", e)
@@ -252,7 +251,6 @@ class FetchMyProfile(Resource):
 class FetchAllUsers(Resource):
     @jwt_required()
     def post(self):
-        print("Request Headers:", request.headers)
         current_user = get_jwt_identity()
         print("Authenticated User:", current_user)
         filters = request.json['filters']
@@ -271,7 +269,6 @@ class FetchAllUsers(Resource):
             collection = db.get_collection('User')
             currentUser = collection.find_one({"UserId": Userid}, projection)
             # print(currentUser)
-
             if not currentUser:
                 return jsonify({"message": "User not found", "users": []})
 
