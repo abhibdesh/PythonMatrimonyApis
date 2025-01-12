@@ -218,6 +218,7 @@ class FetchMyProfile(Resource):
 
 
 class FetchAllUsers(Resource):
+    @jwt_required()
     def post(self):
         filters = request.json['filters']
         isPaidUser = request.json["isPaid"]
