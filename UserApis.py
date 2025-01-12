@@ -219,9 +219,9 @@ class LogoutUser(Resource):
     # @jwt_required()
     def post(self):
         try:
-            print("Request Headers:", request.headers)
-            current_user = get_jwt_identity()
-            print("Authenticated User:", current_user)
+            # print("Request Headers:", request.headers)
+            # current_user = get_jwt_identity()
+            # print("Authenticated User:", current_user)
             return jsonify({MessageVariable: "Done"})
         except Exception as e:
             print("Error:", e)
@@ -250,8 +250,11 @@ class FetchMyProfile(Resource):
 
 
 class FetchAllUsers(Resource):
-    # @jwt_required()
+    @jwt_required()
     def post(self):
+        print("Request Headers:", request.headers)
+        current_user = get_jwt_identity()
+        print("Authenticated User:", current_user)
         filters = request.json['filters']
         isPaidUser = request.json["isPaid"]
         page = int(request.json['pageNumber'])
