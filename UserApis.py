@@ -216,7 +216,7 @@ class AddNewUser(Resource):
         
 
 class LogoutUser(Resource):
-    @jwt_required()
+    # @jwt_required()
     def post(self):
         try:
             print("Request Headers:", request.headers)
