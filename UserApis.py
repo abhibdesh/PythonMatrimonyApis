@@ -138,6 +138,8 @@ class AddNewUser(Resource):
                                                                    birth_date_only.day))
                     if Height =='':
                         Height=0
+                    else:
+                        Height = float(Height)
                     if Siblings =='':
                         Siblings =0
                     id = collection.insert_one({"UserEmail":Email,
@@ -284,11 +286,11 @@ class UpdateProfile(Resource):
             if Height =='':
                 Height = 0
             else:
-                Height = int(Height)
+                Height = float(Height)
             if Siblings =='':
                 Siblings = 0
             else:
-                Height = int(Height)
+                Height = float(Height)
             print(birthTime)
             date_object = datetime.strptime(birthTime[:24], "%H:%M:%S")
             time = date_object.time()
