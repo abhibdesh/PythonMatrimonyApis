@@ -375,7 +375,7 @@ class LogoutUser(Resource):
 
 
 class FetchMyProfile(Resource):
-    
+    @jwt_required()
     def post(self):
         userid = request.json["UserId"]
         # current_user = get_jwt_identity()
