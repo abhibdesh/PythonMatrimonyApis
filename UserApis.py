@@ -358,6 +358,23 @@ class UpdateProfile(Resource):
             return jsonify({"message": "An error occurred during logout", "error": str(e)}), 500
 
         
+class GetSingleProfileData(Resource):
+    @jwt_required()
+    def post(self):
+        current_user = get_jwt_identity()
+        print("Authenticated User:", current_user)
+        userId = request.json["UserId"]
+        print(userId)
+        try:
+            projection = {"_id": 0,"UserPassword":0}
+            newFilter = {"UserId" : int(userId)}
+            print(newFilter)
+            collection = db.get_collection('User')
+            data = collection.find(newFilter,projection)
+        except Exception as e:
+            collection = db.get_collection('ErrorLogs')
+            log = collection.insert_one({"Method":"GetSingleProfileData-UserApi.py","Exception":e,"Time":datetime.now})
+            return jsonify({MessageVariable: FailureString, msgVal: "Something Went Wrong"})
 
 
 
@@ -365,7 +382,6 @@ class LogoutUser(Resource):
     @jwt_required()
     def post(self):
         try:
-            print("Request Headers:", request.headers)
             current_user = get_jwt_identity()
             print("Authenticated User:", current_user)
             return jsonify({MessageVariable: "Done"})
@@ -380,7 +396,6 @@ class FetchMyProfile(Resource):
         # current_user = get_jwt_identity()
         # print("Authenticated User:", current_user)
         try:
-            print("f")
             projection = {"_id": 0,"UserPassword":0}
             newFilter = {"UserId" : int(userid)}
             print(newFilter)
@@ -468,7 +483,9 @@ class FetchAllUsers(Resource):
                     "Address": str(u['Address']) + ', ' + str(u["CurrentAddress"]),
                     "Education": str(u["DegDip"]) + ', ' + str(u['Field']),
                     "Income": income,
-                    "Userid": u['UserId']
+                                          "Userid": u['UserId']
+
+                   
                 }
 
                 next_Data = {
@@ -476,7 +493,8 @@ class FetchAllUsers(Resource):
                     "Birthtime": u['birthTime'],
                     "BirthPlace": u['BirthPlace'],
                     "Bloodgroup": u["BloodGrp"]
-                     ,"image": u['image']
+                     ,"image": u['image'],
+                      "Userid": u['UserId']
                 }
 
                 finaldataList.append({"topData": top_data, "next_data": [next_Data]})
