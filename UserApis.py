@@ -228,12 +228,16 @@ class LogoutUser(Resource):
 
 
 class FetchMyProfile(Resource):
+
     def post(self):
         userid = request.json["UserId"]
+        # current_user = get_jwt_identity()
+        # print("Authenticated User:", current_user)
         try:
             print("f")
             projection = {"_id": 0,"UserPassword":0}
-            newFilter = {"UserId" : userid}
+            newFilter = {"UserId" : int(userid)}
+            print(newFilter)
             collection = db.get_collection('User')
             data = collection.find(newFilter,projection)
             myProfile = []
@@ -268,14 +272,36 @@ class FetchAllUsers(Resource):
             filters["IsDeleted"] = False
             collection = db.get_collection('User')
             currentUser = collection.find_one({"UserId": Userid}, projection)
-            # print(currentUser)
+            print(currentUser)
             if not currentUser:
                 return jsonify({"message": "User not found", "users": []})
 
-            newFilter = {"UserId": {"$ne": Userid}, "IsDeleted": False, "LookingFor":  currentUser.get("LookingFor")}
-            print(int(filters["selectedFromHeight"]))
+            newFilter = {"UserId": {"$ne": Userid}, "IsDeleted": False, "LookingFor": {"$ne": currentUser.get("LookingFor")} }
             if int(filters["selectedFromHeight"]) > 0 :
-                newFilter["Height"] = {"$gte": filters["selectedFromHeight"]}
+                newFilter["Height"] = {"$gte": int(filters["selectedFromHeight"])}
+            if int(filters["selectedToHeight"]) > 0 :
+                newFilter["Height"] = {"$lte": int(filters["selectedToHeight"])}
+            if int(filters["selectedAgeGap"]) > 0 :
+                currentUserAge = currentUser["age"]
+                print(currentUser["LookingFor"])
+                if currentUser["LookingFor"] == "Bride":
+                    lessThanAge = currentUserAge - int(filters["selectedAgeGap"])
+                    greterThanAge = currentUserAge
+                else:
+                    lessThanAge = currentUserAge - int(filters["selectedAgeGap"])
+                    greterThanAge = currentUserAge + int(filters["selectedAgeGap"])
+                newFilter["age"] = {"$gte": lessThanAge, "$lte":greterThanAge}
+            if len(filters["selectedIncomes"]) > 0:
+                newFilter["IncomeGroup"] = {"$in":filters["selectedIncomes"]}
+            if len(filters["selectedLocatities"]) > 0:
+                newFilter["CurrentAddress"] = {"$in":filters["selectedLocatities"]}
+            if len(filters["selectedEducations"]) > 0:
+                newFilter["DegDip"] = {"$in":filters["selectedEducations"]}
+            if len(filters["selectedBloodGroups"]) > 0:
+                newFilter["BloodGrp"] = {"$in":filters["selectedBloodGroups"]}
+            if len(filters["FamilyType"]) > 0:
+                newFilter["FamilyType"] = {"$in":filters["FamilyType"]}
+
             print(newFilter)
 
             total_count = collection.count_documents(newFilter) 
