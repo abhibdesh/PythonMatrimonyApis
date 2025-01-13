@@ -4,7 +4,7 @@ from flask_cors import CORS
 from flask_jwt_extended import JWTManager, jwt_required, get_jwt_identity
 import firebase_admin
 from firebase_admin import credentials
-from UserApis import UserLogin, AddNewUser, FetchAllUsers, FetchMyProfile,LogoutUser,UpdateProfile
+from UserApis import UserLogin, AddNewUser, FetchAllUsers, FetchMyProfile,LogoutUser,UpdateProfile,GetSingleProfileData
 from GetMasters import GetNewUserFormMasters
 import secrets
 import json
@@ -57,6 +57,7 @@ api.add_resource(FetchAllUsers, '/GetClients')
 api.add_resource(GetNewUserFormMasters,'/GetNewUserFormMasters')
 api.add_resource(FetchMyProfile,'/FetchMyProfile')
 api.add_resource(UpdateProfile,'/UpdateProfile')
+api.add_resource(GetSingleProfileData,'/GetSingleProfileData')
 api.add_resource(LogoutUser,'/LogoutUser')
 
 if __name__ == "__main__":
