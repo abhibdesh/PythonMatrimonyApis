@@ -214,6 +214,151 @@ class AddNewUser(Resource):
             return jsonify({MessageVariable: FailureString, msgVal: "Something Went Wrong"})
         
 
+class UpdateProfile(Resource):
+    @jwt_required()
+    def post(self):
+        # print("Request Headers:", request.headers)
+        current_user = get_jwt_identity()
+        print("Authenticated User:", current_user)
+        UserId = request.json['UserId']
+        # Step 1 
+        LookinFor = request.json['LookinFor']
+        ChoosingFor = request.json['ChoosingFor']
+        firstName = request.json['firstName']
+        lastName = request.json['lastName']
+        PhoneNumber = request.json['PhoneNumber']
+        Email = request.json['Email']
+        Address = request.json['Address']
+        CurrentAddress = request.json['CurrentAddress']
+        birthDate = request.json['birthDate']
+        birthTime = request.json['birthTime']
+        BirthPlace = request.json['BirthPlace']
+        Raas = request.json['Raas']
+        Height = request.json['Height']
+        BloodGrp = request.json['BloodGrp']
+        DisabilityYN = request.json['DisabilityYN']
+        Disablity = request.json['Disablity']
+        # Step 2
+        DegDip = request.json['DegDip']
+        Field = request.json['Field']
+        image = request.json['image']
+        degreeName = request.json['degreeName']
+        CompanyName = request.json['CompanyName']
+        JobBis = request.json['JobBis']
+        IncomeGroup = request.json['IncomeGroup']
+        Eating = request.json['Eating']
+        Gotra = request.json['Gotra']
+        Dosha = request.json['Dosha']
+        Gana = request.json['Gana']
+        Devak = request.json['Devak']
+        Nakshatra = request.json['Nakshatra']
+        Charan = request.json['Charan']
+        Naadi = request.json['Naadi']
+        #Step 3
+        FamilyType = request.json['FamilyType']
+        Siblings = request.json['Siblings']
+        EduSiblings = request.json['EduSiblings']
+        Property = request.json['Property']
+        EduMother = request.json['EduMother']
+        EduFather = request.json['EduFather']
+        MotherFamily = request.json['MotherFamily']
+        FatherFamily = request.json['FatherFamily']
+        #Step 4
+        selectedIncome = request.json['selectedIncome']
+        eatingHabits = request.json['eatingHabits']
+        expectedGana = request.json['expectedGana']     
+        selectedEducations = request.json['selectedEducations']
+        expectedNakshatra = request.json['expectedNakshatra']
+        expectedAgeGap = request.json['expectedAgeGap']
+        strictMatch = request.json['strictMatch']
+        selectedLocatities = request.json['selectedLocatities']
+        try:
+            print(birthDate)
+            date_obj = datetime.strptime(birthDate, '%a, %d %b %Y %H:%M:%S %Z')
+            print(date_obj)
+            birth_date_only = date_obj.date()
+            today = datetime.today().date()
+            age = today.year - birth_date_only.year - ((today.month, today.day) 
+                                                               < (birth_date_only.month,
+                                                                   birth_date_only.day))
+            if Height =='':
+                Height = 0
+            else:
+                Height = int(Height)
+            if Siblings =='':
+                Siblings = 0
+            else:
+                Height = int(Height)
+            print(birthTime)
+            date_object = datetime.strptime(birthTime[:24], "%H:%M:%S")
+            time = date_object.time()
+            print(time)  
+            # date_obj = datetime.strptime(, '%a, %d %b %Y %H:%M:%S %Z')
+            newData = {
+                        "UserEmail":Email,
+                        "PhoneNumber":PhoneNumber,
+                        "LookingFor":LookinFor ,
+                        "ChoosingFor":ChoosingFor,
+                        "firstName":firstName ,
+                        "lastName":lastName,
+                        "Address":Address,
+                        "CurrentAddress":CurrentAddress,
+                        "birthDate":date_obj,
+                        "birthTime":time.strftime("%H:%M:%S"),
+                        "age":age,
+                        "BirthPlace":BirthPlace,"Raas":Raas,
+                        "Height": Height,
+                        "BloodGrp":BloodGrp,
+                        "Disablity":Disablity,
+                        "DegDip":DegDip,
+                        "Field":Field, 
+                        "JobBis":JobBis , 
+                        "IncomeGroup":IncomeGroup,
+                        "Eating":Eating,
+                        "Gotra":Gotra, 
+                        "Dosha":Dosha, 
+                        "Gana":Gana,         
+                        "Devak":Devak, 
+                        "Nakshatra":Nakshatra,
+                        "FamilyType":FamilyType,
+                        "Siblings":Siblings,
+                        "EduSiblings":EduSiblings,
+                        "Property":Property, 
+                        "EduMother":EduMother,
+                        "EduFather":EduFather,
+                        "MotherFamily":MotherFamily, 
+                        "FatherFamily":FatherFamily,
+                        "selectedEducations":selectedEducations,
+                        "degreeName":degreeName,
+                        "selectedIncome":selectedIncome,
+                        "eatingHabits" : eatingHabits,
+                        "CompanyName":CompanyName,
+                        "expectedGana":expectedGana, 
+                        "DisabilityYN":DisabilityYN,
+                        "Charan":Charan, "Naadi":Naadi,
+                        "selectedLocatities":selectedLocatities,
+                        "expectedNakshatra":expectedNakshatra,
+                        "expectedAgeGap":expectedAgeGap,
+                        "strictMatch":strictMatch,
+                        "CreatedBy":"User",
+                        "IsActive":True,
+                        "IsDeleted":False,
+                        "UserRole":"2",
+                        "image":image
+                        }
+            
+            collection = db.get_collection('User')
+            collection.update_one({"UserId":int(UserId)},{"$set":newData})
+        except Exception as e:
+            print("Error:", e)
+            collection = db.get_collection('ErrorLogs')
+            log = collection.insert_one({"Method":"UpdateProfile-UserApi.py","Exception":e,"Time":datetime.now})
+            return jsonify({"message": "An error occurred during logout", "error": str(e)}), 500
+
+        
+
+
+
 class LogoutUser(Resource):
     @jwt_required()
     def post(self):
@@ -228,7 +373,7 @@ class LogoutUser(Resource):
 
 
 class FetchMyProfile(Resource):
-
+    
     def post(self):
         userid = request.json["UserId"]
         # current_user = get_jwt_identity()
