@@ -375,7 +375,6 @@ class LogoutUser(Resource):
 
 
 class FetchMyProfile(Resource):
-    @jwt_required()
     def post(self):
         userid = request.json["UserId"]
         # current_user = get_jwt_identity()
@@ -419,7 +418,6 @@ class FetchAllUsers(Resource):
             filters["IsDeleted"] = False
             collection = db.get_collection('User')
             currentUser = collection.find_one({"UserId": Userid}, projection)
-            print(currentUser)
             if not currentUser:
                 return jsonify({"message": "User not found", "users": []})
 
