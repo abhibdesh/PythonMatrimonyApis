@@ -110,7 +110,8 @@ class AddNewUser(Resource):
         userIdNew= 0
         try:
             if UserId == "0":
-                query = {"UserEmail": Email}
+                # query = {"UserEmail": Email}
+                query = {"$or":[ {"UserEmail":Email}, {"PhoneNumber":PhoneNumber}]}
                 projection = {"_id": 0}
                 collection = db.get_collection('User')
                 data = collection.find_one(query,projection)
@@ -366,11 +367,57 @@ class GetSingleProfileData(Resource):
         userId = request.json["UserId"]
         print(userId)
         try:
-            projection = {"_id": 0,"UserPassword":0}
+            projection = {"_id": 0,"UserPassword":0,"CreatedDatetime":0,"LastLogin":0,"CreatedBy":0,
+                          "IsActive":0, "IsDeleted":0, "UserRole":0, "UserPaid":0}
             newFilter = {"UserId" : int(userId)}
             print(newFilter)
             collection = db.get_collection('User')
-            data = collection.find(newFilter,projection)
+            data = collection.find_one(newFilter,projection)
+            print(data["strictMatch"])
+            final_data = {}
+            # Introduction Section
+            day_name = data["birthDate"].date().strftime("%A")
+            final_data["image"] =data["image"]
+            final_data["Name"] =data["firstName"]+" " + data["lastName"]
+            final_data["JobBis"]= data["JobBis"] if  data["JobBis"] != "" else "Not Provided"
+            final_data["DegDip"]= data["DegDip"] if data["DegDip"] !="" else "Not Provided"
+            final_data["FieldOrPost"]= data["Field"] if data["Field"] !="" else "Not Provided"
+            final_data["DegreeName"]= data["degreeName"] if data["degreeName"] !="" else "Not Provided"
+            final_data["IncomeGroup"]= data["IncomeGroup"] if data["IncomeGroup"] !="" else "Not Provided"
+            final_data["CurrentAddress"]= str(data["Address"])+", " + str(data["CurrentAddress"]) if str(data["Address"])+", " + str(data["CurrentAddress"]) != "" else "Not Provided"
+            # Mandatory to know for patrika match section
+            final_data["BirthDate"] = str(data["birthDate"].date())+","+day_name + " (YYYY-MM-DD)" 
+            final_data["BirthTime"]= data["birthTime"] + " (24 Hour Clock Format)"
+            final_data["BirthPlace"]= data["BirthPlace"]
+            final_data["Height"]= str(str(data["Height"]) + " Feet") if str(str(data["Height"]) + " Feet") != " Feet" else "Not Provided"
+            final_data["BloodGroup"]= str(data["BloodGrp"]) if  str(data["BloodGrp"]) !="" else "Not Provided"
+            final_data["Naadi"]= str(data["Naadi"]) if str(data["Naadi"]) != "" else "Not Provided"
+            final_data["Disablity"]= str(data["Disablity"])  if str(data["Disablity"]) != "" else "Not Applicable"
+            final_data["Raas"]= str(data["Raas"]) if str(data["Raas"])   != "" else "Not Provided"
+            final_data["Devak"]= str(data["Devak"]) if str(data["Devak"])   != "" else "Not Provided"
+            final_data["Gotra"]= str(data["Gotra"]) if str(data["Gotra"])  != "" else "Not Provided"
+            final_data["Gana"]= str(data["Gana"]) if str(data["Gana"])   != "" else "Not Provided"
+            final_data["Charan"]= str(data["Charan"]) if str(data["Charan"])   != "" else "Not Provided"
+            final_data["Nakshatra"]= str(data["Nakshatra"]) if str(data["Nakshatra"])   != "" else "Not Provided"
+            # Family Details Section
+            final_data["FamilyType"]= str(data["FamilyType"]) if str(data["FamilyType"])    != "" else "Not Provided"
+            final_data["Siblings"]= str(data["Siblings"]) if str(data["Siblings"])    != "" else "None"
+            final_data["EduSiblings"]= str(data["EduSiblings"])  if  str(data["EduSiblings"])  != "" else "Not Provided"
+            final_data["Property"]= str(data["Property"]) if str(data["Property"])    != "" else "Not Provided"
+            final_data["EduMother"]= str(data["EduMother"]) if str(data["EduMother"])    != "" else "Not Provided"
+            final_data["EduFather"]= str(data["EduFather"]) if str(data["EduFather"])    != "" else "Not Provided"
+            final_data["MotherFamily"]= str(data["MotherFamily"]) if str(data["MotherFamily"])   != "" else "Not Provided"
+            final_data["FatherFamily"]= str(data["FatherFamily"]) if str(data["FatherFamily"])    != "" else "Not Provided"
+            # Expectations Section
+            final_data["selectedEducations"]= ", ".join(data["selectedEducations"]) if ", ".join(data["selectedEducations"]) != "" else "No bar"
+            final_data["selectedIncome"]= ", ".join(data["selectedIncome"]) if ", ".join(data["selectedIncome"])  != "" else "No bar"
+            final_data["eatingHabits"]= ", ".join(data["eatingHabits"]) if ", ".join(data["eatingHabits"])  != "" else "No bar"
+            final_data["expectedGana"]= ", ".join(data["expectedGana"]) if ", ".join(data["expectedGana"])  != "" else "No bar"
+            final_data["selectedLocatities"]= ", ".join(data["selectedLocatities"]) if ", ".join(data["selectedLocatities"])  != "" else "No bar"
+            final_data["expectedNakshatra"]= ", ".join(data["expectedNakshatra"]) if ", ".join(data["expectedNakshatra"])  != "" else "No bar"
+            final_data["expectedAgeGap"]= str(data["expectedAgeGap"]) if str(data["expectedAgeGap"])  != "" else "No bar"
+            final_data["strictMatch"]= "Yes" if data["strictMatch"] == True else "No" 
+            return jsonify({MessageVariable:SuccessString,"data":final_data})
         except Exception as e:
             collection = db.get_collection('ErrorLogs')
             log = collection.insert_one({"Method":"GetSingleProfileData-UserApi.py","Exception":e,"Time":datetime.now})
