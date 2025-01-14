@@ -373,7 +373,6 @@ class GetSingleProfileData(Resource):
             print(newFilter)
             collection = db.get_collection('User')
             data = collection.find_one(newFilter,projection)
-            print(data["strictMatch"])
             final_data = {}
             # Introduction Section
             day_name = data["birthDate"].date().strftime("%A")
@@ -383,10 +382,11 @@ class GetSingleProfileData(Resource):
             final_data["DegDip"]= data["DegDip"] if data["DegDip"] !="" else "Not Provided"
             final_data["FieldOrPost"]= data["Field"] if data["Field"] !="" else "Not Provided"
             final_data["DegreeName"]= data["degreeName"] if data["degreeName"] !="" else "Not Provided"
+            final_data["CompanyName"]= data["CompanyName"] if data["CompanyName"] !="" else "Not Provided"
             final_data["IncomeGroup"]= data["IncomeGroup"] if data["IncomeGroup"] !="" else "Not Provided"
             final_data["CurrentAddress"]= str(data["Address"])+", " + str(data["CurrentAddress"]) if str(data["Address"])+", " + str(data["CurrentAddress"]) != "" else "Not Provided"
             # Mandatory to know for patrika match section
-            final_data["BirthDate"] = str(data["birthDate"].date())+","+day_name + " (YYYY-MM-DD)" 
+            final_data["BirthDate"] = str(data["birthDate"].date())+", "+day_name + " (YYYY-MM-DD)" 
             final_data["BirthTime"]= data["birthTime"] + " (24 Hour Clock Format)"
             final_data["BirthPlace"]= data["BirthPlace"]
             final_data["Height"]= str(str(data["Height"]) + " Feet") if str(str(data["Height"]) + " Feet") != " Feet" else "Not Provided"
@@ -401,7 +401,7 @@ class GetSingleProfileData(Resource):
             final_data["Nakshatra"]= str(data["Nakshatra"]) if str(data["Nakshatra"])   != "" else "Not Provided"
             # Family Details Section
             final_data["FamilyType"]= str(data["FamilyType"]) if str(data["FamilyType"])    != "" else "Not Provided"
-            final_data["Siblings"]= str(data["Siblings"]) if str(data["Siblings"])    != "" else "None"
+            final_data["Siblings"]= str(data["Siblings"]) if str(data["Siblings"])    != "0" else "None"
             final_data["EduSiblings"]= str(data["EduSiblings"])  if  str(data["EduSiblings"])  != "" else "Not Provided"
             final_data["Property"]= str(data["Property"]) if str(data["Property"])    != "" else "Not Provided"
             final_data["EduMother"]= str(data["EduMother"]) if str(data["EduMother"])    != "" else "Not Provided"
