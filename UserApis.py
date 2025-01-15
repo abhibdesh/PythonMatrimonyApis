@@ -65,8 +65,8 @@ class AddNewUser(Resource):
         Email = request.json['Email']
         Address = request.json['Address']
         CurrentAddress = request.json['CurrentAddress']
-        birthDate = request.json['birthDate']
-        birthTime = request.json['birthTime']
+        # birthDate = request.json['birthDate']
+        # birthTime = request.json['birthTime']
         BirthPlace = request.json['BirthPlace']
         Raas = request.json['Raas']
         Height = request.json['Height']
@@ -126,17 +126,17 @@ class AddNewUser(Resource):
                         print(user['UserId']+1)
                     hashed_pass = hash_password(UserPassword)
                     current_time = datetime.now()
-                    print(birthTime)
-                    date_object = datetime.strptime(birthTime[:24], "%a %b %d %Y %H:%M:%S")
-                    time = date_object.time()
-                    print(time)  
+                    # print(birthTime)
+                    # date_object = datetime.strptime(birthTime[:24], "%a %b %d %Y %H:%M:%S")
+                    # time = date_object.time()
+                    # print(time)  
                     access_token = create_access_token(identity=Email) 
-                    birth_date = datetime.fromisoformat(birthDate)
-                    birth_date_only = birth_date.date()
+                    # birth_date = datetime.fromisoformat(birthDate)
+                    # birth_date_only = birth_date.date()
                     today = datetime.today().date()
-                    age = today.year - birth_date_only.year - ((today.month, today.day) 
-                                                               < (birth_date_only.month,
-                                                                   birth_date_only.day))
+                    # age = today.year - birth_date_only.year - ((today.month, today.day) 
+                    #                                            < (birth_date_only.month,
+                    #                                                birth_date_only.day))
                     if Height =='':
                         Height=0
                     else:
@@ -152,9 +152,9 @@ class AddNewUser(Resource):
                                                 "lastName":lastName,
                                                 "Address":Address,
                                                 "CurrentAddress":CurrentAddress,
-                                                "birthDate":birth_date,
-                                                "birthTime":time.strftime("%H:%M:%S"),
-                                                "age":age,
+                                                # "birthDate":birth_date,
+                                                # "birthTime":time.strftime("%H:%M:%S"),
+                                                # "age":age,
                                                 "BirthPlace":BirthPlace,"Raas":Raas,
                                                 "Height": Height,
                                                 "BloodGrp":BloodGrp,
@@ -233,8 +233,9 @@ class UpdateProfile(Resource):
         Email = request.json['Email']
         Address = request.json['Address']
         CurrentAddress = request.json['CurrentAddress']
-        birthDate = request.json['birthDate']
-        birthTime = request.json['birthTime']
+        birthDate = request.json.get("birthDate",None)
+        birthTime = request.json.get("birthTime",None)
+        # birthTime = request.json['birthTime']
         BirthPlace = request.json['BirthPlace']
         Raas = request.json['Raas']
         Height = request.json['Height']
@@ -276,28 +277,30 @@ class UpdateProfile(Resource):
         strictMatch = request.json['strictMatch']
         selectedLocatities = request.json['selectedLocatities']
         try:
+            print("birthDate")
             print(birthDate)
-            date_obj = datetime.strptime(birthDate, '%a, %d %b %Y %H:%M:%S %Z')
-            print(date_obj)
-            birth_date_only = date_obj.date()
-            today = datetime.today().date()
-            age = today.year - birth_date_only.year - ((today.month, today.day) 
+            print("__________________________________")
+            print("birthTime")
+            print(birthTime)
+            print("*********************************")
+            if(birthDate != None and birthTime != None ):
+                # BIRTH DATE SECTION
+                print("BOTH AVAILABLE")
+                date_obj = datetime.strptime(birthDate, '%Y-%m-%dT%H:%M:%S.%fZ')
+                # date_obj = datetime.strptime(birthDate, '%a, %d %b %Y %H:%M:%S %Z')
+                print(date_obj)
+                birth_date_only = date_obj.date()
+                today = datetime.today().date()
+                age = today.year - birth_date_only.year - ((today.month, today.day) 
                                                                < (birth_date_only.month,
                                                                    birth_date_only.day))
-            if Height =='':
-                Height = 0
-            else:
-                Height = float(Height)
-            if Siblings =='':
-                Siblings = 0
-            else:
-                Height = float(Height)
-            print(birthTime)
-            date_object = datetime.strptime(birthTime[:24], "%H:%M:%S")
-            time = date_object.time()
-            print(time)  
-            # date_obj = datetime.strptime(, '%a, %d %b %Y %H:%M:%S %Z')
-            newData = {
+                # BIRTH TIME SECTION
+                print(birthTime)
+                date_object = datetime.strptime(birthTime[:24], "%H:%M:%S")
+                time = date_object.time()
+                print(time)  
+                # HAS BIRTH DATE AND TIME
+                newData = {
                         "UserEmail":Email,
                         "PhoneNumber":PhoneNumber,
                         "LookingFor":LookinFor ,
@@ -349,7 +352,191 @@ class UpdateProfile(Resource):
                         "UserRole":"2",
                         "image":image
                         }
-            
+            if(birthDate == None and birthTime != None):
+                print("ONLY BIRTHTIME")
+
+                print(birthTime)
+                date_object = datetime.strptime(birthTime[:24], "%H:%M:%S")
+                time = date_object.time()
+                print(time)  
+                newData = {
+                        "UserEmail":Email,
+                        "PhoneNumber":PhoneNumber,
+                        "LookingFor":LookinFor ,
+                        "ChoosingFor":ChoosingFor,
+                        "firstName":firstName ,
+                        "lastName":lastName,
+                        "birthTime":time.strftime("%H:%M:%S"),
+                        "Address":Address,
+                        "CurrentAddress":CurrentAddress,
+                        "BirthPlace":BirthPlace,"Raas":Raas,
+                        "Height": Height,
+                        "BloodGrp":BloodGrp,
+                        "Disablity":Disablity,
+                        "DegDip":DegDip,
+                        "Field":Field, 
+                        "JobBis":JobBis , 
+                        "IncomeGroup":IncomeGroup,
+                        "Eating":Eating,
+                        "Gotra":Gotra, 
+                        "Dosha":Dosha, 
+                        "Gana":Gana,         
+                        "Devak":Devak, 
+                        "Nakshatra":Nakshatra,
+                        "FamilyType":FamilyType,
+                        "Siblings":Siblings,
+                        "EduSiblings":EduSiblings,
+                        "Property":Property, 
+                        "EduMother":EduMother,
+                        "EduFather":EduFather,
+                        "MotherFamily":MotherFamily, 
+                        "FatherFamily":FatherFamily,
+                        "selectedEducations":selectedEducations,
+                        "degreeName":degreeName,
+                        "selectedIncome":selectedIncome,
+                        "eatingHabits" : eatingHabits,
+                        "CompanyName":CompanyName,
+                        "expectedGana":expectedGana, 
+                        "DisabilityYN":DisabilityYN,
+                        "Charan":Charan, "Naadi":Naadi,
+                        "selectedLocatities":selectedLocatities,
+                        "expectedNakshatra":expectedNakshatra,
+                        "expectedAgeGap":expectedAgeGap,
+                        "strictMatch":strictMatch,
+                        "CreatedBy":"User",
+                        "IsActive":True,
+                        "IsDeleted":False,
+                        "UserRole":"2",
+                        "image":image
+                        }
+
+            if(birthDate != None and birthTime == None):
+                # BIRTH DATE SECTION
+                print("ONLY BITHDATE")
+
+                date_obj = datetime.strptime(birthDate, '%a, %d %b %Y %H:%M:%S %Z')
+                print(date_obj)
+                birth_date_only = date_obj.date()
+                today = datetime.today().date()
+                age = today.year - birth_date_only.year - ((today.month, today.day) 
+                                                               < (birth_date_only.month,
+                                                                   birth_date_only.day))
+                newData = {
+                    "UserEmail":Email,
+                    "PhoneNumber":PhoneNumber,
+                    "LookingFor":LookinFor ,
+                    "ChoosingFor":ChoosingFor,
+                    "firstName":firstName ,
+                    "lastName":lastName,
+                    "Address":Address,
+                    "CurrentAddress":CurrentAddress,
+                    "birthDate":date_obj,
+                    "age":age,
+                    "BirthPlace":BirthPlace,"Raas":Raas,
+                    "Height": Height,
+                    "BloodGrp":BloodGrp,
+                    "Disablity":Disablity,
+                    "DegDip":DegDip,
+                    "Field":Field, 
+                    "JobBis":JobBis , 
+                    "IncomeGroup":IncomeGroup,
+                    "Eating":Eating,
+                    "Gotra":Gotra, 
+                    "Dosha":Dosha, 
+                    "Gana":Gana,         
+                    "Devak":Devak, 
+                    "Nakshatra":Nakshatra,
+                    "FamilyType":FamilyType,
+                    "Siblings":Siblings,
+                    "EduSiblings":EduSiblings,
+                    "Property":Property, 
+                    "EduMother":EduMother,
+                    "EduFather":EduFather,
+                    "MotherFamily":MotherFamily, 
+                    "FatherFamily":FatherFamily,
+                    "selectedEducations":selectedEducations,
+                    "degreeName":degreeName,
+                    "selectedIncome":selectedIncome,
+                    "eatingHabits" : eatingHabits,
+                    "CompanyName":CompanyName,
+                    "expectedGana":expectedGana, 
+                    "DisabilityYN":DisabilityYN,
+                    "Charan":Charan, "Naadi":Naadi,
+                    "selectedLocatities":selectedLocatities,
+                    "expectedNakshatra":expectedNakshatra,
+                    "expectedAgeGap":expectedAgeGap,
+                    "strictMatch":strictMatch,
+                    "CreatedBy":"User",
+                    "IsActive":True,
+                    "IsDeleted":False,
+                    "UserRole":"2",
+                    "image":image
+                        }
+
+
+
+            if(birthTime == None and birthDate == None):
+                print("BOTH UNAVAILABLE")
+
+                newData = {
+                        "UserEmail":Email,
+                        "PhoneNumber":PhoneNumber,
+                        "LookingFor":LookinFor ,
+                        "ChoosingFor":ChoosingFor,
+                        "firstName":firstName ,
+                        "lastName":lastName,
+                        "Address":Address,
+                        "BirthPlace":BirthPlace,"Raas":Raas,
+                        "Height": Height,
+                        "BloodGrp":BloodGrp,
+                        "Disablity":Disablity,
+                        "DegDip":DegDip,
+                        "Field":Field, 
+                        "JobBis":JobBis , 
+                        "IncomeGroup":IncomeGroup,
+                        "Eating":Eating,
+                        "Gotra":Gotra, 
+                        "Dosha":Dosha, 
+                        "Gana":Gana,         
+                        "Devak":Devak, 
+                        "Nakshatra":Nakshatra,
+                        "FamilyType":FamilyType,
+                        "Siblings":Siblings,
+                        "EduSiblings":EduSiblings,
+                        "Property":Property, 
+                        "EduMother":EduMother,
+                        "EduFather":EduFather,
+                        "MotherFamily":MotherFamily, 
+                        "FatherFamily":FatherFamily,
+                        "selectedEducations":selectedEducations,
+                        "degreeName":degreeName,
+                        "selectedIncome":selectedIncome,
+                        "eatingHabits" : eatingHabits,
+                        "CompanyName":CompanyName,
+                        "expectedGana":expectedGana, 
+                        "DisabilityYN":DisabilityYN,
+                        "Charan":Charan, "Naadi":Naadi,
+                        "selectedLocatities":selectedLocatities,
+                        "expectedNakshatra":expectedNakshatra,
+                        "expectedAgeGap":expectedAgeGap,
+                        "strictMatch":strictMatch,
+                        "CreatedBy":"User",
+                        "IsActive":True,
+                        "IsDeleted":False,
+                        "UserRole":"2",
+                        "image":image
+                        }
+
+            if Height =='':
+                Height = 0
+            else:
+                Height = float(Height)
+            if Siblings =='':
+                Siblings = 0
+            else:
+                Height = float(Height)
+           
+            # date_obj = datetime.strptime(, '%a, %d %b %Y %H:%M:%S %Z')
             collection = db.get_collection('User')
             collection.update_one({"UserId":int(UserId)},{"$set":newData})
         except Exception as e:
