@@ -755,35 +755,6 @@ class FetchAllUsers(Resource):
             return jsonify({"message": "Failure", "error": "Something Went Wrong"})
         
 
-class VerifyEmailId(Resource):
-    @jwt_required()
-    def post(self):
-        email = request.json['email']
-        msg = verify_EmailId(email)
-        print("jhgfd")
-        try:
-            current_user = get_jwt_identity()
-            print("Authenticated User:", current_user)
-            print("done")
-            return jsonify({"message": "success"})
-
-        except Exception as ex:
-            print("Error")
-            return jsonify({"Error": "success", "error": "Something Went Wrong"})
-
-
-
-def verify_EmailId(email):
-    try:
-        print("INMAIL")
-        mail = Mail()
-        msg = Message('OTP for the APPLICATION', sender = 'abhibdesh@gmail.com', recipients = [email]) 
-        msg.body = "Greetings! Your email has been verified successfully. Kindly note your OTP is " + str(12345)
-        mail.send(msg)
-        return jsonify({"message": "success"})
-    except Exception as e:
-        print(e)
-        return jsonify({"Error": "success", "error": "Something Went Wrong"})
 
 
 
