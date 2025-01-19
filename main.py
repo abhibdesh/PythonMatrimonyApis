@@ -1,10 +1,12 @@
 from flask import Flask, request,jsonify
+from flask_mail import *
 from flask_restful import Resource, Api
 from flask_cors import CORS
 from flask_jwt_extended import JWTManager, jwt_required, get_jwt_identity
 import firebase_admin
 from firebase_admin import credentials
-from UserApis import UserLogin, AddNewUser, FetchAllUsers, FetchMyProfile,LogoutUser,UpdateProfile,GetSingleProfileData
+from UserApis import VerifyEmailId,UserLogin, AddNewUser, FetchAllUsers, FetchMyProfile,LogoutUser,UpdateProfile,GetSingleProfileData
+from UpdateExistingRecords import UpdateUserCollection
 from GetMasters import GetNewUserFormMasters
 import secrets
 import json
@@ -28,10 +30,18 @@ with open('./Config/Creds.json') as f:
     mongoURI = config['uri']
 cred = credentials.Certificate(service_account_key)
 firebase_admin.initialize_app(cred)
-app.config['JWT_SECRET_KEY'] = os.getenv('SECERT_KEY')
-# app.config['JWT_SECRET_KEY'] = "asdfghjklpoiuytrewfgvbndcksdhfjgjhejbdsjbcsbh" # Dummy Key 
+# app.config['JWT_SECRET_KEY'] = os.getenv('SECERT_KEY')
+app.config['JWT_SECRET_KEY'] = "asdfghjklpoiuytrewfgvbndcksdhfjgjhejbdsjbcsbh" # Dummy Key 
 app.config['JWT_ACCESS_TOKEN_EXPIRES'] = timedelta(hours=1)
 jwt = JWTManager(app)
+mail = Mail(app)
+
+app.config['MAIL_SERVER'] = 'smtp.gmail.com'
+app.config['MAIL_PORT'] = 465
+app.config['MAIL_USE_TLS'] = False
+app.config['MAIL_USE_SSL'] = True
+app.config['MAIL_USERNAME'] = "abhibdesh@gmail.com"
+app.config['MAIL_PASSWORD'] = "cinderandella"
 
 
 class HelloWorld(Resource):
@@ -59,6 +69,9 @@ api.add_resource(FetchMyProfile,'/FetchMyProfile')
 api.add_resource(UpdateProfile,'/UpdateProfile')
 api.add_resource(GetSingleProfileData,'/GetSingleProfileData')
 api.add_resource(LogoutUser,'/LogoutUser')
+api.add_resource(UpdateUserCollection,'/UpdateUserCollection')
+api.add_resource(VerifyEmailId,'/VerifyEmailId')
+
 
 if __name__ == "__main__":
     app.run(debug=True)

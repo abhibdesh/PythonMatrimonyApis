@@ -9,9 +9,8 @@ import json
 from jwt import DecodeError
 from jwt.exceptions import PyJWTError as DecodeError
 from datetime import datetime
-
-
-
+from flask_mail import *
+from itsdangerous import URLSafeTimedSerializer
 
 with open('./Config/Creds.json') as f:
     config = json.load(f)
@@ -27,6 +26,7 @@ with open('./Config/Strings.json') as g:
     FailureString = Strings['FAILURE_STRING']
     MessageVariable = Strings['MESSAGE_VARIABLE']
     msgVal=Strings['MESSAGE_VALUE']
+
 
 
 class UserLogin(Resource):
@@ -152,6 +152,8 @@ class AddNewUser(Resource):
                                                 "lastName":lastName,
                                                 "Address":Address,
                                                 "CurrentAddress":CurrentAddress,
+                                                "isPhoneVerified":False,
+                                                "isEmailVerified":False,
                                                 # "birthDate":birth_date,
                                                 # "birthTime":time.strftime("%H:%M:%S"),
                                                 # "age":age,
@@ -206,7 +208,9 @@ class AddNewUser(Resource):
                         "access_token" : access_token,
                         "UserPaid": False,
                         "IsActive": True,
-                        "UserRole":2
+                        "UserRole":2,
+                        "isPhoneVerified":False,
+                        "isEmailVerified":False,
                         }
                     print(userData)
                     return jsonify({MessageVariable:SuccessString,"data" : userData})
@@ -750,6 +754,37 @@ class FetchAllUsers(Resource):
             })
             return jsonify({"message": "Failure", "error": "Something Went Wrong"})
         
+
+class VerifyEmailId(Resource):
+    @jwt_required()
+    def post(self):
+        email = request.json['email']
+        msg = verify_EmailId(email)
+        print("jhgfd")
+        try:
+            current_user = get_jwt_identity()
+            print("Authenticated User:", current_user)
+            print("done")
+            return jsonify({"message": "success"})
+
+        except Exception as ex:
+            print("Error")
+            return jsonify({"Error": "success", "error": "Something Went Wrong"})
+
+
+
+def verify_EmailId(email):
+    try:
+        print("INMAIL")
+        mail = Mail()
+        msg = Message('OTP for the APPLICATION', sender = 'abhibdesh@gmail.com', recipients = [email]) 
+        msg.body = "Greetings! Your email has been verified successfully. Kindly note your OTP is " + str(12345)
+        mail.send(msg)
+        return jsonify({"message": "success"})
+    except Exception as e:
+        print(e)
+        return jsonify({"Error": "success", "error": "Something Went Wrong"})
+
 
 
 def ValidateUser(email, password):
