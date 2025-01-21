@@ -33,12 +33,14 @@ app.config['JWT_ACCESS_TOKEN_EXPIRES'] = timedelta(hours=1)
 jwt = JWTManager(app)
 
 app.config['MAIL_PORT'] = 587
-app.config['MAIL_USE_TLS'] = False
-app.config['MAIL_USE_SSL'] = True
+app.config['MAIL_USE_TLS'] = True
+app.config['MAIL_USE_SSL'] = False
 app.config['MAIL_USERNAME'] = "vivaahbandhan@aol.com"
 app.config['MAIL_PASSWORD'] = 'YJ5G4mqWRXCJ@kz'
 app.config['MAIL_DEFAULT_SENDER'] = ('Vivaah Bandhan', 'vivaahbandhan@aol.com')
 
+
+ # magnet answer cargo woman broccoli
 mail = Mail(app)
 
 class HelloWorld(Resource):
@@ -64,26 +66,15 @@ def send_verification_email(user_email):
     print(token)
     verification_url = url_for('verify_email', token=token, _external=True)
     print(verification_url)
-    msg = Message(
-        subject="Email Verification For Vivah Bandhan",
-        recipients=[user_email],
-        body=f"Click the link to verify your email: {verification_url}"
-    )
-    msg.body = msg.body.encode('utf-8').decode('utf-8')
-    print(msg)
-    msg.charset = 'utf-8'
-    mail.send(msg)
-
-# Email verification route
+    return verification_url
+   
 @app.route('/verify-email', methods=['GET'])
 def verify_email():
-    """Verify the email using the token."""
     token = request.args.get('token')
     if not token:
         return jsonify({"error": "Token is required"}), 400
 
     try:
-        # Decode and verify the token
         email = get_jwt_identity()  # Extract identity from the token
         # Mark email as verified in the database
         return jsonify({"message": f"Email {email} successfully verified!"}), 200
@@ -97,8 +88,9 @@ class SendMail(Resource):
         user_email = data.get('email')
         if not user_email:
             return jsonify({"error": "Email is required"}), 400
-        send_verification_email(user_email)
-        return jsonify({"message": "Verification email sent!"}), 200
+        verificationLink = send_verification_email(user_email)
+        print(verificationLink)
+        return jsonify({"MessageVariable": verificationLink, "msgVal": "We Apologize For The Inconvenience.Please Try Again Later"})
 
 # Register API resources
 api.add_resource(UserLogin, '/UserLogin')
