@@ -3,14 +3,12 @@ from flask_cors import cross_origin
 from flask_restful import Resource
 from firebase_admin import firestore
 from bcrypt import gensalt, checkpw, hashpw
-from flask_jwt_extended import create_access_token, jwt_required, get_jwt_header,get_jwt_identity
+from flask_jwt_extended import create_access_token, jwt_required,get_jwt_identity
 from pymongo import MongoClient
 import json
 from jwt import DecodeError
 from jwt.exceptions import PyJWTError as DecodeError
 from datetime import datetime
-from flask_mail import *
-from itsdangerous import URLSafeTimedSerializer
 
 with open('./Config/Creds.json') as f:
     config = json.load(f)
