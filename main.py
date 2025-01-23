@@ -68,7 +68,7 @@ def verify_email():
         collection.update_one({"UserEmail":email},{"$set":{"isEmailVerified":True}})
         # return redirect(f'http://localhost:5173/Register')
       
-        return redirect('https://matrimony-livid.vercel.app/Register', code=302)
+        return redirect('https://matrimony-livid.vercel.app/Thank-You-Email-Verification', code=302)
         # return jsonify({"message": f"Email {email} successfully verified!"}), 200
     except Exception as e:
         print(e)
