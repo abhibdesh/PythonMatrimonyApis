@@ -31,10 +31,10 @@ client = MongoClient(mongoURI)
 db = client.get_database(databse)
 cred = credentials.Certificate(service_account_key)
 firebase_admin.initialize_app(cred)
-# app.config['JWT_SECRET_KEY'] = os.getenv('SECERT_KEY')
+app.config['JWT_SECRET_KEY'] = os.getenv('SECERT_KEY')
 # serializer = URLSafeTimedSerializer(os.getenv('SECERT_KEY'))
 serializer = URLSafeTimedSerializer("asdfghjklpoiuytrewfgvoobndcksdhfjgjhejbdsjbcsbh")
-app.config['JWT_SECRET_KEY'] = "asdfghjklpoiuytrewfgvbndcksdhfjgjhejbdsjbcsbh" # Dummy Key 
+# app.config['JWT_SECRET_KEY'] = "asdfghjklpoiuytrewfgvbndcksdhfjgjhejbdsjbcsbh" # Dummy Key 
 app.config['JWT_ACCESS_TOKEN_EXPIRES'] = timedelta(hours=1)
 jwt = JWTManager(app)
 
@@ -64,10 +64,11 @@ def verify_email():
         email = serializer.loads(token, salt='email-verify', max_age=3600)
         print("999999999999999999999")
         print(email)
-        # return redirect(f'http://localhost:5173/Register')
         collection = db.get_collection("User")
-        print(collection.find_one({"UserEmail":email}))
-        return redirect(f'https://matrimony-livid.vercel.app/Register')
+        collection.update_one({"UserEmail":email},{"$set":{"isEmailVerified":True}})
+        # return redirect(f'http://localhost:5173/Register')
+      
+        return redirect('https://matrimony-livid.vercel.app/Register', code=302)
         # return jsonify({"message": f"Email {email} successfully verified!"}), 200
     except Exception as e:
         print(e)
