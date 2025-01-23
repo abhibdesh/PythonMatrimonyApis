@@ -49,8 +49,8 @@ class HelloWorld(Resource):
 
 def send_verification_email(user_email):
     token = serializer.dumps(user_email, salt='email-verify')
-    verification_link = f"https://matrimony-livid.vercel.app/verify-email?token={token}"    
-    # verification_link = f"http://127.0.0.1:5000/verify-email?token={token}"    
+    verification_link = f"https://pythonmatrimonyapis.onrender.com/verify-email?token={token}"    
+    #verification_link = f"http://127.0.0.1:5000/verify-email?token={token}"    
     print(token)
     return verification_link
    
