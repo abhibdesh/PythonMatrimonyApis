@@ -1,10 +1,10 @@
-from flask import Flask, request, jsonify, url_for
-from flask_mail import Mail, Message
+from flask import Flask, redirect, request, jsonify
 from flask_restful import Resource, Api
 from flask_cors import CORS
-from flask_jwt_extended import JWTManager, create_access_token, jwt_required, get_jwt_identity
+from flask_jwt_extended import JWTManager
 import firebase_admin
 from firebase_admin import credentials
+from itsdangerous import URLSafeTimedSerializer
 from UserApis import UserLogin, AddNewUser, FetchAllUsers, FetchMyProfile, LogoutUser, UpdateProfile, GetSingleProfileData
 from UpdateExistingRecords import UpdateUserCollection
 from GetMasters import GetNewUserFormMasters
@@ -27,62 +27,46 @@ with open('./Config/Creds.json') as f:
     mongoURI = config['uri']
 cred = credentials.Certificate(service_account_key)
 firebase_admin.initialize_app(cred)
-# app.config['JWT_SECRET_KEY'] = os.getenv('SECERT_KEY')
-app.config['JWT_SECRET_KEY'] = "asdfghjklpoiuytrewfgvbndcksdhfjgjhejbdsjbcsbh" # Dummy Key 
+app.config['JWT_SECRET_KEY'] = os.getenv('SECERT_KEY')
+# serializer = URLSafeTimedSerializer(os.getenv('SECERT_KEY'))
+serializer = URLSafeTimedSerializer("asdfghjklpoiuytrewfgvoobndcksdhfjgjhejbdsjbcsbh")
+# app.config['JWT_SECRET_KEY'] = "asdfghjklpoiuytrewfgvbndcksdhfjgjhejbdsjbcsbh" # Dummy Key 
 app.config['JWT_ACCESS_TOKEN_EXPIRES'] = timedelta(hours=1)
 jwt = JWTManager(app)
-
-app.config['MAIL_PORT'] = 587
-app.config['MAIL_USE_TLS'] = True
-app.config['MAIL_USE_SSL'] = False
-app.config['MAIL_USERNAME'] = "vivaahbandhan@aol.com"
-app.config['MAIL_PASSWORD'] = 'YJ5G4mqWRXCJ@kz'
-app.config['MAIL_DEFAULT_SENDER'] = ('Vivaah Bandhan', 'vivaahbandhan@aol.com')
-
-
- # magnet answer cargo woman broccoli
-mail = Mail(app)
 
 class HelloWorld(Resource):
     def get(self):
         try:
-            # current_user = get_jwt_identity()
             return {"hello":"wrold"}
         except Exception as e:
             print(e)
             return {"data": "HelloWorld!!!"}
 
 
-# Generate verification token
-def generate_verification_token(email):
-    """Generate a JWT token for email verification."""
-    return create_access_token(identity=email, expires_delta=timedelta(hours=24))
-
-# Send verification email
 def send_verification_email(user_email):
-    print("JJJIJIJIJIJIJIJIJIJIJ")
-    token = generate_verification_token(user_email)
-    
+    token = serializer.dumps(user_email, salt='email-verify')
+    verification_link = f"https://matrimony-livid.vercel.app/verify-email?token={token}"    
+    # verification_link = f"http://127.0.0.1:5000/verify-email?token={token}"    
     print(token)
-    verification_url = url_for('verify_email', token=token, _external=True)
-    print(verification_url)
-    return verification_url
+    return verification_link
    
 @app.route('/verify-email', methods=['GET'])
 def verify_email():
     token = request.args.get('token')
+    print(token)
     if not token:
         return jsonify({"error": "Token is required"}), 400
-
     try:
-        email = get_jwt_identity()  # Extract identity from the token
-        # Mark email as verified in the database
-        return jsonify({"message": f"Email {email} successfully verified!"}), 200
+        email = serializer.loads(token, salt='email-verify', max_age=3600)
+        print(email)
+        # return redirect(f'http://localhost:5173/Register')
+        return redirect(f'https://matrimony-livid.vercel.app/Register')
+        # return jsonify({"message": f"Email {email} successfully verified!"}), 200
     except Exception as e:
+        print(e)
         return jsonify({"error": str(e)}), 400
 
-# Resource for sending emails
-class SendMail(Resource):
+class SendVerificationLink(Resource):
     def post(self):
         data = request.json
         user_email = data.get('email')
@@ -90,9 +74,8 @@ class SendMail(Resource):
             return jsonify({"error": "Email is required"}), 400
         verificationLink = send_verification_email(user_email)
         print(verificationLink)
-        return jsonify({"MessageVariable": verificationLink, "msgVal": "We Apologize For The Inconvenience.Please Try Again Later"})
+        return jsonify({"MessageVariable": verificationLink,"msg":"SUCCESS", "msgVal": "Verification Link Has Been Sent On Your Registered Email."})
 
-# Register API resources
 api.add_resource(UserLogin, '/UserLogin')
 api.add_resource(AddNewUser, '/AddUser')
 api.add_resource(FetchAllUsers, '/GetClients')
@@ -102,7 +85,7 @@ api.add_resource(UpdateProfile, '/UpdateProfile')
 api.add_resource(GetSingleProfileData, '/GetSingleProfileData')
 api.add_resource(LogoutUser, '/LogoutUser')
 api.add_resource(UpdateUserCollection, '/UpdateUserCollection')
-api.add_resource(SendMail, '/VerifyEmailId')
+api.add_resource(SendVerificationLink, '/SendVerificationLink')
 
 if __name__ == "__main__":
     app.run(debug=True)
