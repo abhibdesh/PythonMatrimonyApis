@@ -5,6 +5,7 @@ from flask_jwt_extended import JWTManager
 import firebase_admin
 from firebase_admin import credentials
 from itsdangerous import URLSafeTimedSerializer
+from pymongo import MongoClient
 from UserApis import UserLogin, AddNewUser, FetchAllUsers, FetchMyProfile, LogoutUser, UpdateProfile, GetSingleProfileData
 from UpdateExistingRecords import UpdateUserCollection
 from GetMasters import GetNewUserFormMasters
@@ -25,12 +26,15 @@ service_account_key = './Config/FirebaseCreds.json'
 with open('./Config/Creds.json') as f:
     config = json.load(f)
     mongoURI = config['uri']
+    databse = config['database']
+client = MongoClient(mongoURI)
+db = client.get_database(databse)
 cred = credentials.Certificate(service_account_key)
 firebase_admin.initialize_app(cred)
-app.config['JWT_SECRET_KEY'] = os.getenv('SECERT_KEY')
+# app.config['JWT_SECRET_KEY'] = os.getenv('SECERT_KEY')
 # serializer = URLSafeTimedSerializer(os.getenv('SECERT_KEY'))
 serializer = URLSafeTimedSerializer("asdfghjklpoiuytrewfgvoobndcksdhfjgjhejbdsjbcsbh")
-# app.config['JWT_SECRET_KEY'] = "asdfghjklpoiuytrewfgvbndcksdhfjgjhejbdsjbcsbh" # Dummy Key 
+app.config['JWT_SECRET_KEY'] = "asdfghjklpoiuytrewfgvbndcksdhfjgjhejbdsjbcsbh" # Dummy Key 
 app.config['JWT_ACCESS_TOKEN_EXPIRES'] = timedelta(hours=1)
 jwt = JWTManager(app)
 
@@ -58,8 +62,11 @@ def verify_email():
         return jsonify({"error": "Token is required"}), 400
     try:
         email = serializer.loads(token, salt='email-verify', max_age=3600)
+        print("999999999999999999999")
         print(email)
         # return redirect(f'http://localhost:5173/Register')
+        collection = db.get_collection("User")
+        print(collection.find_one({"UserEmail":email}))
         return redirect(f'https://matrimony-livid.vercel.app/Register')
         # return jsonify({"message": f"Email {email} successfully verified!"}), 200
     except Exception as e:
