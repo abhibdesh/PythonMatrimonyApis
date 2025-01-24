@@ -6,7 +6,7 @@ import firebase_admin
 from firebase_admin import credentials
 from itsdangerous import URLSafeTimedSerializer
 from pymongo import MongoClient
-from UserApis import UserLogin, AddNewUser, FetchAllUsers, FetchMyProfile, LogoutUser, UpdateProfile, GetSingleProfileData
+from UserApis import UserLogin, AddNewUser,DeactivateAccount, FetchAllUsers, FetchMyProfile, LogoutUser, UpdateProfile, GetSingleProfileData
 from UpdateExistingRecords import UpdateUserCollection
 from GetMasters import GetNewUserFormMasters
 from datetime import timedelta
@@ -50,7 +50,7 @@ class HelloWorld(Resource):
 def send_verification_email(user_email):
     token = serializer.dumps(user_email, salt='email-verify')
     verification_link = f"https://pythonmatrimonyapis.onrender.com/verify-email?token={token}"    
-    #verification_link = f"http://127.0.0.1:5000/verify-email?token={token}"    
+    # verification_link = f"http://127.0.0.1:5000/verify-email?token={token}"    
     print(token)
     return verification_link
    
@@ -66,7 +66,7 @@ def verify_email():
         print(email)
         collection = db.get_collection("User")
         collection.update_one({"UserEmail":email},{"$set":{"isEmailVerified":True}})
-        # return redirect(f'http://localhost:5173/Register')
+        # return redirect(f'http://localhost:5173/Thank-You-Email-Verification')
       
         return redirect('https://matrimony-livid.vercel.app/Thank-You-Email-Verification', code=302)
         # return jsonify({"message": f"Email {email} successfully verified!"}), 200
@@ -94,6 +94,8 @@ api.add_resource(GetSingleProfileData, '/GetSingleProfileData')
 api.add_resource(LogoutUser, '/LogoutUser')
 api.add_resource(UpdateUserCollection, '/UpdateUserCollection')
 api.add_resource(SendVerificationLink, '/SendVerificationLink')
+api.add_resource(DeactivateAccount, '/DeactivateAccount')
+
 
 if __name__ == "__main__":
     app.run(debug=True)

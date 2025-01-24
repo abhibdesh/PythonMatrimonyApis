@@ -20,10 +20,11 @@ class UpdateUserCollection(Resource):
     def post(self):
         print("start")
         collection = db.get_collection('User')
-        collection.update_many(
+        collection.update_one({"UserEmail":"abhibdesh@gmail.com"},{"$set":{"UserPaid":False,"isEmailVerified":False}})
+        # collection.update_many(
 
-            { "isPhoneVerified": { "$exists": False } }, 
-            { "$set": { "isPhoneVerified": False } }
-        );         
+        #     { "readTCP": { "$exists": False } }, 
+        #     { "$set": { "readTCP": True } }
+        # );         
         print("End")
         return jsonify({"MessageVariable":"DONE"})

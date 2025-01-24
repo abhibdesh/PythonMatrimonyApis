@@ -559,17 +559,40 @@ class GetSingleProfileData(Resource):
         userId = request.json["UserId"]
         print(userId)
         try:
-            projection = {"_id": 0,"UserPassword":0,"CreatedDatetime":0,"LastLogin":0,"CreatedBy":0,
-                          "IsActive":0, "IsDeleted":0, "UserRole":0, "UserPaid":0}
+            print(current_user)
+           
             newFilter = {"UserId" : int(userId)}
             print(newFilter)
             collection = db.get_collection('User')
+            curr_user =  collection.find_one({"UserEmail":current_user})
+            print(curr_user["isPhoneVerified"])
+            print(curr_user["isEmailVerified"])
+            projection = {"_id": 0,"UserPassword":0,"CreatedDatetime":0,"LastLogin":0,"CreatedBy":0,
+                          "IsActive":0, "IsDeleted":0, "UserRole":0, "UserPaid":0}
+          
             data = collection.find_one(newFilter,projection)
             final_data = {}
             # Introduction Section
             day_name = data["birthDate"].date().strftime("%A")
             final_data["image"] =data["image"]
             final_data["Name"] =data["firstName"]+" " + data["lastName"]
+            # Contact Details
+            if curr_user["UserPaid"] == True:
+                if curr_user["isEmailVerified"] == True:
+                    final_data["UserEmail"] = data["UserEmail"]
+                else:
+                    final_data["UserEmail"]  = "Verify Your Email"      
+            else:
+              final_data["UserEmail"] = "Buy Our Services For Contact Information"
+            
+            if curr_user["UserPaid"] == True:
+                if curr_user["isPhoneVerified"] == True:
+                    final_data["PhoneNumber"] = data["PhoneNumber"]
+                else:
+                    final_data["PhoneNumber"]  = "Verify Your Mobile Number"      
+            else:
+              final_data["PhoneNumber"] = "Buy Our Services For Contact Information"
+
             final_data["JobBis"]= data["JobBis"] if  data["JobBis"] != "" else "Not Provided"
             final_data["DegDip"]= data["DegDip"] if data["DegDip"] !="" else "Not Provided"
             final_data["FieldOrPost"]= data["Field"] if data["Field"] !="" else "Not Provided"
@@ -675,7 +698,7 @@ class FetchAllUsers(Resource):
             if not currentUser:
                 return jsonify({"message": "User not found", "users": []})
 
-            newFilter = {"UserId": {"$ne": Userid}, "IsDeleted": False, "LookingFor": {"$ne": currentUser.get("LookingFor")} }
+            newFilter = {"UserId": {"$ne": Userid}, "IsDeleted": False, "IsActive":True, "LookingFor": {"$ne": currentUser.get("LookingFor")} }
             if int(filters["selectedFromHeight"]) > 0 :
                 newFilter["Height"] = {"$gte": int(filters["selectedFromHeight"])}
             if int(filters["selectedToHeight"]) > 0 :
@@ -755,6 +778,35 @@ class FetchAllUsers(Resource):
             })
             return jsonify({"message": "Failure", "error": "Something Went Wrong"})
         
+
+class DeactivateAccount(Resource):
+    @jwt_required()
+    def post(self):
+        userId = request.json["UserId"]
+        deactivationReason = request.json["deactivationReason"]
+        try:
+            collection = db.get_collection('User')
+            currentUser = collection.find_one({"UserId": userId})
+            if not currentUser:
+                return jsonify({"message": "Failure", "error": "Something Went Wrong"})
+            
+            collection.update_one({"UserId": userId},
+                                  {"$set":{"IsActive":False, "deactivationReason":deactivationReason}})
+            return jsonify({"message": "success"}),200
+        except Exception as e:
+
+            print(f"Error fetching users: {e}")
+            error_collection = db.get_collection('ErrorLogs')
+            error_collection.insert_one({
+                "Method": "DeactivateAccount",
+                "Exception": str(e),
+                "Time": datetime.now()
+            })
+            return jsonify({"message": "failure"}),200
+
+        
+
+
 
 
 
