@@ -108,11 +108,12 @@ class AddNewUser(Resource):
         userIdNew= 0
         try:
             if UserId == "0":
-                # query = {"UserEmail": Email}
-                query = {"$or":[ {"UserEmail":Email}, {"PhoneNumber":PhoneNumber}]}
+                query = {"UserEmail": Email}
+                # query = {"$or":[ {"UserEmail":Email}, {"PhoneNumber":PhoneNumber}]}
                 projection = {"_id": 0}
                 collection = db.get_collection('User')
                 data = collection.find_one(query,projection)
+                print(data)
                 if data:
                     print("User Already Exists")
                     return jsonify({MessageVariable: FailureString, msgVal: "User Already Exists"})
