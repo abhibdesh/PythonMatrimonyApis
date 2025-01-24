@@ -105,6 +105,7 @@ class AddNewUser(Resource):
         expectedAgeGap = request.json['expectedAgeGap']
         strictMatch = request.json['strictMatch']
         selectedLocatities = request.json['selectedLocatities']
+        readTCP = request.json['readTCP']
         userIdNew= 0
         try:
             if UserId == "0":
@@ -199,7 +200,8 @@ class AddNewUser(Resource):
                                                 "UserPaid":False,
                                                  "UserId": 
                                                  userIdNew,
-                                                 "image":image
+                                                 "image":image,
+                                                 "readTCP":readTCP
                                                 })
                     userData = {
                         "UserId":userIdNew,
