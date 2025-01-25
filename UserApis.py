@@ -35,9 +35,14 @@ class UserLogin(Resource):
             user_data = ValidateUser(email, password)  
             access_token = create_access_token(identity=email) 
             collection = db.get_collection('User')
-            # collection.update_one()
+            # collection.update_one()yyy
+            print(user_data["IsActive"])
             if user_data:
-                return jsonify({MessageVariable: SuccessString, msgVal: user_data, 'accessToken': access_token})
+                if(user_data["IsActive"] == True):
+                    return jsonify({MessageVariable: SuccessString, msgVal: user_data, 'accessToken': access_token})
+                else:
+                    return jsonify({MessageVariable: FailureString, msgVal: "This Account is Deactivated. Please Contact Support For Reactivation.", 'accessToken': access_token})
+
             else:
                 return jsonify({MessageVariable: FailureString, msgVal: "Invalid Credentials"})
         except Exception as e:
@@ -282,6 +287,7 @@ class UpdateProfile(Resource):
         strictMatch = request.json['strictMatch']
         selectedLocatities = request.json['selectedLocatities']
         try:
+            print(strictMatch)
             print("birthDate")
             print(birthDate)
             print("__________________________________")
@@ -785,16 +791,17 @@ class DeactivateAccount(Resource):
         userId = request.json["UserId"]
         deactivationReason = request.json["deactivationReason"]
         try:
+            print(deactivationReason)
+            print(userId)
             collection = db.get_collection('User')
-            currentUser = collection.find_one({"UserId": userId})
+            currentUser = collection.find_one({"UserId": int(userId)})
             if not currentUser:
                 return jsonify({"message": "Failure", "error": "Something Went Wrong"})
             
-            collection.update_one({"UserId": userId},
+            collection.update_one({"UserId": int(userId)},
                                   {"$set":{"IsActive":False, "deactivationReason":deactivationReason}})
-            return jsonify({"message": "success"}),200
+            return jsonify({"message": "success","redirect":"redirect"})
         except Exception as e:
-
             print(f"Error fetching users: {e}")
             error_collection = db.get_collection('ErrorLogs')
             error_collection.insert_one({
