@@ -557,6 +557,41 @@ class UpdateProfile(Resource):
             return jsonify({"message": "An error occurred during logout", "error": str(e)}), 500
 
         
+class UpdatePreferences(Resource):
+    @jwt_required()
+    def post(self):
+        current_user = get_jwt_identity()
+        print("Authenticated User:", current_user)
+        UserId = request.json['UserId']
+        selectedIncome = request.json['selectedIncome']
+        eatingHabits = request.json['eatingHabits']
+        expectedGana = request.json['expectedGana']     
+        selectedEducations = request.json['selectedEducations']
+        expectedNakshatra = request.json['expectedNakshatra']
+        expectedAgeGap = request.json['expectedAgeGap']
+        strictMatch = request.json['strictMatch']
+        selectedLocatities = request.json['selectedLocatities']  
+        try:
+            print("k")
+            collection = db.get_collection('User')
+            collection.update_one({"UserId":int(UserId)},{"$set":{
+                "selectedIncome":selectedIncome,
+                "eatingHabits":eatingHabits,
+                "expectedGana":expectedGana,
+                "selectedEducations":selectedEducations,
+                "expectedNakshatra":expectedNakshatra,
+                "expectedAgeGap":expectedAgeGap,
+                "strictMatch":strictMatch,
+                "selectedLocatities":selectedLocatities,
+            }})
+        except Exception as e:
+            collection = db.get_collection('ErrorLogs')
+            log = collection.insert_one({"Method":"UpdatePreferences-UserApi.py","Exception":e,"Time":datetime.now})
+            return jsonify({MessageVariable: FailureString, msgVal: "Something Went Wrong"})
+            
+        
+        
+                
 class GetSingleProfileData(Resource):
     @jwt_required()
     def post(self):

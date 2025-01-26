@@ -6,7 +6,7 @@ import firebase_admin
 from firebase_admin import credentials
 from itsdangerous import URLSafeTimedSerializer
 from pymongo import MongoClient
-from UserApis import UserLogin, AddNewUser,DeactivateAccount, FetchAllUsers, FetchMyProfile, LogoutUser, UpdateProfile, GetSingleProfileData
+from UserApis import UserLogin,UpdatePreferences, AddNewUser,DeactivateAccount, FetchAllUsers, FetchMyProfile, LogoutUser, UpdateProfile, GetSingleProfileData
 from UpdateExistingRecords import UpdateUserCollection
 from GetMasters import GetNewUserFormMasters
 from datetime import timedelta
@@ -95,6 +95,7 @@ api.add_resource(LogoutUser, '/LogoutUser')
 api.add_resource(UpdateUserCollection, '/UpdateUserCollection')
 api.add_resource(SendVerificationLink, '/SendVerificationLink')
 api.add_resource(DeactivateAccount, '/DeactivateAccount')
+api.add_resource(UpdatePreferences, '/UpdateExpectations')
 
 
 if __name__ == "__main__":
