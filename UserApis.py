@@ -807,7 +807,20 @@ class FetchAllUsers(Resource):
 
             # Checking Family Type
             if len(filters["FamilyType"]) > 0:
-                newFilter["FamilyType"] = {"$in":filters["FamilyType"]}
+                for i in filters["FamilyType"]:
+                    allFamilyTypes.append(i)
+            elif len(currentUser["FamilyType"]) > 0:
+                for i in currentUser["FamilyType"]:
+                    allFamilyTypes.append(i)
+
+            # Checking Raas
+            if len(currentUser["selectedRaas"]) > 0:
+                for i in currentUser["selectedRaas"]:
+                    allRaas.append(i)
+
+            if len(currentUser["selectedNaadi"]) > 0:
+                for i in currentUser["selectedNaadi"]:
+                    allNaadi.append(i)
 
             # Making Filters
             if(len(allIncomes) > 0):
@@ -818,6 +831,13 @@ class FetchAllUsers(Resource):
                 newFilter["DegDip"] = {"$in":allEducations}
             if len(allBloodGroups) > 0:
                 newFilter["BloodGrp"] = {"$in":allBloodGroups}
+            if len(allFamilyTypes) > 0:
+                newFilter["FamilyType"] = {"$in":allFamilyTypes}
+            if len(allRaas) > 0 :
+                newFilter["Raas"] = {"$in": allRaas}
+            if len(allNaadi) > 0:
+                newFilter["Naadi"] =  {"$in": allNaadi}
+
 
 
             print(newFilter)
