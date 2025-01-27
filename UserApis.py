@@ -572,8 +572,8 @@ class UpdatePreferences(Resource):
                 "expectedAgeGap":expectedAgeGap,
                 "strictMatch":strictMatch,
                 "selectedLocatities":selectedLocatities,
-                "expectedAgeGapMin":expectedAgeGapMin,
-                "expectedAgeGapMax":expectedAgeGapMax,
+                "expectedAgeGapMin":float(expectedAgeGapMin),
+                "expectedAgeGapMax":float(expectedAgeGapMax),
                 "selectedBloodGroups":selectedBloodGroups,
                 "selectedNaadi":selectedNaadi,
                 "selectedRaas":selectedRaas,
@@ -715,10 +715,10 @@ class FetchMyProfile(Resource):
 
 
 class FetchAllUsers(Resource):
-    @jwt_required()
+    # @jwt_required()
     def post(self):
-        current_user = get_jwt_identity()
-        print("Authenticated User:", current_user)
+        # current_user = get_jwt_identity()
+        # print("Authenticated User:", current_user)
         filters = request.json['filters']
         isPaidUser = request.json["isPaid"]
         page = int(request.json['pageNumber'])
@@ -731,9 +731,19 @@ class FetchAllUsers(Resource):
         print("asdasd")
         print(filters)
         finaldataList = []
+
+        # Final Filters List 
         allLocalities =[]
         allIncomes =[]
         allEducations = []
+
+        allBloodGroups = []
+        allFamilyTypes = []
+        allRaas = []
+        allNaadi = []
+        selectedHeight = 0
+        expectedAgeGapMin = 0
+        expectedAgeGapMax = 0
 
         try:
             filters["IsDeleted"] = False
@@ -767,7 +777,7 @@ class FetchAllUsers(Resource):
             if len(filters["selectedIncomes"]) > 0:
                 for i in filters["selectedIncomes"]:
                     allIncomes.append(i)
-            if len(currentUser["selectedIncome"]) > 0 :
+            elif len(currentUser["selectedIncome"]) > 0 :
                 for i in currentUser["selectedIncome"]:
                     allIncomes.append(i)
 
@@ -775,7 +785,7 @@ class FetchAllUsers(Resource):
             if len(filters["selectedLocatities"]) > 0 :
                 for i in filters["selectedLocatities"]:
                     allLocalities.append(i)
-            if(len(currentUser["selectedLocatities"]) > 0):
+            elif(len(currentUser["selectedLocatities"]) > 0):
                 for i in currentUser["selectedLocatities"]:
                     allLocalities.append(i)
             
@@ -783,13 +793,17 @@ class FetchAllUsers(Resource):
             if len(filters["selectedEducations"]) > 0:
                 for i in filters["selectedEducations"]:
                     allEducations.append(i)
-            if len(currentUser["selectedEducations"]) > 0 :
+            elif len(currentUser["selectedEducations"]) > 0 :
                 for i in currentUser["selectedEducations"]:
                     allEducations.append(i)
 
             # Checking Blood Group
             if len(filters["selectedBloodGroups"]) > 0:
-                newFilter["BloodGrp"] = {"$in":filters["selectedBloodGroups"]}
+                for i in filters["selectedBloodGroups"]:
+                    allBloodGroups.append(i)
+            elif len(currentUser["selectedBloodGroups"]) > 0:
+                for i in currentUser["selectedBloodGroups"]:
+                    allBloodGroups.append(i)
 
             # Checking Family Type
             if len(filters["FamilyType"]) > 0:
@@ -802,6 +816,8 @@ class FetchAllUsers(Resource):
                 newFilter["CurrentAddress"] = {"$in":allLocalities}
             if len(allEducations) > 0 :
                 newFilter["DegDip"] = {"$in":allEducations}
+            if len(allBloodGroups) > 0:
+                newFilter["BloodGrp"] = {"$in":allBloodGroups}
 
 
             print(newFilter)

@@ -20,7 +20,21 @@ class UpdateUserCollection(Resource):
     def post(self):
         print("start")
         collection = db.get_collection('User')
-        collection.update_one({"UserEmail":"abhibdesh@gmail.com"},{"$set":{"UserPaid":False,"isEmailVerified":False}})
+        collection.update_many({},
+                               {"$set":
+                                {"expectedAgeGapMin":0,
+                                 "expectedAgeGapMax":0,
+                                 "selectedBloodGroups" : [],
+                                 "selectedNaadi" : [],
+                                 "selectedRaas":[],
+                                 "selectedHeight":0,
+                                 "selectedFamilyType" :[],
+                                 "selectedSiblingsCousinsUpto":[],
+                                 "strictMatch": True,
+                                 "profileWithImages" : True
+                                 
+                                 }
+                                })
         # collection.update_many(
 
         #     { "readTCP": { "$exists": False } }, 
