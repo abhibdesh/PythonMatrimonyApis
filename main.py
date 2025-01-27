@@ -84,6 +84,7 @@ class SendVerificationLink(Resource):
         print(verificationLink)
         return jsonify({"MessageVariable": verificationLink,"msg":"SUCCESS", "msgVal": "Verification Link Has Been Sent On Your Registered Email."})
 
+api.add_resource(HelloWorld, '/HelloWorld')
 api.add_resource(UserLogin, '/UserLogin')
 api.add_resource(AddNewUser, '/AddUser')
 api.add_resource(FetchAllUsers, '/GetClients')
