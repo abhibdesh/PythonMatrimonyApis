@@ -196,7 +196,6 @@ class AddNewUser(Resource):
                                                 "selectedLocatities":selectedLocatities,
                                                 "LastLogin":current_time,
                                                 "expectedNakshatra":expectedNakshatra,
-                                                "expectedAgeGap":expectedAgeGap,
                                                 "strictMatch":strictMatch,
                                                 "CreatedBy":"User",
                                                 "IsActive":True,
@@ -206,7 +205,17 @@ class AddNewUser(Resource):
                                                  "UserId": 
                                                  userIdNew,
                                                  "image":image,
-                                                 "readTCP":readTCP
+                                                 "readTCP":readTCP,
+                                                 "expectedAgeGapMin": 0,
+                                                 "expectedAgeGapMax": 0,
+                                                 "selectedBloodGroups":[],
+                                                 "selectedNaadi":[],
+                                                 "selectedRaas":[],
+                                                 "selectedHeight":[],
+                                                 "selectedFamilyType":[],
+                                                 "selectedSiblingsCousinsUpto":[],
+                                                 "strictMatch": True,
+                                                 "profileWithImages": False
                                                 })
                     userData = {
                         "UserId":userIdNew,
@@ -284,8 +293,9 @@ class UpdateProfile(Resource):
         selectedEducations = request.json['selectedEducations']
         expectedNakshatra = request.json['expectedNakshatra']
         expectedAgeGap = request.json['expectedAgeGap']
-        strictMatch = request.json['strictMatch']
         selectedLocatities = request.json['selectedLocatities']
+        # New Fields
+        strictMatch = request.json['strictMatch']
         try:
             print(strictMatch)
             print("birthDate")
@@ -345,18 +355,11 @@ class UpdateProfile(Resource):
                         "EduFather":EduFather,
                         "MotherFamily":MotherFamily, 
                         "FatherFamily":FatherFamily,
-                        "selectedEducations":selectedEducations,
                         "degreeName":degreeName,
-                        "selectedIncome":selectedIncome,
-                        "eatingHabits" : eatingHabits,
                         "CompanyName":CompanyName,
-                        "expectedGana":expectedGana, 
                         "DisabilityYN":DisabilityYN,
-                        "Charan":Charan, "Naadi":Naadi,
-                        "selectedLocatities":selectedLocatities,
-                        "expectedNakshatra":expectedNakshatra,
-                        "expectedAgeGap":expectedAgeGap,
-                        "strictMatch":strictMatch,
+                        "Charan":Charan, 
+                        "Naadi":Naadi,
                         "CreatedBy":"User",
                         "IsActive":True,
                         "IsDeleted":False,
@@ -402,18 +405,10 @@ class UpdateProfile(Resource):
                         "EduFather":EduFather,
                         "MotherFamily":MotherFamily, 
                         "FatherFamily":FatherFamily,
-                        "selectedEducations":selectedEducations,
                         "degreeName":degreeName,
-                        "selectedIncome":selectedIncome,
-                        "eatingHabits" : eatingHabits,
                         "CompanyName":CompanyName,
-                        "expectedGana":expectedGana, 
                         "DisabilityYN":DisabilityYN,
                         "Charan":Charan, "Naadi":Naadi,
-                        "selectedLocatities":selectedLocatities,
-                        "expectedNakshatra":expectedNakshatra,
-                        "expectedAgeGap":expectedAgeGap,
-                        "strictMatch":strictMatch,
                         "CreatedBy":"User",
                         "IsActive":True,
                         "IsDeleted":False,
@@ -465,18 +460,10 @@ class UpdateProfile(Resource):
                     "EduFather":EduFather,
                     "MotherFamily":MotherFamily, 
                     "FatherFamily":FatherFamily,
-                    "selectedEducations":selectedEducations,
                     "degreeName":degreeName,
-                    "selectedIncome":selectedIncome,
-                    "eatingHabits" : eatingHabits,
                     "CompanyName":CompanyName,
-                    "expectedGana":expectedGana, 
                     "DisabilityYN":DisabilityYN,
                     "Charan":Charan, "Naadi":Naadi,
-                    "selectedLocatities":selectedLocatities,
-                    "expectedNakshatra":expectedNakshatra,
-                    "expectedAgeGap":expectedAgeGap,
-                    "strictMatch":strictMatch,
                     "CreatedBy":"User",
                     "IsActive":True,
                     "IsDeleted":False,
@@ -519,18 +506,10 @@ class UpdateProfile(Resource):
                         "EduFather":EduFather,
                         "MotherFamily":MotherFamily, 
                         "FatherFamily":FatherFamily,
-                        "selectedEducations":selectedEducations,
                         "degreeName":degreeName,
-                        "selectedIncome":selectedIncome,
-                        "eatingHabits" : eatingHabits,
                         "CompanyName":CompanyName,
                         "expectedGana":expectedGana, 
-                        "DisabilityYN":DisabilityYN,
                         "Charan":Charan, "Naadi":Naadi,
-                        "selectedLocatities":selectedLocatities,
-                        "expectedNakshatra":expectedNakshatra,
-                        "expectedAgeGap":expectedAgeGap,
-                        "strictMatch":strictMatch,
                         "CreatedBy":"User",
                         "IsActive":True,
                         "IsDeleted":False,
@@ -569,8 +548,18 @@ class UpdatePreferences(Resource):
         selectedEducations = request.json['selectedEducations']
         expectedNakshatra = request.json['expectedNakshatra']
         expectedAgeGap = request.json['expectedAgeGap']
-        strictMatch = request.json['strictMatch']
         selectedLocatities = request.json['selectedLocatities']  
+        expectedAgeGapMin = request.json['expectedAgeGapMin']  
+        expectedAgeGapMax = request.json['expectedAgeGapMax']  
+        selectedBloodGroups = request.json['selectedBloodGroups']  
+        selectedNaadi = request.json['selectedNaadi']  
+        selectedRaas = request.json['selectedRaas']  
+        selectedHeight = request.json['selectedHeight']  
+        selectedFamilyType = request.json['selectedFamilyType']  
+        selectedSiblingsCousinsUpto = request.json['selectedSiblingsCousinsUpto']  
+        strictMatch = request.json['strictMatch']  
+        profileWithImages = request.json['profileWithImages']
+
         try:
             print("k")
             collection = db.get_collection('User')
@@ -583,6 +572,15 @@ class UpdatePreferences(Resource):
                 "expectedAgeGap":expectedAgeGap,
                 "strictMatch":strictMatch,
                 "selectedLocatities":selectedLocatities,
+                "expectedAgeGapMin":expectedAgeGapMin,
+                "expectedAgeGapMax":expectedAgeGapMax,
+                "selectedBloodGroups":selectedBloodGroups,
+                "selectedNaadi":selectedNaadi,
+                "selectedRaas":selectedRaas,
+                "selectedHeight":selectedHeight,
+                "selectedFamilyType":selectedFamilyType,
+                "selectedSiblingsCousinsUpto":selectedSiblingsCousinsUpto,
+                "profileWithImages":profileWithImages,
             }})
         except Exception as e:
             collection = db.get_collection('ErrorLogs')
@@ -730,14 +728,24 @@ class FetchAllUsers(Resource):
         projection = {"_id": 0, "UserPassword": 0}
         if not isPaidUser:
             projection.update({"UserEmail": 0, "PhoneNumber": 0})
-
+        print("asdasd")
+        print(filters)
         finaldataList = []
+        allLocalities =[]
+        allIncomes =[]
+        allEducations = []
+
         try:
             filters["IsDeleted"] = False
             collection = db.get_collection('User')
             currentUser = collection.find_one({"UserId": Userid}, projection)
             if not currentUser:
                 return jsonify({"message": "User not found", "users": []})
+            
+
+            print("_________________________________")
+            # print(currentUser["selectedBloodGroup"])
+            print("_________________________________")
 
             newFilter = {"UserId": {"$ne": Userid}, "IsDeleted": False, "IsActive":True, "LookingFor": {"$ne": currentUser.get("LookingFor")} }
             if int(filters["selectedFromHeight"]) > 0 :
@@ -754,16 +762,47 @@ class FetchAllUsers(Resource):
                     lessThanAge = currentUserAge - int(filters["selectedAgeGap"])
                     greterThanAge = currentUserAge + int(filters["selectedAgeGap"])
                 newFilter["age"] = {"$gte": lessThanAge, "$lte":greterThanAge}
+            
+            # Checking Incomes
             if len(filters["selectedIncomes"]) > 0:
-                newFilter["IncomeGroup"] = {"$in":filters["selectedIncomes"]}
-            if len(filters["selectedLocatities"]) > 0:
-                newFilter["CurrentAddress"] = {"$in":filters["selectedLocatities"]}
+                for i in filters["selectedIncomes"]:
+                    allIncomes.append(i)
+            if len(currentUser["selectedIncome"]) > 0 :
+                for i in currentUser["selectedIncome"]:
+                    allIncomes.append(i)
+
+            # Checking Localities
+            if len(filters["selectedLocatities"]) > 0 :
+                for i in filters["selectedLocatities"]:
+                    allLocalities.append(i)
+            if(len(currentUser["selectedLocatities"]) > 0):
+                for i in currentUser["selectedLocatities"]:
+                    allLocalities.append(i)
+            
+            # Checking Educations
             if len(filters["selectedEducations"]) > 0:
-                newFilter["DegDip"] = {"$in":filters["selectedEducations"]}
+                for i in filters["selectedEducations"]:
+                    allEducations.append(i)
+            if len(currentUser["selectedEducations"]) > 0 :
+                for i in currentUser["selectedEducations"]:
+                    allEducations.append(i)
+
+            # Checking Blood Group
             if len(filters["selectedBloodGroups"]) > 0:
                 newFilter["BloodGrp"] = {"$in":filters["selectedBloodGroups"]}
+
+            # Checking Family Type
             if len(filters["FamilyType"]) > 0:
                 newFilter["FamilyType"] = {"$in":filters["FamilyType"]}
+
+            # Making Filters
+            if(len(allIncomes) > 0):
+                newFilter["IncomeGroup"] = {"$in":allIncomes}
+            if(len(allLocalities) > 0):
+                newFilter["CurrentAddress"] = {"$in":allLocalities}
+            if len(allEducations) > 0 :
+                newFilter["DegDip"] = {"$in":allEducations}
+
 
             print(newFilter)
 
@@ -796,8 +835,8 @@ class FetchAllUsers(Resource):
                     "Birthtime": u['birthTime'],
                     "BirthPlace": u['BirthPlace'],
                     "Bloodgroup": u["BloodGrp"]
-                     ,"image": u['image'],
-                      "Userid": u['UserId']
+                    #  ,"image": u['image']
+                      ,"Userid": u['UserId']
                 }
 
                 finaldataList.append({"topData": top_data, "next_data": [next_Data]})
