@@ -569,7 +569,6 @@ class UpdatePreferences(Resource):
                 "expectedGana":expectedGana,
                 "selectedEducations":selectedEducations,
                 "expectedNakshatra":expectedNakshatra,
-                "expectedAgeGap":expectedAgeGap,
                 "strictMatch":strictMatch,
                 "selectedLocatities":selectedLocatities,
                 "expectedAgeGapMin":float(expectedAgeGapMin),
