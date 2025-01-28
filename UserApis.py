@@ -292,7 +292,8 @@ class UpdateProfile(Resource):
         expectedGana = request.json['expectedGana']     
         selectedEducations = request.json['selectedEducations']
         expectedNakshatra = request.json['expectedNakshatra']
-        expectedAgeGap = request.json['expectedAgeGap']
+        expectedAgeGapMin = request.json['expectedAgeGap']
+        expectedAgeGapMin = request.json['expectedAgeGap']
         selectedLocatities = request.json['selectedLocatities']
         # New Fields
         strictMatch = request.json['strictMatch']
@@ -547,7 +548,6 @@ class UpdatePreferences(Resource):
         expectedGana = request.json['expectedGana']     
         selectedEducations = request.json['selectedEducations']
         expectedNakshatra = request.json['expectedNakshatra']
-        expectedAgeGap = request.json['expectedAgeGap']
         selectedLocatities = request.json['selectedLocatities']  
         expectedAgeGapMin = request.json['expectedAgeGapMin']  
         expectedAgeGapMax = request.json['expectedAgeGapMax']  
@@ -563,7 +563,7 @@ class UpdatePreferences(Resource):
         try:
             print("k")
             collection = db.get_collection('User')
-            collection.update_one({"UserId":int(UserId)},{"$set":{
+            newdata = {
                 "selectedIncome":selectedIncome,
                 "eatingHabits":eatingHabits,
                 "expectedGana":expectedGana,
@@ -581,7 +581,9 @@ class UpdatePreferences(Resource):
                 "selectedFamilyType":selectedFamilyType,
                 "selectedSiblingsCousinsUpto":selectedSiblingsCousinsUpto,
                 "profileWithImages":profileWithImages,
-            }})
+            }
+            print(newdata)
+            collection.update_one({"UserId":int(UserId)},{"$set":newdata})
         except Exception as e:
             collection = db.get_collection('ErrorLogs')
             log = collection.insert_one({"Method":"UpdatePreferences-UserApi.py","Exception":e,"Time":datetime.now})
@@ -766,7 +768,7 @@ class FetchAllUsers(Resource):
                 currentUserAge = currentUser["age"]
                 print(currentUser["LookingFor"])
                 if currentUser["LookingFor"] == "Bride":
-                    lessThanAge = currentUserAge - int(filters["selectedAgeGap"])
+                    lessThanAge = currentUserAge - int(currentUser["expectedAgeGapMin"])
                     greterThanAge = currentUserAge
                 else:
                     lessThanAge = currentUserAge - int(filters["selectedAgeGap"])
