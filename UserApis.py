@@ -669,7 +669,7 @@ class GetSingleProfileData(Resource):
             final_data["expectedGana"]= ", ".join(data["expectedGana"]) if ", ".join(data["expectedGana"])  != "" else "No bar"
             final_data["selectedLocatities"]= ", ".join(data["selectedLocatities"]) if ", ".join(data["selectedLocatities"])  != "" else "No bar"
             final_data["expectedNakshatra"]= ", ".join(data["expectedNakshatra"]) if ", ".join(data["expectedNakshatra"])  != "" else "No bar"
-            final_data["expectedAgeGap"]= str(data["expectedAgeGap"]) if str(data["expectedAgeGap"])  != "" else "No bar"
+            final_data["expectedAgeGap"]= str(data["expectedAgeGapMin"]) + "-"  + str(data["expectedAgeGapMax"]) if str(data["expectedAgeGapMin"])  != "0" and str(data["expectedAgeGapMax"]) != "0" else "No bar"
             final_data["strictMatch"]= "Yes" if data["strictMatch"] == True else "No" 
             return jsonify({MessageVariable:SuccessString,"data":final_data})
         except Exception as e:
@@ -757,14 +757,18 @@ class FetchAllUsers(Resource):
                 newFilter["Height"] = {"$gte": int(filters["selectedFromHeight"])}
             if int(filters["selectedToHeight"]) > 0 :
                 newFilter["Height"] = {"$lte": int(filters["selectedToHeight"])}
-            if int(filters["expectedAgeGapMin"]) > 0 :
-                currentUserAge = currentUser["age"]
+            if int(filters["expectedAgeGapMin"]) > 0 and currentUser["expectedAgeGapMin"] > 0:
+                currentUserAge = float(currentUser["age"])
                 lessThanAge = currentUserAge - int(currentUser["expectedAgeGapMin"])
-            if int(filters["expectedAgeGapMax"]) > 0 :
-                currentUserAge = currentUser["expectedAgeGapMax"]
+                newFilter["age"] = {"$gte": lessThanAge}
+            if int(filters["expectedAgeGapMax"]) > 0 and currentUser["expectedAgeGapMin"] > 0:
+                currentUserAge = float(currentUser["expectedAgeGapMax"])
                 greterThanAge = currentUserAge + int(currentUser["expectedAgeGapMax"]) 
+                newFilter["age"] = {"$lte": greterThanAge}
             # newFilter["age"] = {"$gte": lessThanAge, "$lte":greterThanAge}
-            
+
+
+             
             # Checking Incomes
             if len(filters["selectedIncomes"]) > 0:
                 for i in filters["selectedIncomes"]:
@@ -822,6 +826,9 @@ class FetchAllUsers(Resource):
                 for i in currentUser["selectedNaadi"]:
                     allNaadi.append(i)
 
+            if int(filters["selectedSiblingsCousinsUpto"]) > 0:
+                newFilter["Siblings"] = {"$lte": int(filters["selectedSiblingsCousinsUpto"])}
+           
             # Making Filters
             if(len(allIncomes) > 0):
                 newFilter["IncomeGroup"] = {"$in":allIncomes}
@@ -871,7 +878,7 @@ class FetchAllUsers(Resource):
                     "Birthtime": u['birthTime'],
                     "BirthPlace": u['BirthPlace'],
                     "Bloodgroup": u["BloodGrp"]
-                    #  ,"image": u['image']
+                     ,"image": u['image']
                       ,"Userid": u['UserId']
                 }
 
