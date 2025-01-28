@@ -36,7 +36,6 @@ class UserLogin(Resource):
             access_token = create_access_token(identity=email) 
             collection = db.get_collection('User')
             # collection.update_one()yyy
-            print(user_data["IsActive"])
             if user_data:
                 if(user_data["IsActive"] == True):
                     return jsonify({MessageVariable: SuccessString, msgVal: user_data, 'accessToken': access_token})
@@ -752,27 +751,19 @@ class FetchAllUsers(Resource):
             currentUser = collection.find_one({"UserId": Userid}, projection)
             if not currentUser:
                 return jsonify({"message": "User not found", "users": []})
-            
-
-            print("_________________________________")
-            # print(currentUser["selectedBloodGroup"])
-            print("_________________________________")
 
             newFilter = {"UserId": {"$ne": Userid}, "IsDeleted": False, "IsActive":True, "LookingFor": {"$ne": currentUser.get("LookingFor")} }
             if int(filters["selectedFromHeight"]) > 0 :
                 newFilter["Height"] = {"$gte": int(filters["selectedFromHeight"])}
             if int(filters["selectedToHeight"]) > 0 :
                 newFilter["Height"] = {"$lte": int(filters["selectedToHeight"])}
-            if int(filters["selectedAgeGap"]) > 0 :
+            if int(filters["expectedAgeGapMin"]) > 0 :
                 currentUserAge = currentUser["age"]
-                print(currentUser["LookingFor"])
-                if currentUser["LookingFor"] == "Bride":
-                    lessThanAge = currentUserAge - int(currentUser["expectedAgeGapMin"])
-                    greterThanAge = currentUserAge
-                else:
-                    lessThanAge = currentUserAge - int(filters["selectedAgeGap"])
-                    greterThanAge = currentUserAge + int(filters["selectedAgeGap"])
-                newFilter["age"] = {"$gte": lessThanAge, "$lte":greterThanAge}
+                lessThanAge = currentUserAge - int(currentUser["expectedAgeGapMin"])
+            if int(filters["expectedAgeGapMax"]) > 0 :
+                currentUserAge = currentUser["expectedAgeGapMax"]
+                greterThanAge = currentUserAge + int(currentUser["expectedAgeGapMax"]) 
+            # newFilter["age"] = {"$gte": lessThanAge, "$lte":greterThanAge}
             
             # Checking Incomes
             if len(filters["selectedIncomes"]) > 0:
@@ -810,15 +801,23 @@ class FetchAllUsers(Resource):
             if len(filters["FamilyType"]) > 0:
                 for i in filters["FamilyType"]:
                     allFamilyTypes.append(i)
-            elif len(currentUser["FamilyType"]) > 0:
-                for i in currentUser["FamilyType"]:
+            elif len(currentUser["selectedFamilyType"]) > 0:
+                print(currentUser["selectedFamilyType"])
+                for i in currentUser["selectedFamilyType"]:
                     allFamilyTypes.append(i)
 
             # Checking Raas
-            if len(currentUser["selectedRaas"]) > 0:
+            if len(filters["selectedRaas"]) > 0:
+                for i in filters["selectedRaas"]:
+                    allRaas.append(i)
+            elif len(currentUser["selectedRaas"]) > 0:
                 for i in currentUser["selectedRaas"]:
                     allRaas.append(i)
 
+
+            if len(filters["selectedNaadi"]) > 0:
+                for i in filters["selectedNaadi"]:
+                    allNaadi.append(i)
             if len(currentUser["selectedNaadi"]) > 0:
                 for i in currentUser["selectedNaadi"]:
                     allNaadi.append(i)
