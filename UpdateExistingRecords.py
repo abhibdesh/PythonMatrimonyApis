@@ -22,16 +22,21 @@ class UpdateUserCollection(Resource):
         collection = db.get_collection('User')
         collection.update_many({},
                                {"$set":
-                                {"expectedAgeGapMin":0,
-                                 "expectedAgeGapMax":0,
-                                 "selectedBloodGroups" : [],
-                                 "selectedNaadi" : [],
-                                 "selectedRaas":[],
-                                 "selectedHeight":0,
-                                 "selectedFamilyType" :[],
-                                 "selectedSiblingsCousinsUpto":[],
-                                 "strictMatch": True,
-                                 "profileWithImages" : True
+                                {
+                                    "image":None
+                                    # "birthDate" : None,
+                                    # "birthTime" : None,
+                                    # "age" : None
+                                #     "expectedAgeGapMin":0,
+                                #  "expectedAgeGapMax":0,
+                                #  "selectedBloodGroups" : [],
+                                #  "selectedNaadi" : [],
+                                #  "selectedRaas":[],
+                                #  "selectedHeight":0,
+                                #  "selectedFamilyType" :[],
+                                #  "selectedSiblingsCousinsUpto":[],
+                                #  "strictMatch": True,
+                                #  "profileWithImages" : True
                                  
                                  }
                                 })
