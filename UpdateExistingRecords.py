@@ -23,7 +23,7 @@ class UpdateUserCollection(Resource):
         collection.update_many({},
                                {"$set":
                                 {
-                                    "image":None
+                                    "IsVerified":"1"
                                     # "birthDate" : None,
                                     # "birthTime" : None,
                                     # "age" : None

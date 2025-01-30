@@ -2,7 +2,7 @@ from flask import Flask, redirect, request, jsonify
 from flask_restful import Resource, Api
 from flask_cors import CORS
 from flask_jwt_extended import JWTManager
-
+from Admin import FetchDashboardData
 from itsdangerous import URLSafeTimedSerializer
 from pymongo import MongoClient
 from UserApis import UserLogin,UpdatePreferences, AddNewUser,DeactivateAccount, FetchAllUsers, FetchMyProfile, LogoutUser, UpdateProfile, GetSingleProfileData
@@ -85,6 +85,7 @@ api.add_resource(HelloWorld, '/HelloWorld')
 api.add_resource(UserLogin, '/UserLogin')
 api.add_resource(AddNewUser, '/AddUser')
 api.add_resource(FetchAllUsers, '/GetClients')
+api.add_resource(FetchDashboardData, '/FetchDashboardData')
 api.add_resource(GetNewUserFormMasters, '/GetNewUserFormMasters')
 api.add_resource(FetchMyProfile, '/FetchMyProfile')
 api.add_resource(UpdateProfile, '/UpdateProfile')

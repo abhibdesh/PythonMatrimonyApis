@@ -201,6 +201,7 @@ class AddNewUser(Resource):
                                                 "IsDeleted":False,
                                                 "UserRole":"2",
                                                 "UserPaid":False,
+                                                "IsVerified":"0",
                                                  "UserId": 
                                                  userIdNew,
                                                  "image":None,
@@ -721,7 +722,7 @@ class FetchMyProfile(Resource):
 
 
 class FetchAllUsers(Resource):
-    # @jwt_required()
+    @jwt_required()
     def post(self):
         # current_user = get_jwt_identity()
         # print("Authenticated User:", current_user)
@@ -874,7 +875,8 @@ class FetchAllUsers(Resource):
                     "Address": str(u['Address']) + ', ' + str(u["CurrentAddress"]),
                     "Education": str(u["DegDip"]) + ', ' + str(u['Field']),
                     "Income": income,
-                                          "Userid": u['UserId']
+                    "Userid": u['UserId'],
+                    "IsVerified":u["IsVerified"]
 
                    
                 }
