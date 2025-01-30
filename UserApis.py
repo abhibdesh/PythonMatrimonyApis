@@ -678,6 +678,9 @@ class GetSingleProfileData(Resource):
             final_data["expectedNakshatra"]= ", ".join(data["expectedNakshatra"]) if ", ".join(data["expectedNakshatra"])  != "" else "No bar"
             final_data["expectedAgeGap"]= str(data["expectedAgeGapMin"]) + "-"  + str(data["expectedAgeGapMax"]) if str(data["expectedAgeGapMin"])  != "0" and str(data["expectedAgeGapMax"]) != "0" else "No bar"
             final_data["strictMatch"]= "Yes" if data["strictMatch"] == True else "No" 
+            final_data["IsVerified"] = "1" if data["IsVerified"] == "1" else "0" 
+            print( final_data["IsVerified"])
+            print( "final_data[""]")
             return jsonify({MessageVariable:SuccessString,"data":final_data})
         except Exception as e:
             collection = db.get_collection('ErrorLogs')

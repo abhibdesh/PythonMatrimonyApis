@@ -21,17 +21,39 @@ db = client.get_database(databse)
 class FetchDashboardData(Resource):
     @jwt_required()
     def post(self):
-        collection = db.get_collection("User")
-        allData = []
-        dataa = {}
-        data = collection.find({},{"image":0, "_id":0, "UserPassword":0})
-        for i in data:
-            allData.append(i)
-        print(allData)
-        dataa["data"] = allData
-        return jsonify({
-                "message": "Success",
-                "users": allData,
-               
-            })
+        try:
+            collection = db.get_collection("User")
+            allData = []
+            data = collection.find({},{"image":0, "_id":0, "UserPassword":0})
+            for i in data:
+                allData.append(i)
+            return jsonify({
+                    "message": "Success",
+                    "users": allData, 
+                })
+        except Exception as e:
+            print(f"Error checking password: {e}")
+            collection = db.get_collection('ErrorLogs')
+            log = collection.insert_one({"Method":"FetchDashboardData-Admin.py","Exception":e,
+                                         "Time":datetime.now})
+            return jsonify({"msg":"failure","data":"Something Went Wrong. Please Try Again Later"})
+
+    
+class VerifyAccount(Resource):
+    @jwt_required()
+    def post(self):
+        userId = request.json["userId"]
+        print("userId")
+        print(userId)
+        try:
+            collection = db.get_collection("User")
+            data = collection.update_one({"UserId":int(userId)},{"$set":{ "IsVerified":"1"}})
+            return jsonify({"msg":"success","data":"This Profile is verified"})
+        except Exception as e:
+            print(f"Error checking password: {e}")
+            collection = db.get_collection('ErrorLogs')
+            log = collection.insert_one({"Method":"VerifyAccount-Admin.py","Exception":e,
+                                         "Time":datetime.now})
+            return jsonify({"msg":"failure","data":"Something Went Wrong. Please Try Again Later"})
+        
         

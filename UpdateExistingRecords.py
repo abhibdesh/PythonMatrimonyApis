@@ -23,7 +23,9 @@ class UpdateUserCollection(Resource):
         collection.update_many({},
                                {"$set":
                                 {
-                                    "IsVerified":"1"
+                                    "UserPaid":True,
+                                    "isPhoneVerified":True,
+                                    "isEmailVerified":True
                                     # "birthDate" : None,
                                     # "birthTime" : None,
                                     # "age" : None
