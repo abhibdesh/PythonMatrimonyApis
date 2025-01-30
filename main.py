@@ -5,7 +5,7 @@ from flask_jwt_extended import JWTManager
 from Admin import FetchDashboardData, VerifyAccount
 from itsdangerous import URLSafeTimedSerializer
 from pymongo import MongoClient
-from UserApis import UserLogin,UpdatePreferences, AddNewUser,DeactivateAccount, FetchAllUsers, FetchMyProfile, LogoutUser, UpdateProfile, GetSingleProfileData
+from UserApis import UserLogin,UpdatePreferences,GetMyPayments,AddMyPaymentInfo, AddNewUser,DeactivateAccount, FetchAllUsers, FetchMyProfile, LogoutUser, UpdateProfile, GetSingleProfileData
 from UpdateExistingRecords import UpdateUserCollection
 from GetMasters import GetNewUserFormMasters
 from datetime import timedelta
@@ -96,6 +96,8 @@ api.add_resource(UpdateUserCollection, '/UpdateUserCollection')
 api.add_resource(SendVerificationLink, '/SendVerificationLink')
 api.add_resource(DeactivateAccount, '/DeactivateAccount')
 api.add_resource(UpdatePreferences, '/UpdateExpectations')
+api.add_resource(GetMyPayments, '/GetMyPayments')
+api.add_resource(AddMyPaymentInfo, '/AddMyPaymentInfo')
 
 
 if __name__ == "__main__":

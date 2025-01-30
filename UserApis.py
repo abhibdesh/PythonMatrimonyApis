@@ -943,6 +943,48 @@ class DeactivateAccount(Resource):
 
 
 
+class GetMyPayments(Resource):
+    def post(self):
+        userId = request.json["userId"]
+        result = db.User.aggregate([
+    {
+        "$match": {  
+            "UserId": int(userId)
+        }
+    },
+    {
+        "$lookup": { 
+            "from": "PaymentInfo",
+            "localField": "UserId",
+            "foreignField": "UserId",
+            "as": "payments"
+        }
+    }
+])
+
+    # Print results
+        for doc in result:
+            print(doc)
+
+
+class AddMyPaymentInfo(Resource):
+    def post(self):
+        userId = request.json["userId"]
+        transactionId = request.json["transactionId"]
+        try:
+            newData = {
+                "UserId" : int(userId),
+                "TransactionId": transactionId,
+                "CreatedDate" : datetime.now(),
+                "Plan": "Yearly",
+                "Amount":"10000"
+            }
+            collection = db.get_collection("PaymentInfo")
+            id = collection.insert_one(newData)
+            print(id)
+            return jsonify({"Message":"Success","data":str(id)})
+        except Exception as e:
+            return jsonify({"Message":"Failure","data":str(e)})
 
 
 
