@@ -9,6 +9,10 @@ import json
 from jwt import DecodeError
 from jwt.exceptions import PyJWTError as DecodeError
 from datetime import datetime
+from dateutil.relativedelta import relativedelta
+from pymongo import DESCENDING
+
+
 
 with open('./Config/Creds.json') as f:
     config = json.load(f)
@@ -854,9 +858,7 @@ class FetchAllUsers(Resource):
                 newFilter["Raas"] = {"$in": allRaas}
             if len(allNaadi) > 0:
                 newFilter["Naadi"] =  {"$in": allNaadi}
-
-
-
+            
             print(newFilter)
 
             total_count = collection.count_documents(newFilter) 
@@ -940,44 +942,89 @@ class DeactivateAccount(Resource):
             return jsonify({"message": "failure"}),200
 
         
-
-
-
 class GetMyPayments(Resource):
     def post(self):
         userId = request.json["userId"]
+        today_date = datetime.now() 
+        print("userIduserIduserIduserIduserIduserIduserIduserIduserIduserId")
+        print(userId)
+        print("userIduserIduserIduserIduserIduserIduserIduserIduserIduserId")
         result = db.User.aggregate([
-    {
-        "$match": {  
-            "UserId": int(userId)
-        }
-    },
-    {
-        "$lookup": { 
-            "from": "PaymentInfo",
-            "localField": "UserId",
-            "foreignField": "UserId",
-            "as": "payments"
-        }
-    }
-])
+            {
+                "$match": {  
+                    "UserId": int(userId)
+                }
+            },
+            {
+                "$lookup": { 
+                    "from": "PaymentInfo",
+                    "localField": "UserId",
+                    "foreignField": "UserId",
+                    "as": "payments",
+                    "pipeline": [
+                        {
+                            "$addFields": {
+                                "isActive": { "$gt": ["$ValidTill", today_date] }  
+                            }
+                        },
+                        { "$sort": { "CreatedDate": DESCENDING } },  
+                        { "$project": { "_id": 0 }}  
+                    ]
+                }
+            },
+            {
+                "$project": {
+                    "_id": 0,  
+                    "payments": 1  
+                }
+            }
+        ])            
 
-    # Print results
+        paymentData = []
+        hasActivePlan = False 
+
         for doc in result:
-            print(doc)
+            for payment in doc.get("payments", []):
+                if payment.get("isActive"): 
+                    hasActivePlan = True
+            paymentData.append(doc)
 
+        return jsonify({
+            "message": "success",
+            "data": paymentData,
+            "hasActivePlan": hasActivePlan  
+        })
 
 class AddMyPaymentInfo(Resource):
     def post(self):
         userId = request.json["userId"]
         transactionId = request.json["transactionId"]
+        plan = request.json["plan"]
+
+        if plan == "Yearly":
+            ValidTill =  datetime.now() + relativedelta(months=12)
+            amount = 10000
+        if plan == "Monthly":
+            ValidTill =  datetime.now() + relativedelta(months=1)
+            amount = 6000
+        if plan == "Quarterly":
+            ValidTill =  datetime.now() + relativedelta(months=3)
+            amount = 4000
+        if plan == "Half-Yearly":
+            ValidTill =  datetime.now() + relativedelta(months=6)
+            amount = 7000
+        if plan == "Minutes":
+            ValidTill =  datetime.now() + relativedelta(minutes=1)
+            amount = 20000
+
         try:
             newData = {
                 "UserId" : int(userId),
                 "TransactionId": transactionId,
                 "CreatedDate" : datetime.now(),
-                "Plan": "Yearly",
-                "Amount":"10000"
+                "ValidTill": ValidTill,
+                "Plan": plan,
+                "Amount": amount
             }
             collection = db.get_collection("PaymentInfo")
             id = collection.insert_one(newData)
