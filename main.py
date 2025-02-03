@@ -2,7 +2,7 @@ from flask import Flask, redirect, request, jsonify
 from flask_restful import Resource, Api
 from flask_cors import CORS
 from flask_jwt_extended import JWTManager
-from Admin import FetchDashboardData, VerifyAccount
+from Admin import FetchDashboardData, VerifyAccount,FetchAllUsersAdmin
 from itsdangerous import URLSafeTimedSerializer
 from pymongo import MongoClient
 from UserApis import UserLogin,UpdatePreferences,GetMyPayments,AddMyPaymentInfo, AddNewUser,DeactivateAccount, FetchAllUsers, FetchMyProfile, LogoutUser, UpdateProfile, GetSingleProfileData
@@ -98,6 +98,8 @@ api.add_resource(DeactivateAccount, '/DeactivateAccount')
 api.add_resource(UpdatePreferences, '/UpdateExpectations')
 api.add_resource(GetMyPayments, '/GetMyPayments')
 api.add_resource(AddMyPaymentInfo, '/AddMyPaymentInfo')
+api.add_resource(FetchAllUsersAdmin, '/FetchAllUsersAdmin')
+
 
 
 if __name__ == "__main__":
