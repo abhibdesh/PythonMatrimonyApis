@@ -205,7 +205,7 @@ class AddNewUser(Resource):
                                                 "lastActivity": current_time,
                                                 "selectedLocatities":selectedLocatities,
                                                 "LastLogin":current_time,
-                                                "lastLogout": None,
+                                                "lastLogOutTime": None,
                                                 "expectedNakshatra":expectedNakshatra,
                                                 "strictMatch":strictMatch,
                                                 "CreatedBy":"User",
@@ -719,7 +719,7 @@ class LogoutUser(Resource):
             collection.update_one({"UserEmail":current_user},{
                 "$set":{
                     "lastActivity":datetime.now(),
-                    "lastLogout":datetime.now()
+                    "lastLogOutTime":datetime.now()
                     }
             })
             return jsonify({MessageVariable: "Done"})

@@ -22,11 +22,12 @@ class UpdateUserCollection(Resource):
         collection.update_many({},
                                {"$set":
                                 {
-                                    "PlanTimeSelected":True,
-                                    "ProfileCount":True,
-                                    "isEmailVerified":True,
-                                    "ProfilesViewd":0,
-                                    "ProfilesList":[]
+                                    "lastLogOutTime":None
+                                    # ,
+                                    # "ProfileCount":True,
+                                    # "isEmailVerified":True,
+                                    # "ProfilesViewd":0,
+                                    # "ProfilesList":[]
                                     # "birthDate" : None,
                                     # "birthTime" : None,
                                     # "age" : None
