@@ -140,10 +140,10 @@ def clear_inactive_sessions():
     inactive_users = collection.find({"lastActivity": {"$lt": threshold}})
 
     for user in inactive_users:
+        collection.update_one({"_id": user["_id"]}, {"$set": {"lastLogOutTime": datetime.datetime.utcnow()}})
         session.pop(str(user["_id"]), None)  
         logout_user() 
         print(user)
-        collection.update_one({"_id": user["_id"]}, {"$set": {"lastLogOutTime": datetime.datetime.utcnow()}})
 
     return f"Cleared {collection.count_documents({'lastActivity': {'$lt': threshold}})} inactive users."
 
