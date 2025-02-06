@@ -1,7 +1,6 @@
 from flask import Flask, jsonify, request
 from flask_cors import cross_origin
 from flask_restful import Resource
-from firebase_admin import firestore
 from flask_jwt_extended import create_access_token, jwt_required, get_jwt_header,get_jwt_identity
 from pymongo import MongoClient
 import json
@@ -23,9 +22,11 @@ class UpdateUserCollection(Resource):
         collection.update_many({},
                                {"$set":
                                 {
-                                    "UserPaid":True,
-                                    "isPhoneVerified":True,
-                                    "isEmailVerified":True
+                                    "PlanTimeSelected":True,
+                                    "ProfileCount":True,
+                                    "isEmailVerified":True,
+                                    "ProfilesViewd":0,
+                                    "ProfilesList":[]
                                     # "birthDate" : None,
                                     # "birthTime" : None,
                                     # "age" : None

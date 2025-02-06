@@ -1,7 +1,6 @@
 from flask import Flask, jsonify, request
 from flask_cors import cross_origin
 from flask_restful import Resource
-from firebase_admin import firestore
 from bcrypt import gensalt, checkpw, hashpw
 from flask_jwt_extended import create_access_token, jwt_required,get_jwt_identity
 from pymongo import MongoClient
@@ -42,6 +41,12 @@ class UserLogin(Resource):
             # collection.update_one()yyy
             if user_data:
                 if(user_data["IsActive"] == True):
+                    collection.update_one({"UserEmail":email},{"$set":
+                                                               {
+                                                                   "LastLogin":datetime.now(),
+                                                                   "lastActivity" : datetime.now()
+                                                                   }
+                                                                })
                     return jsonify({MessageVariable: SuccessString, msgVal: user_data, 'accessToken': access_token})
                 else:
                     return jsonify({MessageVariable: FailureString, msgVal: "This Account is Deactivated. Please Contact Support For Reactivation.", 'accessToken': access_token})
@@ -165,7 +170,8 @@ class AddNewUser(Resource):
                                                 "birthDate":None,
                                                 "birthTime":None,
                                                 "age":None,
-                                                "BirthPlace":BirthPlace,"Raas":Raas,
+                                                "BirthPlace":BirthPlace,
+                                                "Raas":Raas,
                                                 "Height": Height,
                                                 "BloodGrp":BloodGrp,
                                                 "Disablity":Disablity,
@@ -196,8 +202,10 @@ class AddNewUser(Resource):
                                                 "DisabilityYN":DisabilityYN,
                                                 "Charan":Charan, "Naadi":Naadi,
                                                 "CreatedDatetime": current_time,
+                                                "lastActivity": current_time,
                                                 "selectedLocatities":selectedLocatities,
                                                 "LastLogin":current_time,
+                                                "lastLogout": None,
                                                 "expectedNakshatra":expectedNakshatra,
                                                 "strictMatch":strictMatch,
                                                 "CreatedBy":"User",
@@ -334,6 +342,7 @@ class UpdateProfile(Resource):
                         "firstName":firstName ,
                         "lastName":lastName,
                         "Address":Address,
+                        "lastActivity":datetime.now(),
                         "CurrentAddress":CurrentAddress,
                         "birthDate":date_obj,
                         "birthTime":time.strftime("%H:%M:%S"),
@@ -385,6 +394,7 @@ class UpdateProfile(Resource):
                         "ChoosingFor":ChoosingFor,
                         "firstName":firstName ,
                         "lastName":lastName,
+                        "lastActivity":datetime.now(),
                         "birthTime":time.strftime("%H:%M:%S"),
                         "Address":Address,
                         "CurrentAddress":CurrentAddress,
@@ -440,6 +450,7 @@ class UpdateProfile(Resource):
                     "firstName":firstName ,
                     "lastName":lastName,
                     "Address":Address,
+                    "lastActivity":datetime.now(),
                     "CurrentAddress":CurrentAddress,
                     "birthDate":date_obj,
                     "age":age,
@@ -492,6 +503,7 @@ class UpdateProfile(Resource):
                         "BirthPlace":BirthPlace,"Raas":Raas,
                         "Height": Height,
                         "BloodGrp":BloodGrp,
+                        "lastActivity":datetime.now(),
                         "Disablity":Disablity,
                         "DegDip":DegDip,
                         "Field":Field, 
@@ -568,6 +580,7 @@ class UpdatePreferences(Resource):
             print("k")
             collection = db.get_collection('User')
             newdata = {
+                "lastActivity":datetime.now(),
                 "selectedIncome":selectedIncome,
                 "eatingHabits":eatingHabits,
                 "expectedGana":expectedGana,
@@ -608,6 +621,9 @@ class GetSingleProfileData(Resource):
             newFilter = {"UserId" : int(userId)}
             print(newFilter)
             collection = db.get_collection('User')
+            collection.update_one({"UserEmail":current_user},{
+                "$set":{"lastActivity":datetime.now()}
+            })
             curr_user =  collection.find_one({"UserEmail":current_user})
             print(curr_user["isPhoneVerified"])
             print(curr_user["isEmailVerified"])
@@ -699,6 +715,13 @@ class LogoutUser(Resource):
         try:
             current_user = get_jwt_identity()
             print("Authenticated User:", current_user)
+            collection = db.get_collection("User")
+            collection.update_one({"UserEmail":current_user},{
+                "$set":{
+                    "lastActivity":datetime.now(),
+                    "lastLogout":datetime.now()
+                    }
+            })
             return jsonify({MessageVariable: "Done"})
         except Exception as e:
             print("Error:", e)
@@ -715,6 +738,11 @@ class FetchMyProfile(Resource):
             newFilter = {"UserId" : int(userid)}
             print(newFilter)
             collection = db.get_collection('User')
+            collection.update_one(newFilter,{
+                "$set":{
+                    "lastActivity":datetime.now(),
+                    }
+            })
             data = collection.find(newFilter,projection)
             myProfile = []
             for u in data:
@@ -762,11 +790,17 @@ class FetchAllUsers(Resource):
         try:
             filters["IsDeleted"] = False
             collection = db.get_collection('User')
-            currentUser = collection.find_one({"UserId": Userid}, projection)
+            currentUser = collection.find_one({"UserId": int(Userid)}, projection)
             if not currentUser:
                 return jsonify({"message": "User not found", "users": []})
+            
+            collection.update_one({"UserId": int(Userid)},{
+                "$set":{
+                    "lastActivity":datetime.now()
+                }
+            })
 
-            newFilter = {"UserId": {"$ne": Userid}, "IsDeleted": False, "IsActive":True, "LookingFor": {"$ne": currentUser.get("LookingFor")} }
+            newFilter = {"UserId": {"$ne":int(Userid)}, "IsDeleted": False, "IsActive":True, "LookingFor": {"$ne": currentUser.get("LookingFor")} }
             if int(filters["selectedFromHeight"]) > 0 :
                 newFilter["Height"] = {"$gte": int(filters["selectedFromHeight"])}
             if int(filters["selectedToHeight"]) > 0 :
@@ -929,7 +963,8 @@ class DeactivateAccount(Resource):
                 return jsonify({"message": "Failure", "error": "Something Went Wrong"})
             
             collection.update_one({"UserId": int(userId)},
-                                  {"$set":{"IsActive":False, "deactivationReason":deactivationReason}})
+                                  {"$set":{"IsActive":False,"lastActivity":datetime.now(),
+                                            "deactivationReason":deactivationReason}})
             return jsonify({"message": "success","redirect":"redirect"})
         except Exception as e:
             print(f"Error fetching users: {e}")
@@ -949,6 +984,10 @@ class GetMyPayments(Resource):
         print("userIduserIduserIduserIduserIduserIduserIduserIduserIduserId")
         print(userId)
         print("userIduserIduserIduserIduserIduserIduserIduserIduserIduserId")
+        collection = db.get_collection("User")
+        collection.update_one({ "UserId": int(userId)},{
+            "lastActivity": datetime.now()
+        })
         result = db.User.aggregate([
             {
                 "$match": {  
@@ -1001,6 +1040,14 @@ class AddMyPaymentInfo(Resource):
         transactionId = request.json["transactionId"]
         plan = request.json["plan"]
 
+        collection = db.get_collection("User")
+        collection.update_one({
+            "UserId":int(userId)
+        },{
+            "$set":{
+                "lastActivity": datetime.now()
+            }
+        })
         if plan == "Yearly":
             ValidTill =  datetime.now() + relativedelta(months=12)
             amount = 10000

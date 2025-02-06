@@ -1,6 +1,5 @@
 from flask import request, jsonify
 from flask_restful import Resource
-from firebase_admin import firestore
 from bcrypt import gensalt, checkpw, hashpw
 from flask_jwt_extended import create_access_token
 from pymongo import MongoClient
@@ -11,7 +10,7 @@ import urllib.parse
 import qrcode
 import io
 import base64
-
+from datetime import datetime
 
 
 with open('./Config/Creds.json') as f:
@@ -37,9 +36,17 @@ class GenerateQRCode(Resource):
         print("PlanTimeSelected")
         print(PlanTimeSelected)
         print("____________________")    
-        print("ProfileCount")
-        
+        print("ProfileCount")        
         print(ProfileCount)
+        collection = db.get_collection("User")
+        collection.update_one({
+            "UserId":int(UserId)
+        },{
+            "$set":{
+                "lastActivity": datetime.now()
+            }
+        })
+        
         if PlanTimeSelected == "1" and ProfileCount == "10":
             amount = "499.00"
         if PlanTimeSelected == "1" and ProfileCount == "20":

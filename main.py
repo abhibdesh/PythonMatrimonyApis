@@ -1,4 +1,4 @@
-from flask import Flask, redirect, request, jsonify
+from flask import Flask, redirect, request, jsonify, session
 from flask_restful import Resource, Api
 from flask_cors import CORS
 from flask_jwt_extended import JWTManager
@@ -9,9 +9,13 @@ from pymongo import MongoClient
 from UserApis import UserLogin,UpdatePreferences,GetMyPayments,AddMyPaymentInfo, AddNewUser,DeactivateAccount, FetchAllUsers, FetchMyProfile, LogoutUser, UpdateProfile, GetSingleProfileData
 from UpdateExistingRecords import UpdateUserCollection
 from GetMasters import GetNewUserFormMasters
-from datetime import timedelta
+from datetime import datetime, timedelta
 import json
+from flask_login import LoginManager, logout_user
 import os
+import redis
+from celery import Celery
+from flask_session import Session
 
 app = Flask(__name__)
 api = Api(app)
@@ -22,19 +26,33 @@ CORS(app
     #                       }
     #               }
      )
-service_account_key = './Config/FirebaseCreds.json'
+
+
 with open('./Config/Creds.json') as f:
     config = json.load(f)
     mongoURI = config['uri']
     databse = config['database']
 client = MongoClient(mongoURI)
 db = client.get_database(databse)
-app.config['JWT_SECRET_KEY'] = os.getenv('SECERT_KEY')
-# serializer = URLSafeTimedSerializer(os.getenv('SECERT_KEY'))
-serializer = URLSafeTimedSerializer("asdfghjklpoiuytrewfgvoobndcksdhfjgjhejbdsjbcsbh")
-# app.config['JWT_SECRET_KEY'] = "asdfghjklpoiuytrewfgvbndcksdhfjgjhejbdsjbcsbh" # Dummy Key 
+app.config['JWT_SECRET_KEY'] = os.getenv('SECERT_KEY','asdfghjklpoiuytrewfgvbndcksdhfjgjhejbdsjbcsbh')
+serializer = URLSafeTimedSerializer(os.getenv('SECERT_KEY','asdfghjklpoiuytrewfgvbndcksdhfjgjhejbdsjbcsbh'))
+REDIS_URL = os.getenv('REDIS_URL',"redis://localhost:6379")
+app.config['SESSION_REDIS'] = redis.from_url(REDIS_URL)
+app.config['CELERY_BROKER_URL'] = REDIS_URL
+app.config['result_backend'] = REDIS_URL
 app.config['JWT_ACCESS_TOKEN_EXPIRES'] = timedelta(hours=1)
+app.config['SESSION_TYPE'] = 'redis'
+app.config['SESSION_PERMANENT'] = False
+app.config['SESSION_USE_SIGNER'] = True
+Session(app)
+login_manager = LoginManager(app)
 jwt = JWTManager(app)
+
+def make_celery():
+    celery = Celery(__name__, broker=REDIS_URL, backend=REDIS_URL)
+    return celery
+
+celery = make_celery()
 
 class HelloWorld(Resource):
     def get(self):
@@ -63,7 +81,7 @@ def verify_email():
         print("999999999999999999999")
         print(email)
         collection = db.get_collection("User")
-        collection.update_one({"UserEmail":email},{"$set":{"isEmailVerified":True}})
+        collection.update_one({"UserEmail":email},{"$set":{"isEmailVerified":True,"lastActivity":datetime.now()}})
         # return redirect(f'http://localhost:5173/Thank-You-Email-Verification')
       
         return redirect('https://matrimony-livid.vercel.app/Thank-You-Email-Verification', code=302)
@@ -76,6 +94,14 @@ class SendVerificationLink(Resource):
     def post(self):
         data = request.json
         user_email = data.get('email')
+        collection = db.get_collection("User")
+        collection.update_one({
+            "UserEmail":user_email
+        },{
+            "$set":{
+                "lastActivity": datetime.now()
+            }
+        })
         if not user_email:
             return jsonify({"error": "Email is required"}), 400
         verificationLink = send_verification_email(user_email)
@@ -103,6 +129,20 @@ api.add_resource(FetchAllUsersAdmin, '/FetchAllUsersAdmin')
 api.add_resource(GenerateQRCode, '/GenerateQRCode')
 
 
+@celery.task
+def clear_inactive_sessions():
+    print("In Celery Task")
+    threshold = datetime.datetime.utcnow() - datetime.timedelta(minutes=20)
+    collection = db.get_collection('User')
+    inactive_users = collection.find({"last_activity": {"$lt": threshold}})
+
+    for user in inactive_users:
+        session.pop(str(user["_id"]), None)  
+        logout_user() 
+        print(user)
+        # collection.update_one({"_id": user["_id"]}, {"$set": {"status": "logged_out"}})
+
+    return f"Cleared {collection.count_documents({'last_activity': {'$lt': threshold}})} inactive users."
 
 
 if __name__ == "__main__":
