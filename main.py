@@ -135,17 +135,17 @@ api.add_resource(GenerateQRCode, '/GenerateQRCode')
 @celery.task
 def clear_inactive_sessions():
     logger.info("In Celery Task")
-    threshold = datetime.datetime.utcnow() - datetime.timedelta(minutes=20)
+    threshold = datetime.datetime.utcnow() - datetime.timedelta(minutes=2)
     collection = db.get_collection('User')
-    inactive_users = collection.find({"last_activity": {"$lt": threshold}})
+    inactive_users = collection.find({"lastActivity": {"$lt": threshold}})
 
     for user in inactive_users:
         session.pop(str(user["_id"]), None)  
         logout_user() 
         print(user)
-        # collection.update_one({"_id": user["_id"]}, {"$set": {"status": "logged_out"}})
+        collection.update_one({"_id": user["_id"]}, {"$set": {"lastLogOutTime": datetime.datetime.utcnow()}})
 
-    return f"Cleared {collection.count_documents({'last_activity': {'$lt': threshold}})} inactive users."
+    return f"Cleared {collection.count_documents({'lastActivity': {'$lt': threshold}})} inactive users."
 
 
 if __name__ == "__main__":
