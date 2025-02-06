@@ -16,6 +16,7 @@ import os
 import redis
 from celery import Celery
 from flask_session import Session
+import logging
 
 app = Flask(__name__)
 api = Api(app)
@@ -47,6 +48,8 @@ app.config['SESSION_USE_SIGNER'] = True
 Session(app)
 login_manager = LoginManager(app)
 jwt = JWTManager(app)
+logger = logging.getLogger(__name__)
+
 
 def make_celery():
     celery = Celery(__name__, broker=REDIS_URL, backend=REDIS_URL)
@@ -131,7 +134,7 @@ api.add_resource(GenerateQRCode, '/GenerateQRCode')
 
 @celery.task
 def clear_inactive_sessions():
-    print("In Celery Task")
+    logger.info("In Celery Task")
     threshold = datetime.datetime.utcnow() - datetime.timedelta(minutes=20)
     collection = db.get_collection('User')
     inactive_users = collection.find({"last_activity": {"$lt": threshold}})
