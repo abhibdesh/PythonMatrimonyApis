@@ -231,7 +231,9 @@ class AddNewUser(Resource):
                                                  "selectedFamilyType":[],
                                                  "selectedSiblingsCousinsUpto":[],
                                                  "strictMatch": True,
-                                                 "profileWithImages": False
+                                                 "profileWithImages": False,
+                                                 "isLoggedIn":1
+
                                                 })
                     userData = {
                         "UserId":userIdNew,
@@ -321,6 +323,7 @@ class UpdateProfile(Resource):
             print("birthTime")
             print(birthTime)
             print("*********************************")
+            
             if(birthDate != None and birthTime != None ):
                 # BIRTH DATE SECTION
                 print("BOTH AVAILABLE")
@@ -549,7 +552,13 @@ class UpdateProfile(Resource):
            
             # date_obj = datetime.strptime(, '%a, %d %b %Y %H:%M:%S %Z')
             collection = db.get_collection('User')
-            collection.update_one({"UserId":int(UserId)},{"$set":newData})
+            data = collection.find_one({"UserId":int(UserId)})
+            if(data["isloggedIn"] == 0):
+                return jsonify({"message": "Failure","data":"Session Timed Out"}), 200
+            else:
+                collection.update_one({"UserId":int(UserId)},{"$set":newData})
+                return jsonify({"message": "Success","data":"Profile Updated Successfully"}), 200
+
         except Exception as e:
             print("Error:", e)
             collection = db.get_collection('ErrorLogs')
@@ -583,27 +592,33 @@ class UpdatePreferences(Resource):
         try:
             print("k")
             collection = db.get_collection('User')
-            newdata = {
-                "lastActivity":str(now_local_tz),
-                "selectedIncome":selectedIncome,
-                "eatingHabits":eatingHabits,
-                "expectedGana":expectedGana,
-                "selectedEducations":selectedEducations,
-                "expectedNakshatra":expectedNakshatra,
-                "strictMatch":strictMatch,
-                "selectedLocatities":selectedLocatities,
-                "expectedAgeGapMin":float(expectedAgeGapMin),
-                "expectedAgeGapMax":float(expectedAgeGapMax),
-                "selectedBloodGroups":selectedBloodGroups,
-                "selectedNaadi":selectedNaadi,
-                "selectedRaas":selectedRaas,
-                "selectedHeight":selectedHeight,
-                "selectedFamilyType":selectedFamilyType,
-                "selectedSiblingsCousinsUpto":selectedSiblingsCousinsUpto,
-                "profileWithImages":profileWithImages,
-            }
-            print(newdata)
-            collection.update_one({"UserId":int(UserId)},{"$set":newdata})
+            data = collection.find_one({"UserEmail":current_user})
+            if(data["isLoggedIn"] == 0):
+                return jsonify({"message":"Failure","data":"Session Timed Out"})
+            else:
+                newdata = {
+                    "lastActivity":str(now_local_tz),
+                    "selectedIncome":selectedIncome,
+                    "eatingHabits":eatingHabits,
+                    "expectedGana":expectedGana,
+                    "selectedEducations":selectedEducations,
+                    "expectedNakshatra":expectedNakshatra,
+                    "strictMatch":strictMatch,
+                    "selectedLocatities":selectedLocatities,
+                    "expectedAgeGapMin":float(expectedAgeGapMin),
+                    "expectedAgeGapMax":float(expectedAgeGapMax),
+                    "selectedBloodGroups":selectedBloodGroups,
+                    "selectedNaadi":selectedNaadi,
+                    "selectedRaas":selectedRaas,
+                    "selectedHeight":selectedHeight,
+                    "selectedFamilyType":selectedFamilyType,
+                    "selectedSiblingsCousinsUpto":selectedSiblingsCousinsUpto,
+                    "profileWithImages":profileWithImages,
+                }
+                print(newdata)
+                collection.update_one({"UserId":int(UserId)},{"$set":newdata})
+                return jsonify({"message":"Success","data":"Preferences Updated Successfully!"})
+
         except Exception as e:
             collection = db.get_collection('ErrorLogs')
             log = collection.insert_one({"Method":"UpdatePreferences-UserApi.py","Exception":e,"Time":datetime.now})
@@ -625,87 +640,91 @@ class GetSingleProfileData(Resource):
             newFilter = {"UserId" : int(userId)}
             print(newFilter)
             collection = db.get_collection('User')
-            collection.update_one({"UserEmail":current_user},{
-                "$set":{"lastActivity":str(now_local_tz)}
-            })
-            curr_user =  collection.find_one({"UserEmail":current_user})
-            print(curr_user["isPhoneVerified"])
-            print(curr_user["isEmailVerified"])
-            projection = {"_id": 0,"UserPassword":0,"CreatedDatetime":0,"LastLogin":0,"CreatedBy":0,
-                          "IsActive":0, "IsDeleted":0, "UserRole":0, "UserPaid":0}
-          
-            data = collection.find_one(newFilter,projection)
-            final_data = {}
-            # Introduction Section
-            if data["birthDate"] == None:
-                day_name = ""
+            data = collection.find_one({"UserId" : int(userId)})
+            if(data['isLoggedIn'] == 0):
+                return jsonify({"message":"Failure","data":"Session Timed Out"})
             else:
-                day_name = data["birthDate"].date().strftime("%A") if data["birthDate"] is not None else "NA"
-            final_data["image"] = data["image"] if data["image"] is not None else ""
-            final_data["Name"] = data["firstName"]+" " + data["lastName"]
-            # Contact Details
-            if curr_user["UserPaid"] == True:
-                if curr_user["isEmailVerified"] == True:
-                    final_data["UserEmail"] = data["UserEmail"]
-                else:
-                    final_data["UserEmail"]  = "Verify Your Email"      
-            else:
-              final_data["UserEmail"] = "Buy Our Services For Contact Information"
+                collection.update_one({"UserEmail":current_user},{
+                    "$set":{"lastActivity":str(now_local_tz)}
+                })
+                curr_user =  collection.find_one({"UserEmail":current_user})
+                print(curr_user["isPhoneVerified"])
+                print(curr_user["isEmailVerified"])
+                projection = {"_id": 0,"UserPassword":0,"CreatedDatetime":0,"LastLogin":0,"CreatedBy":0,
+                            "IsActive":0, "IsDeleted":0, "UserRole":0, "UserPaid":0}
             
-            if curr_user["UserPaid"] == True:
-                if curr_user["isPhoneVerified"] == True:
-                    final_data["PhoneNumber"] = data["PhoneNumber"]
+                data = collection.find_one(newFilter,projection)
+                final_data = {}
+                # Introduction Section
+                if data["birthDate"] == None:
+                    day_name = ""
                 else:
-                    final_data["PhoneNumber"]  = "Verify Your Mobile Number"      
-            else:
-              final_data["PhoneNumber"] = "Buy Our Services For Contact Information"
+                    day_name = data["birthDate"].date().strftime("%A") if data["birthDate"] is not None else "NA"
+                final_data["image"] = data["image"] if data["image"] is not None else ""
+                final_data["Name"] = data["firstName"]+" " + data["lastName"]
+                # Contact Details
+                if curr_user["UserPaid"] == True:
+                    if curr_user["isEmailVerified"] == True:
+                        final_data["UserEmail"] = data["UserEmail"]
+                    else:
+                        final_data["UserEmail"]  = "Verify Your Email"      
+                else:
+                    final_data["UserEmail"] = "Buy Our Services For Contact Information"
+                
+                if curr_user["UserPaid"] == True:
+                    if curr_user["isPhoneVerified"] == True:
+                        final_data["PhoneNumber"] = data["PhoneNumber"]
+                    else:
+                        final_data["PhoneNumber"]  = "Verify Your Mobile Number"      
+                else:
+                    final_data["PhoneNumber"] = "Buy Our Services For Contact Information"
 
-            final_data["JobBis"]= data["JobBis"] if  data["JobBis"] != "" else "Not Provided"
-            final_data["DegDip"]= data["DegDip"] if data["DegDip"] !="" else "Not Provided"
-            final_data["FieldOrPost"]= data["Field"] if data["Field"] !="" else "Not Provided"
-            final_data["DegreeName"]= data["degreeName"] if data["degreeName"] !="" else "Not Provided"
-            final_data["CompanyName"]= data["CompanyName"] if data["CompanyName"] !="" else "Not Provided"
-            final_data["IncomeGroup"]= data["IncomeGroup"] if data["IncomeGroup"] !="" else "Not Provided"
-            final_data["CurrentAddress"]= str(data["Address"])+", " + str(data["CurrentAddress"]) if str(data["Address"])+", " + str(data["CurrentAddress"]) != "" else "Not Provided"
-            # Mandatory to know for patrika match section
-            if data["birthDate"] == None:
-                final_data["BirthDate"]  = "Not Provided"
-            else:
-                final_data["BirthDate"] = str(data["birthDate"].date())+", "+day_name + " (YYYY-MM-DD)" 
-            final_data["BirthTime"]= data["birthTime"] + " (24 Hour Clock Format)" if data["birthTime"] is not None else "Not Provided"
-            final_data["BirthPlace"]= data["BirthPlace"]
-            final_data["Height"]= str(str(data["Height"]) + " Feet") if str(str(data["Height"]) + " Feet") != " Feet" else "Not Provided"
-            final_data["BloodGroup"]= str(data["BloodGrp"]) if  str(data["BloodGrp"]) !="" else "Not Provided"
-            final_data["Naadi"]= str(data["Naadi"]) if str(data["Naadi"]) != "" else "Not Provided"
-            final_data["Disablity"]= str(data["Disablity"])  if str(data["Disablity"]) != "" else "Not Applicable"
-            final_data["Raas"]= str(data["Raas"]) if str(data["Raas"])   != "" else "Not Provided"
-            final_data["Devak"]= str(data["Devak"]) if str(data["Devak"])   != "" else "Not Provided"
-            final_data["Gotra"]= str(data["Gotra"]) if str(data["Gotra"])  != "" else "Not Provided"
-            final_data["Gana"]= str(data["Gana"]) if str(data["Gana"])   != "" else "Not Provided"
-            final_data["Charan"]= str(data["Charan"]) if str(data["Charan"])   != "" else "Not Provided"
-            final_data["Nakshatra"]= str(data["Nakshatra"]) if str(data["Nakshatra"])   != "" else "Not Provided"
-            # Family Details Section
-            final_data["FamilyType"]= str(data["FamilyType"]) if str(data["FamilyType"])    != "" else "Not Provided"
-            final_data["Siblings"]= str(data["Siblings"]) if str(data["Siblings"])    != "0" else "None"
-            final_data["EduSiblings"]= str(data["EduSiblings"])  if  str(data["EduSiblings"])  != "" else "Not Provided"
-            final_data["Property"]= str(data["Property"]) if str(data["Property"])    != "" else "Not Provided"
-            final_data["EduMother"]= str(data["EduMother"]) if str(data["EduMother"])    != "" else "Not Provided"
-            final_data["EduFather"]= str(data["EduFather"]) if str(data["EduFather"])    != "" else "Not Provided"
-            final_data["MotherFamily"]= str(data["MotherFamily"]) if str(data["MotherFamily"])   != "" else "Not Provided"
-            final_data["FatherFamily"]= str(data["FatherFamily"]) if str(data["FatherFamily"])    != "" else "Not Provided"
-            # Expectations Section
-            final_data["selectedEducations"]= ", ".join(data["selectedEducations"]) if ", ".join(data["selectedEducations"]) != "" else "No bar"
-            final_data["selectedIncome"]= ", ".join(data["selectedIncome"]) if ", ".join(data["selectedIncome"])  != "" else "No bar"
-            final_data["eatingHabits"]= ", ".join(data["eatingHabits"]) if ", ".join(data["eatingHabits"])  != "" else "No bar"
-            final_data["expectedGana"]= ", ".join(data["expectedGana"]) if ", ".join(data["expectedGana"])  != "" else "No bar"
-            final_data["selectedLocatities"]= ", ".join(data["selectedLocatities"]) if ", ".join(data["selectedLocatities"])  != "" else "No bar"
-            final_data["expectedNakshatra"]= ", ".join(data["expectedNakshatra"]) if ", ".join(data["expectedNakshatra"])  != "" else "No bar"
-            final_data["expectedAgeGap"]= str(data["expectedAgeGapMin"]) + "-"  + str(data["expectedAgeGapMax"]) if str(data["expectedAgeGapMin"])  != "0" and str(data["expectedAgeGapMax"]) != "0" else "No bar"
-            final_data["strictMatch"]= "Yes" if data["strictMatch"] == True else "No" 
-            final_data["IsVerified"] = "1" if data["IsVerified"] == "1" else "0" 
-            print( final_data["IsVerified"])
-            print( "final_data[""]")
-            return jsonify({MessageVariable:SuccessString,"data":final_data})
+                    final_data["JobBis"]= data["JobBis"] if  data["JobBis"] != "" else "Not Provided"
+                    final_data["DegDip"]= data["DegDip"] if data["DegDip"] !="" else "Not Provided"
+                    final_data["FieldOrPost"]= data["Field"] if data["Field"] !="" else "Not Provided"
+                    final_data["DegreeName"]= data["degreeName"] if data["degreeName"] !="" else "Not Provided"
+                    final_data["CompanyName"]= data["CompanyName"] if data["CompanyName"] !="" else "Not Provided"
+                    final_data["IncomeGroup"]= data["IncomeGroup"] if data["IncomeGroup"] !="" else "Not Provided"
+                    final_data["CurrentAddress"]= str(data["Address"])+", " + str(data["CurrentAddress"]) if str(data["Address"])+", " + str(data["CurrentAddress"]) != "" else "Not Provided"
+                    # Mandatory to know for patrika match section
+                    if data["birthDate"] == None:
+                        final_data["BirthDate"]  = "Not Provided"
+                    else:
+                        final_data["BirthDate"] = str(data["birthDate"].date())+", "+day_name + " (YYYY-MM-DD)" 
+                    final_data["BirthTime"]= data["birthTime"] + " (24 Hour Clock Format)" if data["birthTime"] is not None else "Not Provided"
+                    final_data["BirthPlace"]= data["BirthPlace"]
+                    final_data["Height"]= str(str(data["Height"]) + " Feet") if str(str(data["Height"]) + " Feet") != " Feet" else "Not Provided"
+                    final_data["BloodGroup"]= str(data["BloodGrp"]) if  str(data["BloodGrp"]) !="" else "Not Provided"
+                    final_data["Naadi"]= str(data["Naadi"]) if str(data["Naadi"]) != "" else "Not Provided"
+                    final_data["Disablity"]= str(data["Disablity"])  if str(data["Disablity"]) != "" else "Not Applicable"
+                    final_data["Raas"]= str(data["Raas"]) if str(data["Raas"])   != "" else "Not Provided"
+                    final_data["Devak"]= str(data["Devak"]) if str(data["Devak"])   != "" else "Not Provided"
+                    final_data["Gotra"]= str(data["Gotra"]) if str(data["Gotra"])  != "" else "Not Provided"
+                    final_data["Gana"]= str(data["Gana"]) if str(data["Gana"])   != "" else "Not Provided"
+                    final_data["Charan"]= str(data["Charan"]) if str(data["Charan"])   != "" else "Not Provided"
+                    final_data["Nakshatra"]= str(data["Nakshatra"]) if str(data["Nakshatra"])   != "" else "Not Provided"
+                    # Family Details Section
+                    final_data["FamilyType"]= str(data["FamilyType"]) if str(data["FamilyType"])    != "" else "Not Provided"
+                    final_data["Siblings"]= str(data["Siblings"]) if str(data["Siblings"])    != "0" else "None"
+                    final_data["EduSiblings"]= str(data["EduSiblings"])  if  str(data["EduSiblings"])  != "" else "Not Provided"
+                    final_data["Property"]= str(data["Property"]) if str(data["Property"])    != "" else "Not Provided"
+                    final_data["EduMother"]= str(data["EduMother"]) if str(data["EduMother"])    != "" else "Not Provided"
+                    final_data["EduFather"]= str(data["EduFather"]) if str(data["EduFather"])    != "" else "Not Provided"
+                    final_data["MotherFamily"]= str(data["MotherFamily"]) if str(data["MotherFamily"])   != "" else "Not Provided"
+                    final_data["FatherFamily"]= str(data["FatherFamily"]) if str(data["FatherFamily"])    != "" else "Not Provided"
+                    # Expectations Section
+                    final_data["selectedEducations"]= ", ".join(data["selectedEducations"]) if ", ".join(data["selectedEducations"]) != "" else "No bar"
+                    final_data["selectedIncome"]= ", ".join(data["selectedIncome"]) if ", ".join(data["selectedIncome"])  != "" else "No bar"
+                    final_data["eatingHabits"]= ", ".join(data["eatingHabits"]) if ", ".join(data["eatingHabits"])  != "" else "No bar"
+                    final_data["expectedGana"]= ", ".join(data["expectedGana"]) if ", ".join(data["expectedGana"])  != "" else "No bar"
+                    final_data["selectedLocatities"]= ", ".join(data["selectedLocatities"]) if ", ".join(data["selectedLocatities"])  != "" else "No bar"
+                    final_data["expectedNakshatra"]= ", ".join(data["expectedNakshatra"]) if ", ".join(data["expectedNakshatra"])  != "" else "No bar"
+                    final_data["expectedAgeGap"]= str(data["expectedAgeGapMin"]) + "-"  + str(data["expectedAgeGapMax"]) if str(data["expectedAgeGapMin"])  != "0" and str(data["expectedAgeGapMax"]) != "0" else "No bar"
+                    final_data["strictMatch"]= "Yes" if data["strictMatch"] == True else "No" 
+                    final_data["IsVerified"] = "1" if data["IsVerified"] == "1" else "0" 
+                    print( final_data["IsVerified"])
+                    print( "final_data[""]")
+                    return jsonify({MessageVariable:SuccessString,"data":final_data})
         except Exception as e:
             collection = db.get_collection('ErrorLogs')
             log = collection.insert_one({"Method":"GetSingleProfileData-UserApi.py","Exception":e,"Time":datetime.now})
@@ -723,7 +742,8 @@ class LogoutUser(Resource):
             collection.update_one({"UserEmail":current_user},{
                 "$set":{
                     "lastActivity":str(now_local_tz),
-                    "lastLogOutTime":str(now_local_tz)
+                    "lastLogOutTime":str(now_local_tz),
+                    "isLoggedIn":0
                     }
             })
             return jsonify({MessageVariable: "Done"})
@@ -733,25 +753,30 @@ class LogoutUser(Resource):
 
 
 class FetchMyProfile(Resource):
+    @jwt_required()
     def post(self):
         userid = request.json["UserId"]
-        # current_user = get_jwt_identity()
+        current_user = get_jwt_identity()
         # print("Authenticated User:", current_user)
         try:
             projection = {"_id": 0,"UserPassword":0}
             newFilter = {"UserId" : int(userid)}
             print(newFilter)
             collection = db.get_collection('User')
-            collection.update_one(newFilter,{
-                "$set":{
-                    "lastActivity":str(now_local_tz),
-                    }
-            })
-            data = collection.find(newFilter,projection)
-            myProfile = []
-            for u in data:
-                myProfile.append(u)
-            return jsonify({MessageVariable:SuccessString,"data": myProfile})
+            data = collection.find_one({"UserEmail":current_user})
+            if(data["isLoggedIn"] == 0):
+                return jsonify({"message":"Failure","data":"Session Timed Out"})
+            else:
+                collection.update_one(newFilter,{
+                    "$set":{
+                        "lastActivity":str(now_local_tz),
+                        }
+                })
+                data = collection.find(newFilter,projection)
+                myProfile = []
+                for u in data:
+                    myProfile.append(u)
+                return jsonify({MessageVariable:SuccessString,"data": myProfile})
 
         except ValueError as e:
             collection = db.get_collection('ErrorLogs')
@@ -763,7 +788,7 @@ class FetchMyProfile(Resource):
 class FetchAllUsers(Resource):
     @jwt_required()
     def post(self):
-        # current_user = get_jwt_identity()
+        current_user = get_jwt_identity()
         # print("Authenticated User:", current_user)
         filters = request.json['filters']
         isPaidUser = request.json["isPaid"]
@@ -795,6 +820,8 @@ class FetchAllUsers(Resource):
             filters["IsDeleted"] = False
             collection = db.get_collection('User')
             currentUser = collection.find_one({"UserId": int(Userid)}, projection)
+            if(current_user['isLoggedIn'] == 0):
+                return jsonify({"message": "Session Times Out", "users": []})
             if not currentUser:
                 return jsonify({"message": "User not found", "users": []})
             
@@ -963,6 +990,8 @@ class DeactivateAccount(Resource):
             print(userId)
             collection = db.get_collection('User')
             currentUser = collection.find_one({"UserId": int(userId)})
+            if(currentUser["isLoggedIn"] == 0):
+                return jsonify({"message":"Failure","error":"Session Timed Out"})
             if not currentUser:
                 return jsonify({"message": "Failure", "error": "Something Went Wrong"})
             
