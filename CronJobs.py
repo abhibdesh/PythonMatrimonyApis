@@ -35,8 +35,11 @@ class CheckActiveUsers(Resource):
             last_activity = datetime.datetime.fromisoformat(i["lastActivity"])
             if(last_activity < INACTIVITY_THRESHOLD):
                 collection.update_one({"UserId":int(i["UserId"])},{
-                "lastLogOutTime": TIMESTAMP_NOW,
-                "isLoggedIn":0
+                    "$set":{
+                        "lastLogOutTime": str(TIMESTAMP_NOW),
+                        "isLoggedIn":0
+                    }
+              
             })  
                 print(i["lastActivity"] + "   " + str(i["UserId"]))
         print("Executing CheckActiveUsers Done")
