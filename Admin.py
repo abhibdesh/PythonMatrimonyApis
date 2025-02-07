@@ -9,6 +9,12 @@ from jwt import DecodeError
 from jwt.exceptions import PyJWTError as DecodeError
 from datetime import datetime
 import os
+import pytz
+
+
+
+local_timezone = pytz.timezone('Asia/Kolkata')  
+now_local_tz = datetime.now(local_timezone)
 
 
 mongoURI = os.getenv('MONGO_URL','mongodb+srv://abhibdesh:k6fEWav4Dkc1rQzn@mat.podj9wc.mongodb.net/?retryWrites=true&w=majority&appName=Mat')

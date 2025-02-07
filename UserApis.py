@@ -10,7 +10,10 @@ from jwt.exceptions import PyJWTError as DecodeError
 from datetime import datetime
 from dateutil.relativedelta import relativedelta
 import os
+import pytz
 
+local_timezone = pytz.timezone('Asia/Kolkata')  
+now_local_tz = datetime.now(local_timezone)
 
 
 mongoURI = os.getenv('MONGO_URL','mongodb+srv://abhibdesh:k6fEWav4Dkc1rQzn@mat.podj9wc.mongodb.net/?retryWrites=true&w=majority&appName=Mat')
@@ -37,18 +40,19 @@ class UserLogin(Resource):
             user_data = ValidateUser(email, password)  
             access_token = create_access_token(identity=email) 
             collection = db.get_collection('User')
-            # collection.update_one()yyy
             if user_data:
+                if(user_data["isLoggedIn"] == 1):
+                    return jsonify({MessageVariable: FailureString, msgVal: "This Account is Already Logged In Another Device."})
                 if(user_data["IsActive"] == True):
                     collection.update_one({"UserEmail":email},{"$set":
                                                                {
-                                                                   "LastLogin":datetime.now(),
-                                                                   "lastActivity" : datetime.now()
+                                                                   "LastLogin": str(now_local_tz),
+                                                                   "lastActivity" : str(now_local_tz)
                                                                    }
                                                                 })
                     return jsonify({MessageVariable: SuccessString, msgVal: user_data, 'accessToken': access_token})
                 else:
-                    return jsonify({MessageVariable: FailureString, msgVal: "This Account is Deactivated. Please Contact Support For Reactivation.", 'accessToken': access_token})
+                    return jsonify({MessageVariable: FailureString, msgVal: "This Account is Deactivated. Please Contact Support For Reactivation."})
 
             else:
                 return jsonify({MessageVariable: FailureString, msgVal: "Invalid Credentials"})
@@ -200,11 +204,12 @@ class AddNewUser(Resource):
                                                 "expectedGana":expectedGana, 
                                                 "DisabilityYN":DisabilityYN,
                                                 "Charan":Charan, "Naadi":Naadi,
-                                                "CreatedDatetime": current_time,
-                                                "lastActivity": current_time,
+                                                "CreatedDatetime": str(now_local_tz),
+                                                "lastActivity": str(now_local_tz),
                                                 "selectedLocatities":selectedLocatities,
-                                                "LastLogin":current_time,
+                                                "LastLogin":str(now_local_tz),
                                                 "lastLogOutTime": None,
+                                                "isLoggedIn":1,
                                                 "expectedNakshatra":expectedNakshatra,
                                                 "strictMatch":strictMatch,
                                                 "CreatedBy":"User",
@@ -341,7 +346,7 @@ class UpdateProfile(Resource):
                         "firstName":firstName ,
                         "lastName":lastName,
                         "Address":Address,
-                        "lastActivity":datetime.now(),
+                        "lastActivity":str(now_local_tz),
                         "CurrentAddress":CurrentAddress,
                         "birthDate":date_obj,
                         "birthTime":time.strftime("%H:%M:%S"),
@@ -393,7 +398,7 @@ class UpdateProfile(Resource):
                         "ChoosingFor":ChoosingFor,
                         "firstName":firstName ,
                         "lastName":lastName,
-                        "lastActivity":datetime.now(),
+                        "lastActivity":str(now_local_tz),
                         "birthTime":time.strftime("%H:%M:%S"),
                         "Address":Address,
                         "CurrentAddress":CurrentAddress,
@@ -449,7 +454,7 @@ class UpdateProfile(Resource):
                     "firstName":firstName ,
                     "lastName":lastName,
                     "Address":Address,
-                    "lastActivity":datetime.now(),
+                    "lastActivity":str(now_local_tz),
                     "CurrentAddress":CurrentAddress,
                     "birthDate":date_obj,
                     "age":age,
@@ -502,7 +507,7 @@ class UpdateProfile(Resource):
                         "BirthPlace":BirthPlace,"Raas":Raas,
                         "Height": Height,
                         "BloodGrp":BloodGrp,
-                        "lastActivity":datetime.now(),
+                        "lastActivity":str(now_local_tz),
                         "Disablity":Disablity,
                         "DegDip":DegDip,
                         "Field":Field, 
@@ -579,7 +584,7 @@ class UpdatePreferences(Resource):
             print("k")
             collection = db.get_collection('User')
             newdata = {
-                "lastActivity":datetime.now(),
+                "lastActivity":str(now_local_tz),
                 "selectedIncome":selectedIncome,
                 "eatingHabits":eatingHabits,
                 "expectedGana":expectedGana,
@@ -621,7 +626,7 @@ class GetSingleProfileData(Resource):
             print(newFilter)
             collection = db.get_collection('User')
             collection.update_one({"UserEmail":current_user},{
-                "$set":{"lastActivity":datetime.now()}
+                "$set":{"lastActivity":str(now_local_tz)}
             })
             curr_user =  collection.find_one({"UserEmail":current_user})
             print(curr_user["isPhoneVerified"])
@@ -717,8 +722,8 @@ class LogoutUser(Resource):
             collection = db.get_collection("User")
             collection.update_one({"UserEmail":current_user},{
                 "$set":{
-                    "lastActivity":datetime.now(),
-                    "lastLogOutTime":datetime.now()
+                    "lastActivity":str(now_local_tz),
+                    "lastLogOutTime":str(now_local_tz)
                     }
             })
             return jsonify({MessageVariable: "Done"})
@@ -739,7 +744,7 @@ class FetchMyProfile(Resource):
             collection = db.get_collection('User')
             collection.update_one(newFilter,{
                 "$set":{
-                    "lastActivity":datetime.now(),
+                    "lastActivity":str(now_local_tz),
                     }
             })
             data = collection.find(newFilter,projection)
@@ -795,7 +800,7 @@ class FetchAllUsers(Resource):
             
             collection.update_one({"UserId": int(Userid)},{
                 "$set":{
-                    "lastActivity":datetime.now()
+                    "lastActivity":str(now_local_tz)
                 }
             })
 
@@ -962,7 +967,7 @@ class DeactivateAccount(Resource):
                 return jsonify({"message": "Failure", "error": "Something Went Wrong"})
             
             collection.update_one({"UserId": int(userId)},
-                                  {"$set":{"IsActive":False,"lastActivity":datetime.now(),
+                                  {"$set":{"IsActive":False,"lastActivity":str(now_local_tz),
                                             "deactivationReason":deactivationReason}})
             return jsonify({"message": "success","redirect":"redirect"})
         except Exception as e:

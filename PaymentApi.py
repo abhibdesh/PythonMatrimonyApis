@@ -13,12 +13,15 @@ import base64
 from datetime import datetime
 from pymongo import DESCENDING
 import os
+import pytz
 
 mongoURI = os.getenv('MONGO_URL','mongodb+srv://abhibdesh:k6fEWav4Dkc1rQzn@mat.podj9wc.mongodb.net/?retryWrites=true&w=majority&appName=Mat')
 databse = os.getenv('DATABSE',"Matrimony")
 client = MongoClient(mongoURI)
 db = client.get_database(databse)
 
+local_timezone = pytz.timezone('Asia/Kolkata')  
+now_local_tz = datetime.now(local_timezone)
 
         
 class GetMyPayments(Resource):
@@ -30,7 +33,7 @@ class GetMyPayments(Resource):
         print("userIduserIduserIduserIduserIduserIduserIduserIduserIduserId")
         collection = db.get_collection("User")
         collection.update_one({ "UserId": int(userId)},{
-            "lastActivity": datetime.now()
+            "lastActivity": str(now_local_tz)
         })
         result = db.User.aggregate([
             {
@@ -91,7 +94,7 @@ class GenerateQRCode(Resource):
         txn_id = "TXN123456"
         # note = "Payment for Order #123"
         note = "Payment for Order #123"
-
+        print (now_local_tz)
         print("PlanTimeSelected")
         print(PlanTimeSelected)
         print("____________________")    
@@ -102,7 +105,7 @@ class GenerateQRCode(Resource):
             "UserId":int(UserId)
         },{
             "$set":{
-                "lastActivity": datetime.now()
+                "lastActivity":str(now_local_tz)
             }
         })
         

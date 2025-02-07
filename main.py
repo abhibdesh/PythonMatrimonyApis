@@ -9,10 +9,13 @@ from pymongo import MongoClient
 from UserApis import UserLogin,UpdatePreferences, AddNewUser,DeactivateAccount, FetchAllUsers, FetchMyProfile, LogoutUser, UpdateProfile, GetSingleProfileData
 from UpdateExistingRecords import UpdateUserCollection
 from GetMasters import GetNewUserFormMasters
+from CronJobs import CheckActiveUsers
 from datetime import datetime, timedelta
 import json
 import os
 import logging
+import pytz
+
 
 app = Flask(__name__)
 api = Api(app)
@@ -35,6 +38,9 @@ serializer = URLSafeTimedSerializer(os.getenv('SECERT_KEY','asdfghjklpoiuytrewfg
 
 jwt = JWTManager(app)
 logger = logging.getLogger(__name__)
+
+local_timezone = pytz.timezone('Asia/Kolkata')  
+now_local_tz = datetime.now(local_timezone)
 
 class HelloWorld(Resource):
     def get(self):
@@ -81,7 +87,7 @@ class SendVerificationLink(Resource):
             "UserEmail":user_email
         },{
             "$set":{
-                "lastActivity": datetime.now()
+                "lastActivity": str(now_local_tz)
             }
         })
         if not user_email:
@@ -108,6 +114,7 @@ api.add_resource(UpdatePreferences, '/UpdateExpectations')
 api.add_resource(GetMyPayments, '/GetMyPayments')
 api.add_resource(FetchAllUsersAdmin, '/FetchAllUsersAdmin')
 api.add_resource(GenerateQRCode, '/GenerateQRCode')
+api.add_resource(CheckActiveUsers, '/CheckActiveUsers')
 
 if __name__ == "__main__":
     app.run(debug=True)

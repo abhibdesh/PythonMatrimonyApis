@@ -1,0 +1,42 @@
+from flask import Flask, jsonify, request
+from flask_cors import cross_origin
+from flask_restful import Resource
+from bcrypt import gensalt, checkpw, hashpw
+from flask_jwt_extended import create_access_token, jwt_required,get_jwt_identity
+from pymongo import MongoClient
+import json
+from jwt import DecodeError
+from jwt.exceptions import PyJWTError as DecodeError
+import datetime
+from dateutil.relativedelta import relativedelta
+import os
+import pytz
+
+mongoURI = os.getenv('MONGO_URL','mongodb+srv://abhibdesh:k6fEWav4Dkc1rQzn@mat.podj9wc.mongodb.net/?retryWrites=true&w=majority&appName=Mat')
+databse = os.getenv('DATABSE',"Matrimony")
+client = MongoClient(mongoURI)
+db = client.get_database(databse)
+
+local_timezone = pytz.timezone('Asia/Kolkata')  
+now_local_tz = datetime.datetime.now(local_timezone)
+
+TIMESTAMP_NOW = datetime.datetime.fromisoformat(str(now_local_tz))
+INACTIVITY_THRESHOLD = TIMESTAMP_NOW - datetime.timedelta(minutes=30)
+
+class CheckActiveUsers(Resource):
+    def get(self):
+        print("Executing CheckActiveUsers Start")
+        collection = db.get_collection('User')
+        data = collection.find({} , {"_id": 0})
+        print("INACTIVITY_THRESHOLD")
+        print(INACTIVITY_THRESHOLD)
+        print("INACTIVITY_THRESHOLD")
+        for i in data:
+            last_activity = datetime.datetime.fromisoformat(i["lastActivity"])
+            if(last_activity < INACTIVITY_THRESHOLD):
+                collection.update_one({"UserId":int(i["UserId"])},{
+                "lastLogOutTime": TIMESTAMP_NOW,
+                "isLoggedIn":0
+            })  
+                print(i["lastActivity"] + "   " + str(i["UserId"]))
+        print("Executing CheckActiveUsers Done")

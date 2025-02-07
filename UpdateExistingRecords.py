@@ -7,21 +7,26 @@ import json
 from jwt import DecodeError
 from jwt.exceptions import PyJWTError as DecodeError
 import os
+import pytz
+import datetime
 
 mongoURI = os.getenv('MONGO_URL','mongodb+srv://abhibdesh:k6fEWav4Dkc1rQzn@mat.podj9wc.mongodb.net/?retryWrites=true&w=majority&appName=Mat')
 databse = os.getenv('DATABSE',"Matrimony")
 client = MongoClient(mongoURI)
 db = client.get_database(databse)
 
+local_timezone = pytz.timezone('Asia/Kolkata')  
+now_local_tz = datetime.datetime.now(local_timezone)
 
 class UpdateUserCollection(Resource):
     def post(self):
         print("start")
+        print(now_local_tz)
         collection = db.get_collection('User')
-        collection.update_many({},
+        collection.update_one({"UserId":1},
                                {"$set":
                                 {
-                                    "lastLogOutTime":None
+                                    "lastActivity":str(now_local_tz)
                                     # ,
                                     # "ProfileCount":True,
                                     # "isEmailVerified":True,

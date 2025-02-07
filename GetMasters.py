@@ -5,12 +5,17 @@ from pymongo import MongoClient
 import json
 from datetime import datetime
 import os
+import pytz
 
 
 mongoURI = os.getenv('MONGO_URL','mongodb+srv://abhibdesh:k6fEWav4Dkc1rQzn@mat.podj9wc.mongodb.net/?retryWrites=true&w=majority&appName=Mat')
 databse = os.getenv('DATABSE',"Matrimony")
 client = MongoClient(mongoURI)
 db = client.get_database(databse)
+
+
+local_timezone = pytz.timezone('Asia/Kolkata')  
+now_local_tz = datetime.now(local_timezone)
 
 with open('./Config/Strings.json') as g:
     Strings = json.load(g)
