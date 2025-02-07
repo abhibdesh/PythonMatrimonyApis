@@ -8,12 +8,11 @@ import json
 from jwt import DecodeError
 from jwt.exceptions import PyJWTError as DecodeError
 from datetime import datetime
+import os
 
 
-with open('./Config/Creds.json') as f:
-    config = json.load(f)
-    mongoURI = config['uri']
-    databse = config['database']
+mongoURI = os.getenv('MONGO_URL','mongodb+srv://abhibdesh:k6fEWav4Dkc1rQzn@mat.podj9wc.mongodb.net/?retryWrites=true&w=majority&appName=Mat')
+databse = os.getenv('DATABSE',"Matrimony")
 client = MongoClient(mongoURI)
 db = client.get_database(databse)
 

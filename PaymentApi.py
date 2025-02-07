@@ -11,14 +11,73 @@ import qrcode
 import io
 import base64
 from datetime import datetime
+from pymongo import DESCENDING
+import os
 
-
-with open('./Config/Creds.json') as f:
-    config = json.load(f)
-    mongoURI = config['uri']
-    databse = config['database']
+mongoURI = os.getenv('MONGO_URL','mongodb+srv://abhibdesh:k6fEWav4Dkc1rQzn@mat.podj9wc.mongodb.net/?retryWrites=true&w=majority&appName=Mat')
+databse = os.getenv('DATABSE',"Matrimony")
 client = MongoClient(mongoURI)
 db = client.get_database(databse)
+
+
+        
+class GetMyPayments(Resource):
+    def post(self):
+        userId = request.json["userId"]
+        today_date = datetime.now() 
+        print("userIduserIduserIduserIduserIduserIduserIduserIduserIduserId")
+        print(userId)
+        print("userIduserIduserIduserIduserIduserIduserIduserIduserIduserId")
+        collection = db.get_collection("User")
+        collection.update_one({ "UserId": int(userId)},{
+            "lastActivity": datetime.now()
+        })
+        result = db.User.aggregate([
+            {
+                "$match": {  
+                    "UserId": int(userId)
+                }
+            },
+            {
+                "$lookup": { 
+                    "from": "PaymentInfo",
+                    "localField": "UserId",
+                    "foreignField": "UserId",
+                    "as": "payments",
+                    "pipeline": [
+                        {
+                            "$addFields": {
+                                "isActive": { "$gt": ["$ValidTill", today_date] }  
+                            }
+                        },
+                        { "$sort": { "CreatedDate": DESCENDING } },  
+                        { "$project": { "_id": 0 }}  
+                    ]
+                }
+            },
+            {
+                "$project": {
+                    "_id": 0,  
+                    "payments": 1  
+                }
+            }
+        ])            
+
+        paymentData = []
+        hasActivePlan = False 
+
+        for doc in result:
+            for payment in doc.get("payments", []):
+                if payment.get("isActive"): 
+                    hasActivePlan = True
+            paymentData.append(doc)
+
+        return jsonify({
+            "message": "success",
+            "data": paymentData,
+            "hasActivePlan": hasActivePlan  
+        })
+
 
 class GenerateQRCode(Resource):
     def post(self):

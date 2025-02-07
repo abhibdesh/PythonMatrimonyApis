@@ -4,18 +4,14 @@ from flask_cors import CORS
 from flask_jwt_extended import JWTManager
 from Admin import FetchDashboardData, VerifyAccount,FetchAllUsersAdmin
 from itsdangerous import URLSafeTimedSerializer
-from PaymentApi import GenerateQRCode
+from PaymentApi import GenerateQRCode,GetMyPayments
 from pymongo import MongoClient
-from UserApis import UserLogin,UpdatePreferences,GetMyPayments,AddMyPaymentInfo, AddNewUser,DeactivateAccount, FetchAllUsers, FetchMyProfile, LogoutUser, UpdateProfile, GetSingleProfileData
+from UserApis import UserLogin,UpdatePreferences, AddNewUser,DeactivateAccount, FetchAllUsers, FetchMyProfile, LogoutUser, UpdateProfile, GetSingleProfileData
 from UpdateExistingRecords import UpdateUserCollection
 from GetMasters import GetNewUserFormMasters
 from datetime import datetime, timedelta
 import json
-from flask_login import LoginManager, logout_user
 import os
-import redis
-from celery import Celery
-from flask_session import Session
 import logging
 
 app = Flask(__name__)
@@ -28,34 +24,17 @@ CORS(app
     #               }
      )
 
-
-with open('./Config/Creds.json') as f:
-    config = json.load(f)
-    mongoURI = config['uri']
-    databse = config['database']
+mongoURI = os.getenv('MONGO_URL','mongodb+srv://abhibdesh:k6fEWav4Dkc1rQzn@mat.podj9wc.mongodb.net/?retryWrites=true&w=majority&appName=Mat')
+databse = os.getenv('DATABSE',"Matrimony")
 client = MongoClient(mongoURI)
 db = client.get_database(databse)
+
 app.config['JWT_SECRET_KEY'] = os.getenv('SECERT_KEY','asdfghjklpoiuytrewfgvbndcksdhfjgjhejbdsjbcsbh')
 serializer = URLSafeTimedSerializer(os.getenv('SECERT_KEY','asdfghjklpoiuytrewfgvbndcksdhfjgjhejbdsjbcsbh'))
-REDIS_URL = os.getenv('REDIS_URL',"redis://localhost:6379")
-app.config['SESSION_REDIS'] = redis.from_url(REDIS_URL)
-app.config['CELERY_BROKER_URL'] = REDIS_URL
-app.config['result_backend'] = REDIS_URL
-app.config['JWT_ACCESS_TOKEN_EXPIRES'] = timedelta(hours=1)
-app.config['SESSION_TYPE'] = 'redis'
-app.config['SESSION_PERMANENT'] = False
-app.config['SESSION_USE_SIGNER'] = True
-Session(app)
-login_manager = LoginManager(app)
+
+
 jwt = JWTManager(app)
 logger = logging.getLogger(__name__)
-
-
-def make_celery():
-    celery = Celery(__name__, broker=REDIS_URL, backend=REDIS_URL)
-    return celery
-
-celery = make_celery()
 
 class HelloWorld(Resource):
     def get(self):
@@ -127,26 +106,8 @@ api.add_resource(SendVerificationLink, '/SendVerificationLink')
 api.add_resource(DeactivateAccount, '/DeactivateAccount')
 api.add_resource(UpdatePreferences, '/UpdateExpectations')
 api.add_resource(GetMyPayments, '/GetMyPayments')
-api.add_resource(AddMyPaymentInfo, '/AddMyPaymentInfo')
 api.add_resource(FetchAllUsersAdmin, '/FetchAllUsersAdmin')
 api.add_resource(GenerateQRCode, '/GenerateQRCode')
-
-
-@celery.task
-def clear_inactive_sessions():
-    logger.info("In Celery Task")
-    threshold = datetime.datetime.utcnow() - datetime.timedelta(minutes=2)
-    collection = db.get_collection('User')
-    inactive_users = collection.find({"lastActivity": {"$lt": threshold}})
-
-    for user in inactive_users:
-        collection.update_one({"_id": user["_id"]}, {"$set": {"lastLogOutTime": datetime.datetime.utcnow()}})
-        session.pop(str(user["_id"]), None)  
-        logout_user() 
-        print(user)
-
-    return f"Cleared {collection.count_documents({'lastActivity': {'$lt': threshold}})} inactive users."
-
 
 if __name__ == "__main__":
     app.run(debug=True)

@@ -9,16 +9,15 @@ from jwt import DecodeError
 from jwt.exceptions import PyJWTError as DecodeError
 from datetime import datetime
 from dateutil.relativedelta import relativedelta
-from pymongo import DESCENDING
+import os
 
 
 
-with open('./Config/Creds.json') as f:
-    config = json.load(f)
-    mongoURI = config['uri']
-    databse = config['database']
+mongoURI = os.getenv('MONGO_URL','mongodb+srv://abhibdesh:k6fEWav4Dkc1rQzn@mat.podj9wc.mongodb.net/?retryWrites=true&w=majority&appName=Mat')
+databse = os.getenv('DATABSE',"Matrimony")
 client = MongoClient(mongoURI)
 db = client.get_database(databse)
+
 with open('./Config/Strings.json') as g:
     Strings = json.load(g)
     MethodName = Strings['METHOD_NAME']
@@ -976,111 +975,6 @@ class DeactivateAccount(Resource):
             })
             return jsonify({"message": "failure"}),200
 
-        
-class GetMyPayments(Resource):
-    def post(self):
-        userId = request.json["userId"]
-        today_date = datetime.now() 
-        print("userIduserIduserIduserIduserIduserIduserIduserIduserIduserId")
-        print(userId)
-        print("userIduserIduserIduserIduserIduserIduserIduserIduserIduserId")
-        collection = db.get_collection("User")
-        collection.update_one({ "UserId": int(userId)},{
-            "lastActivity": datetime.now()
-        })
-        result = db.User.aggregate([
-            {
-                "$match": {  
-                    "UserId": int(userId)
-                }
-            },
-            {
-                "$lookup": { 
-                    "from": "PaymentInfo",
-                    "localField": "UserId",
-                    "foreignField": "UserId",
-                    "as": "payments",
-                    "pipeline": [
-                        {
-                            "$addFields": {
-                                "isActive": { "$gt": ["$ValidTill", today_date] }  
-                            }
-                        },
-                        { "$sort": { "CreatedDate": DESCENDING } },  
-                        { "$project": { "_id": 0 }}  
-                    ]
-                }
-            },
-            {
-                "$project": {
-                    "_id": 0,  
-                    "payments": 1  
-                }
-            }
-        ])            
-
-        paymentData = []
-        hasActivePlan = False 
-
-        for doc in result:
-            for payment in doc.get("payments", []):
-                if payment.get("isActive"): 
-                    hasActivePlan = True
-            paymentData.append(doc)
-
-        return jsonify({
-            "message": "success",
-            "data": paymentData,
-            "hasActivePlan": hasActivePlan  
-        })
-
-class AddMyPaymentInfo(Resource):
-    def post(self):
-        userId = request.json["userId"]
-        transactionId = request.json["transactionId"]
-        plan = request.json["plan"]
-
-        collection = db.get_collection("User")
-        collection.update_one({
-            "UserId":int(userId)
-        },{
-            "$set":{
-                "lastActivity": datetime.now()
-            }
-        })
-        if plan == "Yearly":
-            ValidTill =  datetime.now() + relativedelta(months=12)
-            amount = 10000
-        if plan == "Monthly":
-            ValidTill =  datetime.now() + relativedelta(months=1)
-            amount = 6000
-        if plan == "Quarterly":
-            ValidTill =  datetime.now() + relativedelta(months=3)
-            amount = 4000
-        if plan == "Half-Yearly":
-            ValidTill =  datetime.now() + relativedelta(months=6)
-            amount = 7000
-        if plan == "Minutes":
-            ValidTill =  datetime.now() + relativedelta(minutes=1)
-            amount = 20000
-
-        try:
-            newData = {
-                "UserId" : int(userId),
-                "TransactionId": transactionId,
-                "CreatedDate" : datetime.now(),
-                "ValidTill": ValidTill,
-                "Plan": plan,
-                "Amount": amount
-            }
-            collection = db.get_collection("PaymentInfo")
-            id = collection.insert_one(newData)
-            print(id)
-            return jsonify({"Message":"Success","data":str(id)})
-        except Exception as e:
-            return jsonify({"Message":"Failure","data":str(e)})
-
-
 
 def ValidateUser(email, password):
     try:
@@ -1094,7 +988,7 @@ def ValidateUser(email, password):
             return None
     except ValueError as e:
         print(f"Error checking password: {e}")
-        log = collection.insert_one({"Method":"ValidateUser-UserApi.py","Exception":e,"Time":datetime.datetime.now,"UserEmail":email,"PhoneNumber":phoneNumber})
+        log = collection.insert_one({"Method":"ValidateUser-UserApi.py","Exception":e,"Time":datetime.datetime.now,"UserEmail":email})
         return None
 
 
