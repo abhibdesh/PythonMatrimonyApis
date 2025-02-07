@@ -27,7 +27,7 @@ class CheckActiveUsers(Resource):
     def get(self):
         print("Executing CheckActiveUsers Start")
         collection = db.get_collection('User')
-        data = collection.find({} , {"_id": 0})
+        data = collection.find({"isLoggedIn":1} , {"_id": 0})
         print("INACTIVITY_THRESHOLD")
         print(INACTIVITY_THRESHOLD)
         print("INACTIVITY_THRESHOLD")

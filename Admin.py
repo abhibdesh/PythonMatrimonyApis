@@ -26,15 +26,23 @@ class FetchDashboardData(Resource):
     @jwt_required()
     def post(self):
         try:
+            currentUser = get_jwt_identity()
             collection = db.get_collection("User")
-            allData = []
-            data = collection.find({},{"image":0, "_id":0, "UserPassword":0})
-            for i in data:
-                allData.append(i)
-            return jsonify({
-                    "message": "Success",
-                    "users": allData, 
-                })
+            curUser = collection.find_one({"UserEmail":currentUser})
+            if(curUser["isLoggedIn"] == 1):
+                return jsonify({
+                        "message": "Failure",
+                        "users": "Session Time Out", 
+                    })
+            else:
+                allData = []
+                data = collection.find({},{"image":0, "_id":0, "UserPassword":0})
+                for i in data:
+                    allData.append(i)
+                return jsonify({
+                        "message": "Success",
+                        "users": allData, 
+                    })
         except Exception as e:
             print(f"Error checking password: {e}")
             collection = db.get_collection('ErrorLogs')
@@ -64,14 +72,14 @@ class VerifyAccount(Resource):
 class FetchAllUsersAdmin(Resource):
     @jwt_required()
     def post(self):
-        # current_user = get_jwt_identity()
+        current_user = get_jwt_identity()
         # print("Authenticated User:", current_user)
         filters = request.json['filters']
         isPaidUser = request.json["isPaid"]
         page = int(request.json['pageNumber'])
         rowsPerPage = int(request.json['rowsPerPage'])
         Userid = request.json["Userid"]
-
+        
         projection = {"_id": 0, "UserPassword": 0}
         if not isPaidUser:
             projection.update({"UserEmail": 0, "PhoneNumber": 0})
@@ -95,6 +103,9 @@ class FetchAllUsersAdmin(Resource):
         try:
             filters["IsDeleted"] = False
             collection = db.get_collection('User')
+            curUser = collection.find_one({"UserEmail":current_user})
+            if(curUser["isLoggedIn"] == 0):
+                return jsonify({"message": "Failure", "error": "Something Went Wrong"})
             currentUser = collection.find_one({"UserId": Userid}, projection)
             if not currentUser:
                 return jsonify({"message": "User not found", "users": []})
