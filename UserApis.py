@@ -554,7 +554,7 @@ class UpdateProfile(Resource):
             # date_obj = datetime.strptime(, '%a, %d %b %Y %H:%M:%S %Z')
             collection = db.get_collection('User')
             data = collection.find_one({"UserId":int(UserId)})
-            if(data["isloggedIn"] == 0):
+            if(data["isLoggedIn"] == 0):
                 return jsonify({"message": "Failure","data":"Session Timed Out"}), 200
             else:
                 collection.update_one({"UserId":int(UserId)},{"$set":newData})
