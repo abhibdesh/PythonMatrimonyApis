@@ -34,7 +34,7 @@ db = client.get_database(databse)
 
 app.config['JWT_SECRET_KEY'] = os.getenv('SECERT_KEY','asdfghjklpoiuytrewfgvbndcksdhfjgjhejbdsjbcsbh')
 serializer = URLSafeTimedSerializer(os.getenv('SECERT_KEY','asdfghjklpoiuytrewfgvbndcksdhfjgjhejbdsjbcsbh'))
-
+app.config["JWT_ACCESS_TOKEN_EXPIRES"] = timedelta(hours=1)
 
 jwt = JWTManager(app)
 logger = logging.getLogger(__name__)
@@ -45,7 +45,7 @@ now_local_tz = datetime.now(local_timezone)
 class HelloWorld(Resource):
     def get(self):
         try:
-            return {"hello":"wrold"}
+            return {"hello":"world"}
         except Exception as e:
             print(e)
             return {"data": "HelloWorld!!!"}

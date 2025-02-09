@@ -328,7 +328,8 @@ class UpdateProfile(Resource):
             if(birthDate != None and birthTime != None ):
                 # BIRTH DATE SECTION
                 print("BOTH AVAILABLE")
-                date_obj = datetime.strptime(birthDate, '%Y-%m-%dT%H:%M:%S.%fZ')
+                date_obj = datetime.strptime(birthDate, "%a, %d %b %Y %H:%M:%S %Z")
+                # date_obj = datetime.strptime(birthDate, '%Y-%m-%dT%H:%M:%S.%fZ')
                 # date_obj = datetime.strptime(birthDate, '%a, %d %b %Y %H:%M:%S %Z')
                 print(date_obj)
                 birth_date_only = date_obj.date()
@@ -442,7 +443,6 @@ class UpdateProfile(Resource):
             if(birthDate != None and birthTime == None):
                 # BIRTH DATE SECTION
                 print("ONLY BITHDATE")
-
                 date_obj = datetime.strptime(birthDate, '%a, %d %b %Y %H:%M:%S %Z')
                 print(date_obj)
                 birth_date_only = date_obj.date()
@@ -494,8 +494,6 @@ class UpdateProfile(Resource):
                     "UserRole":"2",
                     "image":image
                         }
-
-
 
             if(birthTime == None and birthDate == None):
                 print("BOTH UNAVAILABLE")
@@ -551,20 +549,19 @@ class UpdateProfile(Resource):
             else:
                 Height = float(Height)
            
-            # date_obj = datetime.strptime(, '%a, %d %b %Y %H:%M:%S %Z')
             collection = db.get_collection('User')
             data = collection.find_one({"UserId":int(UserId)})
             if(data["isLoggedIn"] == 0):
-                return jsonify({"message": "Failure","data":"Session Timed Out"}), 200
+                return jsonify({"message": "Failure","data":"Session Timed Out"})
             else:
                 collection.update_one({"UserId":int(UserId)},{"$set":newData})
-                return jsonify({"message": "Success","data":"Profile Updated Successfully"}), 200
+                return jsonify({"message": "Success","data":"Profile Updated Successfully"})
 
         except Exception as e:
             print("Error:", e)
             collection = db.get_collection('ErrorLogs')
-            log = collection.insert_one({"Method":"UpdateProfile-UserApi.py","Exception":e,"Time":datetime.now})
-            return jsonify({"message": "An error occurred during logout", "error": str(e)}), 500
+            log = collection.insert_one({"Method":"UpdateProfile-UserApi.py","Exception":str(e),"Time":datetime.now})
+            return jsonify({"message": "An error occurred during logout", "error": str(e)})
 
         
 class UpdatePreferences(Resource):
@@ -800,7 +797,6 @@ class FetchAllUsers(Resource):
         projection = {"_id": 0, "UserPassword": 0}
         if not isPaidUser:
             projection.update({"UserEmail": 0, "PhoneNumber": 0})
-        print("asdasd")
         finaldataList = []
 
         # Final Filters List 
@@ -821,9 +817,9 @@ class FetchAllUsers(Resource):
             collection = db.get_collection('User')
             print("hagsjdgahsjdgasjdgjashgdjhasgdjhsagdjhgasdjhgasjdghsjdgha")
 
-            currentUser = collection.find_one({"UserId": int(Userid)}, projection)
+            currentUser = collection.find_one({"UserId": int(Userid)})
             print(current_user)
-            if(current_user['isLoggedIn'] == 0):
+            if(currentUser["isLoggedIn"] == 0):
                 return jsonify({"message": "Session Times Out", "users": []})
             if not currentUser:
                 return jsonify({"message": "User not found", "users": []})
