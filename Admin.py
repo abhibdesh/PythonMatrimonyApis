@@ -84,7 +84,6 @@ class FetchAllUsersAdmin(Resource):
         if not isPaidUser:
             projection.update({"UserEmail": 0, "PhoneNumber": 0})
         print("asdasd")
-        print(filters)
         finaldataList = []
 
         # Final Filters List 

@@ -47,7 +47,8 @@ class UserLogin(Resource):
                     collection.update_one({"UserEmail":email},{"$set":
                                                                {
                                                                    "LastLogin": str(now_local_tz),
-                                                                   "lastActivity" : str(now_local_tz)
+                                                                   "lastActivity" : str(now_local_tz),
+                                                                   "isLoggedIn":1
                                                                    }
                                                                 })
                     return jsonify({MessageVariable: SuccessString, msgVal: user_data, 'accessToken': access_token})
@@ -757,7 +758,7 @@ class FetchMyProfile(Resource):
     def post(self):
         userid = request.json["UserId"]
         current_user = get_jwt_identity()
-        # print("Authenticated User:", current_user)
+        print("Authenticated User:", current_user)
         try:
             projection = {"_id": 0,"UserPassword":0}
             newFilter = {"UserId" : int(userid)}
@@ -800,7 +801,6 @@ class FetchAllUsers(Resource):
         if not isPaidUser:
             projection.update({"UserEmail": 0, "PhoneNumber": 0})
         print("asdasd")
-        print(filters)
         finaldataList = []
 
         # Final Filters List 
@@ -819,7 +819,10 @@ class FetchAllUsers(Resource):
         try:
             filters["IsDeleted"] = False
             collection = db.get_collection('User')
+            print("hagsjdgahsjdgasjdgjashgdjhasgdjhsagdjhgasdjhgasjdghsjdgha")
+
             currentUser = collection.find_one({"UserId": int(Userid)}, projection)
+            print(current_user)
             if(current_user['isLoggedIn'] == 0):
                 return jsonify({"message": "Session Times Out", "users": []})
             if not currentUser:
@@ -989,6 +992,7 @@ class DeactivateAccount(Resource):
             print(deactivationReason)
             print(userId)
             collection = db.get_collection('User')
+            print("hagsjdgahsjdgasjdgjashgdjhasgdjhsagdjhgasdjhgasjdghsjdgha")
             currentUser = collection.find_one({"UserId": int(userId)})
             if(currentUser["isLoggedIn"] == 0):
                 return jsonify({"message":"Failure","error":"Session Timed Out"})

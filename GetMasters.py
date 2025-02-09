@@ -1,6 +1,6 @@
 from flask import make_response, request, jsonify
 from flask_restful import Resource
-from flask_jwt_extended import create_access_token
+from flask_jwt_extended import create_access_token, jwt_required
 from pymongo import MongoClient
 import json
 from datetime import datetime
@@ -27,6 +27,7 @@ with open('./Config/Strings.json') as g:
     msgVal=Strings['MESSAGE_VALUE']
 
 class GetNewUserFormMasters(Resource):
+    @jwt_required()
     def post(self):
         datalist = []
         listOfData = request.json.get('listOfData')

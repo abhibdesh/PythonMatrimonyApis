@@ -33,7 +33,9 @@ class GetMyPayments(Resource):
         print("userIduserIduserIduserIduserIduserIduserIduserIduserIduserId")
         collection = db.get_collection("User")
         collection.update_one({ "UserId": int(userId)},{
+            "$set":{
             "lastActivity": str(now_local_tz)
+            }
         })
         result = db.User.aggregate([
             {
