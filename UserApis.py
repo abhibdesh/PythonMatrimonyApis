@@ -68,7 +68,7 @@ class UserLogin(Resource):
                                                                 })
                     return jsonify({MessageVariable: SuccessString,"profileCompletePercentage":int((100*count)/33), msgVal: user_data, 'accessToken': access_token})
                 else:
-                    return jsonify({MessageVariable: FailureString, msgVal: "This Account is Deactivated. Please Contact Support For Reactivation."})
+                    return jsonify({MessageVariable:  FailureString, msgVal: "This Account is Deactivated. Please Contact Support For Reactivation."})
 
             else:
                 return jsonify({MessageVariable: FailureString, msgVal: "Invalid Credentials"})
