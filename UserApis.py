@@ -344,9 +344,11 @@ class UpdateProfile(Resource):
             if(birthDate != None and birthTime != None ):
                 # BIRTH DATE SECTION
                 print("BOTH AVAILABLE")
-                date_obj = datetime.strptime(birthDate, "%a, %d %b %Y %H:%M:%S %Z")
+                
+                # date_obj = datetime.strptime(birthDate, "%a, %d %b %Y %H:%M:%S %Z")
                 # date_obj = datetime.strptime(birthDate, '%Y-%m-%dT%H:%M:%S.%fZ')
                 # date_obj = datetime.strptime(birthDate, '%a, %d %b %Y %H:%M:%S %Z')
+                date_obj = parse_birth_date(birthDate)
                 print(date_obj)
                 birth_date_only = date_obj.date()
                 today = datetime.today().date()
@@ -459,7 +461,8 @@ class UpdateProfile(Resource):
             if(birthDate != None and birthTime == None):
                 # BIRTH DATE SECTION
                 print("ONLY BITHDATE")
-                date_obj = datetime.strptime(birthDate, '%a, %d %b %Y %H:%M:%S %Z')
+                # date_obj = datetime.strptime(birthDate, '%a, %d %b %Y %H:%M:%S %Z')
+                date_obj = parse_birth_date(birthDate)
                 print(date_obj)
                 birth_date_only = date_obj.date()
                 today = datetime.today().date()
@@ -1045,3 +1048,23 @@ def ValidateUser(email, password):
 def hash_password(password):
     hashed_password = hashpw(password.encode('utf-8'), gensalt())
     return hashed_password
+
+def parse_birth_date(birthDate):
+    if not birthDate:
+        return None
+
+    formats = [
+        "%Y-%m-%dT%H:%M:%S.%fZ",  # Standard ISO format
+        "%Y-%m-%dT%H:%M:%S.%f",    # ISO without "Z"
+        "%Y-%m-%dT%H:%M:%S",       # Without milliseconds
+        "%Y-%m-%d",                # Only date
+        "%a, %d %b %Y %H:%M:%S %Z" # RFC 1123 format (Thu, 08 Jun 1989 06:06:18 GMT)
+    ]
+
+    for fmt in formats:
+        try:
+            return datetime.strptime(birthDate, fmt)
+        except ValueError:
+            continue  # Try the next format
+
+    raise ValueError(f"Unsupported date format: {birthDate}")
