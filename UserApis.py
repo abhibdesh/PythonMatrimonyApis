@@ -40,10 +40,25 @@ class UserLogin(Resource):
             user_data = ValidateUser(email, password)  
             access_token = create_access_token(identity=email) 
             collection = db.get_collection('User')
+
             if user_data:
                 if(user_data["isLoggedIn"] == 1):
-                    return jsonify({MessageVariable: FailureString, msgVal: "This Account is Already Logged In Another Device."})
+                    return jsonify({MessageVariable: FailureString, msgVal: "This Account is Already Logged In On Another Device."})
                 if(user_data["IsActive"] == True):
+                    keys_to_check = ["Address","CurrentAddress","birthDate","birthTime","BirthPlace",
+                                     "Raas","Height","BloodGrp","Disablity","DegDip","Field","JobBis",
+                                     "IncomeGroup","Eating","Gotra","Dosha","Gana","Devak","Nakshatra",
+                                     "FamilyType","Siblings","Siblings","EduSiblings","Property",
+                                     "EduMother","EduFather","MotherFamily","FatherFamily","degreeName",
+                                     "CompanyName","DisabilityYN","Charan","Naadi"
+                                     ]
+                    count = 0
+                    for key in keys_to_check:
+                        value = user_data.get(key)  
+                        if value not in [None, ""]:  
+                            print(value)
+                            count += 1
+                    print(100*count/33)
                     collection.update_one({"UserEmail":email},{"$set":
                                                                {
                                                                    "LastLogin": str(now_local_tz),
@@ -51,7 +66,7 @@ class UserLogin(Resource):
                                                                    "isLoggedIn":1
                                                                    }
                                                                 })
-                    return jsonify({MessageVariable: SuccessString, msgVal: user_data, 'accessToken': access_token})
+                    return jsonify({MessageVariable: SuccessString,"profileCompletePercentage":int((100*count)/33), msgVal: user_data, 'accessToken': access_token})
                 else:
                     return jsonify({MessageVariable: FailureString, msgVal: "This Account is Deactivated. Please Contact Support For Reactivation."})
 
@@ -236,6 +251,7 @@ class AddNewUser(Resource):
                                                  "isLoggedIn":1
 
                                                 })
+                    
                     userData = {
                         "UserId":userIdNew,
                         "firstName" :firstName,
