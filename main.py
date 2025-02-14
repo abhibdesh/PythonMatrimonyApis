@@ -4,9 +4,9 @@ from flask_cors import CORS
 from flask_jwt_extended import JWTManager
 from Admin import FetchDashboardData, VerifyAccount,FetchAllUsersAdmin
 from itsdangerous import URLSafeTimedSerializer
-from PaymentApi import GenerateQRCode,GetMyPayments
+from PaymentApi import GenerateQRCode,GetMyPayments,MarkPaymentDone,GetPaymentsToApprove,ApprovePayment
 from pymongo import MongoClient
-from UserApis import UserLogin,UpdatePreferences, AddNewUser,DeactivateAccount, FetchAllUsers, FetchMyProfile, LogoutUser, UpdateProfile, GetSingleProfileData
+from UserApis import LogOutFromPreviousDevice,UserLogin,UpdatePreferences, AddNewUser,DeactivateAccount, FetchAllUsers, FetchMyProfile, LogoutUser, UpdateProfile, GetSingleProfileData
 from UpdateExistingRecords import UpdateUserCollection
 from GetMasters import GetNewUserFormMasters
 from CronJobs import CheckActiveUsers
@@ -115,6 +115,10 @@ api.add_resource(GetMyPayments, '/GetMyPayments')
 api.add_resource(FetchAllUsersAdmin, '/FetchAllUsersAdmin')
 api.add_resource(GenerateQRCode, '/GenerateQRCode')
 api.add_resource(CheckActiveUsers, '/CheckActiveUsers')
+api.add_resource(MarkPaymentDone, '/MarkPaymentDone')
+api.add_resource(LogOutFromPreviousDevice, '/LogOutFromPreviousDevice')
+api.add_resource(ApprovePayment, '/ApprovePayment')
+api.add_resource(GetPaymentsToApprove, '/GetPaymentsToApprove')
 
 if __name__ == "__main__":
     app.run(debug=True)

@@ -72,8 +72,9 @@ class VerifyAccount(Resource):
 class FetchAllUsersAdmin(Resource):
     @jwt_required()
     def post(self):
+        print("ADMIN DASHBOARD")
         current_user = get_jwt_identity()
-        # print("Authenticated User:", current_user)
+        print("Authenticated User:", current_user)
         filters = request.json['filters']
         isPaidUser = request.json["isPaid"]
         page = int(request.json['pageNumber'])
@@ -239,7 +240,8 @@ class FetchAllUsersAdmin(Resource):
                 }
 
                 finaldataList.append({"topData": top_data, "next_data": [next_Data]})
-
+            print("finaldataList")
+            print(finaldataList)
             return jsonify({
                 "message": "Success",
                 "users": finaldataList,

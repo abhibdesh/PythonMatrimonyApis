@@ -8,7 +8,6 @@ import json
 from jwt import DecodeError
 from jwt.exceptions import PyJWTError as DecodeError
 from datetime import datetime
-from dateutil.relativedelta import relativedelta
 import os
 import pytz
 
@@ -40,25 +39,12 @@ class UserLogin(Resource):
             user_data = ValidateUser(email, password)  
             access_token = create_access_token(identity=email) 
             collection = db.get_collection('User')
-
+            print(user_data)
             if user_data:
                 if(user_data["isLoggedIn"] == 1):
                     return jsonify({MessageVariable: FailureString, msgVal: "This Account is Already Logged In On Another Device."})
                 if(user_data["IsActive"] == True):
-                    keys_to_check = ["Address","CurrentAddress","birthDate","birthTime","BirthPlace",
-                                     "Raas","Height","BloodGrp","Disablity","DegDip","Field","JobBis",
-                                     "IncomeGroup","Eating","Gotra","Dosha","Gana","Devak","Nakshatra",
-                                     "FamilyType","Siblings","Siblings","EduSiblings","Property",
-                                     "EduMother","EduFather","MotherFamily","FatherFamily","degreeName",
-                                     "CompanyName","DisabilityYN","Charan","Naadi"
-                                     ]
-                    count = 0
-                    for key in keys_to_check:
-                        value = user_data.get(key)  
-                        if value not in [None, ""]:  
-                            print(value)
-                            count += 1
-                    print(100*count/33)
+                    profcompper = profileComplete(user_data)
                     collection.update_one({"UserEmail":email},{"$set":
                                                                {
                                                                    "LastLogin": str(now_local_tz),
@@ -66,7 +52,27 @@ class UserLogin(Resource):
                                                                    "isLoggedIn":1
                                                                    }
                                                                 })
-                    return jsonify({MessageVariable: SuccessString,"profileCompletePercentage":int((100*count)/33), msgVal: user_data, 'accessToken': access_token})
+                    paymentCollection = db.get_collection("PaymentInfo")
+                    col = paymentCollection.find_one({"UserEmail":email})
+                    if col:
+                        user_data["IsPaymentDone"] = col["IsPaymentDone"]
+                        user_data["IsApproved"]= col["IsApproved"]
+                        user_data["UserPaid"]= col["UserPaid"]
+                        user_data["TotalProfilesView"]= col["TotalProfilesView"]
+                        user_data['LimitExhausted']= col["LimitExhausted"]
+                        user_data['ProfileCount']= col["ProfileCount"]
+                        if col["LimitExhausted"] == False and col["TotalProfilesView"] <= col["ProfileCount"]:
+                            user_data["userPaid"] = False
+                        else:
+                            user_data["userPaid"] + True
+                    else:
+                        user_data["IsPaymentDone"] = False
+                        user_data["IsApproved"]=False
+                        user_data["UserPaid"]= False
+                        user_data["TotalProfilesView"]= 0
+                        user_data['LimitExhausted']= True
+                        user_data["userPaid"] = False
+                    return jsonify({MessageVariable: SuccessString,"profileCompletePercentage":profcompper, msgVal: user_data, 'accessToken': access_token})
                 else:
                     return jsonify({MessageVariable:  FailureString, msgVal: "This Account is Deactivated. Please Contact Support For Reactivation."})
 
@@ -748,6 +754,29 @@ class GetSingleProfileData(Resource):
             return jsonify({MessageVariable: FailureString, msgVal: "Something Went Wrong"})
 
 
+class LogOutFromPreviousDevice(Resource):
+    def post(self):
+        userEmail = request.json["userEmail"]
+        password = request.json["password"]
+        collection = db.get_collection("User")
+        user_data = ValidateUser(userEmail, password)  
+        if user_data:
+            collection.update_one({"UserEmail":userEmail},{
+                    "$set":{
+                        "lastActivity":str(now_local_tz),
+                        "lastLogOutTime":str(now_local_tz),
+                        "isLoggedIn":0
+                        }
+                })
+            return jsonify({"message":"Success","data":"User Logged Out Successfully"})
+
+        else:
+            return jsonify({"message":"Failure","data":"Invalid Credentials"})
+
+
+
+
+
 
 class LogoutUser(Resource):
     @jwt_required()
@@ -806,6 +835,7 @@ class FetchAllUsers(Resource):
     @jwt_required()
     def post(self):
         current_user = get_jwt_identity()
+        print("USER DASHBOARD")
         # print("Authenticated User:", current_user)
         filters = request.json['filters']
         isPaidUser = request.json["isPaid"]
@@ -837,7 +867,7 @@ class FetchAllUsers(Resource):
             print("hagsjdgahsjdgasjdgjashgdjhasgdjhsagdjhgasdjhgasjdghsjdgha")
 
             currentUser = collection.find_one({"UserId": int(Userid)})
-            print(current_user)
+            # print(current_user)
             if(currentUser["isLoggedIn"] == 0):
                 return jsonify({"message": "Session Times Out", "users": []})
             if not currentUser:
@@ -848,7 +878,7 @@ class FetchAllUsers(Resource):
                     "lastActivity":str(now_local_tz)
                 }
             })
-
+            print("getting new filters")
             newFilter = {"UserId": {"$ne":int(Userid)}, "IsDeleted": False, "IsActive":True, "LookingFor": {"$ne": currentUser.get("LookingFor")} }
             if int(filters["selectedFromHeight"]) > 0 :
                 newFilter["Height"] = {"$gte": int(filters["selectedFromHeight"])}
@@ -1029,10 +1059,29 @@ class DeactivateAccount(Resource):
             return jsonify({"message": "failure"}),200
 
 
+
+def profileComplete(user_data):
+    number = 0 
+    keys_to_check = ["Address","CurrentAddress","birthDate","birthTime","BirthPlace",
+                                     "Raas","Height","BloodGrp","Disablity","DegDip","Field","JobBis",
+                                     "IncomeGroup","Eating","Gotra","Dosha","Gana","Devak","Nakshatra",
+                                     "FamilyType","Siblings","Siblings","EduSiblings","Property",
+                                     "EduMother","EduFather","MotherFamily","FatherFamily","degreeName",
+                                     "CompanyName","DisabilityYN","Charan","Naadi"
+                                     ]
+    count = 0
+    for key in keys_to_check:
+        value = user_data.get(key)  
+        if value not in [None, ""]:  
+            print(value)
+            count += 1
+    print(100*count/33)
+    return int(100*count/33)
+
 def ValidateUser(email, password):
     try:
         query = {"UserEmail": email}
-        projection = {"_id": 0}
+        projection = {"_id": 0,"UserPaid":0,"image":0}
         collection = db.get_collection('User')
         data = collection.find_one(query,projection)
         if data and checkpw(password.encode('utf-8'), data["UserPassword"].encode('utf-8')):
