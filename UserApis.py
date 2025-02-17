@@ -39,7 +39,6 @@ class UserLogin(Resource):
             user_data = ValidateUser(email, password)  
             access_token = create_access_token(identity=email) 
             collection = db.get_collection('User')
-            print(user_data)
             if user_data:
                 if(user_data["isLoggedIn"] == 1):
                     return jsonify({MessageVariable: FailureString, msgVal: "This Account is Already Logged In On Another Device."})
@@ -1081,7 +1080,7 @@ def profileComplete(user_data):
 def ValidateUser(email, password):
     try:
         query = {"UserEmail": email}
-        projection = {"_id": 0,"UserPaid":0,"image":0}
+        projection = {"_id": 0,"UserPaid":0, "image":0}
         collection = db.get_collection('User')
         data = collection.find_one(query,projection)
         if data and checkpw(password.encode('utf-8'), data["UserPassword"].encode('utf-8')):
@@ -1092,6 +1091,13 @@ def ValidateUser(email, password):
         print(f"Error checking password: {e}")
         log = collection.insert_one({"Method":"ValidateUser-UserApi.py","Exception":e,"Time":datetime.datetime.now,"UserEmail":email})
         return None
+
+class GetProfilePicture(Resource):
+    def post(self):
+        userid = request.json["userid"]
+        coll = db.get_collection("User")
+        image = coll.find_one({"UserId":int(userid)},{"image":1,'_id':0})
+        return ({"message":"success","image":image})
 
 
 def hash_password(password):

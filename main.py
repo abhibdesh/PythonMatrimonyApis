@@ -6,7 +6,7 @@ from Admin import FetchDashboardData, VerifyAccount,FetchAllUsersAdmin
 from itsdangerous import URLSafeTimedSerializer
 from PaymentApi import GenerateQRCode,GetMyPayments,MarkPaymentDone,GetPaymentsToApprove,ApprovePayment
 from pymongo import MongoClient
-from UserApis import LogOutFromPreviousDevice,UserLogin,UpdatePreferences, AddNewUser,DeactivateAccount, FetchAllUsers, FetchMyProfile, LogoutUser, UpdateProfile, GetSingleProfileData
+from UserApis import GetProfilePicture,LogOutFromPreviousDevice,UserLogin,UpdatePreferences, AddNewUser,DeactivateAccount, FetchAllUsers, FetchMyProfile, LogoutUser, UpdateProfile, GetSingleProfileData
 from UpdateExistingRecords import UpdateUserCollection
 from GetMasters import GetNewUserFormMasters
 from CronJobs import CheckActiveUsers
@@ -118,6 +118,7 @@ api.add_resource(CheckActiveUsers, '/CheckActiveUsers')
 api.add_resource(MarkPaymentDone, '/MarkPaymentDone')
 api.add_resource(LogOutFromPreviousDevice, '/LogOutFromPreviousDevice')
 api.add_resource(ApprovePayment, '/ApprovePayment')
+api.add_resource(GetProfilePicture, '/GetProfilePicture')
 api.add_resource(GetPaymentsToApprove, '/GetPaymentsToApprove')
 
 if __name__ == "__main__":
