@@ -34,11 +34,13 @@ with open('./Config/Strings.json') as g:
 class UserLogin(Resource):
     def post(self):
         try:
-            email = request.json.get('email')
+            email = request.json.get('userEmail')
             password = request.json.get('password')
             user_data = ValidateUser(email, password)  
             access_token = create_access_token(identity=email) 
             collection = db.get_collection('User')
+            print(email)
+            print(password)
             if user_data:
                 if(user_data["isLoggedIn"] == 1):
                     return jsonify({MessageVariable: FailureString, msgVal: "This Account is Already Logged In On Another Device."})
@@ -1083,6 +1085,7 @@ def ValidateUser(email, password):
         projection = {"_id": 0,"UserPaid":0, "image":0}
         collection = db.get_collection('User')
         data = collection.find_one(query,projection)
+        print(data)
         if data and checkpw(password.encode('utf-8'), data["UserPassword"].encode('utf-8')):
             return data 
         else:
