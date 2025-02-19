@@ -1003,7 +1003,7 @@ class FetchAllUsers(Resource):
                     "Birthtime": u['birthTime'],
                     "BirthPlace": u['BirthPlace'],
                     "Bloodgroup": u["BloodGrp"]
-                     ,"image": u['image']
+                     ,"image": u['image'] 
                       ,"Userid": u['UserId']
                 }
 
