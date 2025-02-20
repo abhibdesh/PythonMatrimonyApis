@@ -247,8 +247,15 @@ class MarkPaymentDone(Resource):
             return jsonify({"message": "Failure", "data": "Something Went Wrong"})
 
 class GetPaymentsToApprove(Resource):
+    # @jwt_required()
     def post(self):
-        print("Hello")
+        collection = db.get_collection("PaymentInfo")
+        data = collection.find({"IsPaymentDone":1,"IsApproved":0},{"_id":0})
+        final = []
+        for i in data:
+            i["NewId"] = i["transactionId"]
+            final.append(i)
+        return jsonify({"message":"success","data":final})
 
 class ApprovePayment(Resource):
     def post(self):

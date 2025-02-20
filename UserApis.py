@@ -50,7 +50,8 @@ class UserLogin(Resource):
                                                                {
                                                                    "LastLogin": str(now_local_tz),
                                                                    "lastActivity" : str(now_local_tz),
-                                                                   "isLoggedIn":1
+                                                                   "isLoggedIn":1,
+                                                                   "access_token":access_token
                                                                    }
                                                                 })
                     paymentCollection = db.get_collection("PaymentInfo")
@@ -255,7 +256,8 @@ class AddNewUser(Resource):
                                                  "selectedSiblingsCousinsUpto":[],
                                                  "strictMatch": True,
                                                  "profileWithImages": False,
-                                                 "isLoggedIn":1
+                                                 "isLoggedIn":1,
+                                                 "access_token":access_token
 
                                                 })
                     
@@ -411,7 +413,6 @@ class UpdateProfile(Resource):
                         "CreatedBy":"User",
                         "IsActive":True,
                         "IsDeleted":False,
-                        "UserRole":"2",
                         "image":image
                         }
             if(birthDate == None and birthTime != None):
@@ -461,7 +462,6 @@ class UpdateProfile(Resource):
                         "CreatedBy":"User",
                         "IsActive":True,
                         "IsDeleted":False,
-                        "UserRole":"2",
                         "image":image
                         }
 
@@ -517,7 +517,6 @@ class UpdateProfile(Resource):
                     "CreatedBy":"User",
                     "IsActive":True,
                     "IsDeleted":False,
-                    "UserRole":"2",
                     "image":image
                         }
 
@@ -562,7 +561,6 @@ class UpdateProfile(Resource):
                         "CreatedBy":"User",
                         "IsActive":True,
                         "IsDeleted":False,
-                        "UserRole":"2",
                         "image":image
                         }
 
@@ -781,10 +779,6 @@ class LogOutFromPreviousDevice(Resource):
 
         else:
             return jsonify({"message":"Failure","data":"Invalid Credentials"})
-
-
-
-
 
 
 class LogoutUser(Resource):
