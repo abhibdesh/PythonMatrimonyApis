@@ -38,37 +38,38 @@ class GetMyPayments(Resource):
             "lastActivity": str(now_local_tz)
             }
         })
-        result = db.User.aggregate([
-            {
-                "$match": {  
-                    "UserId": int(userId)
-                }
-            },
-            {
-                "$lookup": { 
-                    "from": "PaymentInfo",
-                    "localField": "UserId",
-                    "foreignField": "UserId",
-                    "as": "payments",
-                    "pipeline": [
-                        {
-                            "$addFields": {
-                                "isActive": { "$gt": ["$ValidTill", today_date] }  
-                            }
-                        },
-                        { "$sort": { "CreatedDate": DESCENDING } },  
-                        { "$project": { "_id": 0 }}  
-                    ]
-                }
-            },
-            {
-                "$project": {
-                    "_id": 0,  
-                    "payments": 1  
-                }
-            }
-        ])            
-
+        # result = db.User.aggregate([
+        #     {
+        #         "$match": {  
+        #             "UserId": int(userId)
+        #         }
+        #     },
+        #     {
+        #         "$lookup": { 
+        #             "from": "PaymentInfo",
+        #             "localField": "UserId",
+        #             "foreignField": "UserId",
+        #             "as": "payments",
+        #             "pipeline": [
+        #                 {
+        #                     "$addFields": {
+        #                         "isActive": { "$gt": ["$ValidTill", today_date] }  
+        #                     }
+        #                 },
+        #                 { "$sort": { "CreatedDate": DESCENDING } },  
+        #                 { "$project": { "_id": 0 }}  
+        #             ]
+        #         }
+        #     },
+        #     {
+        #         "$project": {
+        #             "_id": 0,  
+        #             "payments": 1  
+        #         }
+        #     }
+        # ])            
+        paycol = db.get_collection("PaymentInfo")
+        result = paycol.find({"UserId": int(userId)},{"_id":0})
         paymentData = []
         hasActivePlan = False 
 
