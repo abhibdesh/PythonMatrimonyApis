@@ -247,7 +247,7 @@ class MarkPaymentDone(Resource):
             return jsonify({"message": "Failure", "data": "Something Went Wrong"})
 
 class GetPaymentsToApprove(Resource):
-    # @jwt_required()
+    @jwt_required()
     def post(self):
         collection = db.get_collection("PaymentInfo")
         data = collection.find({"IsPaymentDone":1,"IsApproved":0},{"_id":0})
@@ -258,5 +258,13 @@ class GetPaymentsToApprove(Resource):
         return jsonify({"message":"success","data":final})
 
 class ApprovePayment(Resource):
+    @jwt_required()
     def post(self):
-        print("Hello")
+        transactionId = request.json["transactionId"]
+        collection = db.get_collection("PaymentInfo")
+        collection.update_one({"transactionId":transactionId},{
+            "$set":{
+                "IsApproved":1
+            }
+        })
+        return jsonify({"message":"success","data":"Payment Approved Successfully"})
