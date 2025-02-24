@@ -103,6 +103,7 @@ class AddNewUser(Resource):
         Email = request.json['Email']
         Address = request.json['Address']
         CurrentAddress = request.json['CurrentAddress']
+        ReferenceCode = request.json["ReferenceCode"]
         # birthDate = request.json['birthDate']
         # birthTime = request.json['birthTime']
         BirthPlace = request.json['BirthPlace']
@@ -190,6 +191,7 @@ class AddNewUser(Resource):
                                                 "ChoosingFor":ChoosingFor,
                                                 "firstName":firstName ,
                                                 "lastName":lastName,
+                                                "ReferenceCode":ReferenceCode,
                                                 "Address":Address,
                                                 "CurrentAddress":CurrentAddress,
                                                 "isPhoneVerified":False,
@@ -987,32 +989,26 @@ class FetchAllUsers(Resource):
             )
 
             for u in data:
-                income = "Income Details Not Provided"
+                income = "NA"
                 print(u["birthDate"])
                 if u["JobBis"] and u['IncomeGroup']:
                     income = u["JobBis"] + ", earns " + u['IncomeGroup']
 
                 top_data = {
                     "Name": u['firstName'] + ' ' + u["lastName"],
-                    "Address": str(u['Address']) + ', ' + str(u["CurrentAddress"]),
+                    "Address": str(u['Address']) + ' ' + str(u["CurrentAddress"]),
                     "Education": str(u["DegDip"]) + ', ' + str(u['Field']),
                     "Income": income,
                     "Userid": u['UserId'],
-                    "IsVerified":u["IsVerified"]
-
-                   
-                }
-
-                next_Data = {
+                    "IsVerified":u["IsVerified"],
+                    "image": u['image'] ,
                     "Birthdate": u['birthDate'],
                     "Birthtime": u['birthTime'],
                     "BirthPlace": u['BirthPlace'],
-                    "Bloodgroup": u["BloodGrp"]
-                     ,"image": u['image'] 
-                      ,"Userid": u['UserId']
+                    "Bloodgroup": u["BloodGrp"] 
                 }
 
-                finaldataList.append({"topData": top_data, "next_data": [next_Data]})
+                finaldataList.append({"topData": top_data})
 
             return jsonify({
                 "message": "Success",
