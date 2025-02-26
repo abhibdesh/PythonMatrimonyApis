@@ -31,7 +31,7 @@ class FetchDashboardData(Resource):
             currentUser = get_jwt_identity()
             collection = db.get_collection("User")
             curUser = collection.find_one({"UserEmail":currentUser})
-            if(curUser["isLoggedIn"] == 1):
+            if(curUser["isLoggedIn"] == 0):
                 return jsonify({
                         "message": "Failure",
                         "users": "Session Time Out", 
