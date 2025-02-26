@@ -10,6 +10,8 @@ from jwt.exceptions import PyJWTError as DecodeError
 from datetime import datetime
 import os
 import pytz
+import random
+
 
 
 
@@ -74,6 +76,7 @@ class FetchAllUsersAdmin(Resource):
     def post(self):
         print("ADMIN DASHBOARD")
         current_user = get_jwt_identity()
+        # current_user = "abhibdesh@gmail.com"
         print("Authenticated User:", current_user)
         filters = request.json['filters']
         isPaidUser = request.json["isPaid"]
@@ -221,25 +224,20 @@ class FetchAllUsersAdmin(Resource):
 
                 top_data = {
                     "Name": u['firstName'] + ' ' + u["lastName"],
-                    "Address": str(u['Address']) + ', ' + str(u["CurrentAddress"]),
+                    "Address": str(u['Address']) + ' ' + str(u["CurrentAddress"]),
                     "Education": str(u["DegDip"]) + ', ' + str(u['Field']),
                     "Income": income,
                     "Userid": u['UserId'],
-                    "IsVerified":u["IsVerified"]
-
-                   
-                }
-
-                next_Data = {
+                    "IsVerified":u["IsVerified"],
+                    "image": "" if (u['image'] == None)  else u['image'] ,
                     "Birthdate": u['birthDate'],
                     "Birthtime": u['birthTime'],
                     "BirthPlace": u['BirthPlace'],
-                    "Bloodgroup": u["BloodGrp"]
-                     ,"image": u['image']
-                      ,"Userid": u['UserId']
+                    "Bloodgroup": u["BloodGrp"] 
                 }
 
-                finaldataList.append({"topData": top_data, "next_data": [next_Data]})
+               
+                finaldataList.append({"topData": top_data})
             print("finaldataList")
             print(finaldataList)
             return jsonify({
@@ -261,4 +259,69 @@ class FetchAllUsersAdmin(Resource):
         
 
         
-        
+class PromoteToAdmin(Resource):
+    def post(self):
+        userId = request.json["UserId"]
+        userCollection = db.get_collection("User")
+        adminCollection = db.get_collection("AdminMapping")
+        data = userCollection.find_one({ "UserId": int(userId)})
+        refCode = (data["firstName"][0:3]).upper()+str(random.randint(1000, 9999))
+        admin = adminCollection.find_one({"AdminEmail":data["UserEmail"]})
+        if(admin):
+            print(admin)
+            adminCollection.update_one({"AdminEmail":admin["AdminEmail"]},{"$set":{"ReferenceCode" : refCode}})
+            userCollection.update_one({
+            "UserId": int(userId)
+        },
+        {"$set":{
+            "UserRole":"3",
+            "ReferenceCode":refCode
+        }}
+        )
+        else:
+            adminCollection.insert_one({
+            "AdminEmail":data["UserEmail"],
+            "ReferenceCode":refCode,
+            "CreatedDateTime": datetime.now()
+            })
+            userCollection.update_one({
+            "UserId": int(userId)
+        },
+        {"$set":{
+            "UserRole":"3",
+            "ReferenceCode":refCode
+        }}
+        )
+       
+      
+
+
+class GetAllReferenceCodes(Resource):
+    def get(self):
+        # This will be used to validate id the user is putting right reference code
+        adminCodes = []
+        col = db.get_collection("AdminMapping")
+        data = col.find({},{"_id":0})
+        for d in data:
+            adminCodes.append(d["ReferenceCode"])
+        print(adminCodes)
+        return jsonify({"message":"success","data":adminCodes})
+
+class GetMyReferences(Resource):
+    @jwt_required()
+    def get(self):
+        # This will be used for ADMINS to see how much business they got.
+        cu = get_jwt_identity()
+        referals = []
+        admin = db.get_collection("AdminMapping")
+        adminCode = admin.find_one({"AdminEmail":cu})
+        col = db.get_collection("PaymentInfo")
+        data = col.find({
+            "ReferenceCode":adminCode['ReferenceCode']
+        },{"_id":0})
+        for i in data:
+            referals.append(i)
+        return jsonify({"message":"suucess","data":referals})
+
+
+

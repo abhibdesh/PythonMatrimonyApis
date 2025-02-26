@@ -259,8 +259,7 @@ class AddNewUser(Resource):
                                                  "strictMatch": True,
                                                  "profileWithImages": False,
                                                  "isLoggedIn":1,
-                                                 "access_token":access_token
-
+                                                 "access_token":access_token,
                                                 })
                     
                     userData = {
@@ -884,7 +883,8 @@ class FetchAllUsers(Resource):
                 }
             })
             print("getting new filters")
-            newFilter = {"UserId": {"$ne":int(Userid)}, "IsDeleted": False, "IsActive":True, 
+            newFilter = {"UserId": {"$ne":int(Userid)}
+                         ,"UserRole": "2", "IsDeleted": False, "IsActive":True, 
                          "LookingFor": {"$ne": currentUser.get("LookingFor")},"isPhoneVerified":True,"isEmailVerified":True }
             if int(filters["selectedFromHeight"]) > 0 :
                 newFilter["Height"] = {"$gte": int(filters["selectedFromHeight"])}
@@ -1001,7 +1001,7 @@ class FetchAllUsers(Resource):
                     "Income": income,
                     "Userid": u['UserId'],
                     "IsVerified":u["IsVerified"],
-                    "image": u['image'] ,
+                    "image": "" if (u['image'] == None)  else u['image'] ,
                     "Birthdate": u['birthDate'],
                     "Birthtime": u['birthTime'],
                     "BirthPlace": u['BirthPlace'],

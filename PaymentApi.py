@@ -94,6 +94,7 @@ class GenerateQRCode(Resource):
         PlanTimeSelected = request.json["PlanTimeSelected"]
         ProfileCount = request.json["ProfileCount"]
         UserId = request.json["UserId"]
+        PromoCode = request.json["PromoCode"]
         upi_id = "abhibdesh@okaxis"
         amount = "0.00"
         # txn_id = "TXN123456"
@@ -114,6 +115,9 @@ class GenerateQRCode(Resource):
                 "lastActivity":str(now_local_tz)
             }
         })
+
+        ddd = collection.find_one({"UserId":int(UserId)})
+        ReferenceCode = ddd["ReferenceCode"]
         
         paymentCollection = db.get_collection("PaymentInfo")
         if PlanTimeSelected == "1" and ProfileCount == "10":
@@ -204,7 +208,9 @@ class GenerateQRCode(Resource):
                 "UserPaid":True,
                 "TotalProfilesView": 0,
                 "LimitExhausted":False,
-                "savedProfiles" : []
+                "savedProfiles" : [],
+                "PromoCode" : PromoCode,
+                "ReferenceCode":ReferenceCode
             }
         )
 

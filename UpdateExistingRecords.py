@@ -23,10 +23,16 @@ class UpdateUserCollection(Resource):
         print("start")
         print(now_local_tz)
         collection = db.get_collection('User')
-        collection.update_one({"UserId":1},
-                               {"$set":
-                                {
-                                    "lastActivity":str(now_local_tz)
+        collection.update_many({},{
+            "$set":{
+                "MyRefCode":"",
+                "ReferenceCode":""
+            }
+        })
+        # collection.update_one({"UserId":1},
+        #                        {"$set":
+        #                         {
+        #                             "lastActivity":str(now_local_tz)
                                     # ,
                                     # "ProfileCount":True,
                                     # "isEmailVerified":True,
@@ -46,8 +52,8 @@ class UpdateUserCollection(Resource):
                                 #  "strictMatch": True,
                                 #  "profileWithImages" : True
                                  
-                                 }
-                                })
+                                #  }
+                                # })
         # collection.update_many(
 
         #     { "readTCP": { "$exists": False } }, 
