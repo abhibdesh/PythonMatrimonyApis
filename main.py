@@ -6,7 +6,7 @@ from Admin import FetchDashboardData, VerifyAccount,FetchAllUsersAdmin,PromoteTo
 from itsdangerous import URLSafeTimedSerializer
 from PaymentApi import GenerateQRCode,GetMyPayments,MarkPaymentDone,GetPaymentsToApprove,ApprovePayment
 from pymongo import MongoClient
-from UserApis import GetProfilePicture,LogOutFromPreviousDevice,UserLogin,UpdatePreferences, AddNewUser,DeactivateAccount, FetchAllUsers, FetchMyProfile, LogoutUser, UpdateProfile, GetSingleProfileData
+from UserApis import ChangePassword,ForgotPassword,GetProfilePicture,LogOutFromPreviousDevice,UserLogin,UpdatePreferences, AddNewUser,DeactivateAccount, FetchAllUsers, FetchMyProfile, LogoutUser, UpdateProfile, GetSingleProfileData
 from UpdateExistingRecords import UpdateUserCollection
 from GetMasters import GetNewUserFormMasters
 from CronJobs import CheckActiveUsers
@@ -99,6 +99,8 @@ class SendVerificationLink(Resource):
 api.add_resource(HelloWorld, '/HelloWorld')
 api.add_resource(UserLogin, '/UserLogin')
 api.add_resource(AddNewUser, '/AddUser')
+api.add_resource(ForgotPassword, '/ForgotPassword')
+api.add_resource(ChangePassword, '/ChangePassword')
 api.add_resource(FetchAllUsers, '/GetClients')
 api.add_resource(FetchDashboardData, '/FetchDashboardData')
 api.add_resource(VerifyAccount, '/VerifyAccount')

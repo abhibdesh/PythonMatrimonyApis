@@ -10,6 +10,8 @@ from jwt.exceptions import PyJWTError as DecodeError
 from datetime import datetime
 import os
 import pytz
+import random
+import string
 
 local_timezone = pytz.timezone('Asia/Kolkata')  
 now_local_tz = datetime.now(local_timezone)
@@ -1101,6 +1103,47 @@ class GetProfilePicture(Resource):
         image = coll.find_one({"UserId":int(userid)},{"image":1,'_id':0})
         return ({"message":"success","image":image})
 
+class ChangePassword(Resource):
+    @jwt_required()
+    def post(self):
+        try:
+            userId = request.json["userId"]
+            NewPassword = request.json["NewPassword"]
+            hashed_password = hash_password(NewPassword)
+
+            collection = db.get_collection("User")
+            collection.update_one({"UserId":int(userId)},{"$set":{"UserPassword":hashed_password.decode('utf-8')}})            
+
+            print(userId)
+            print(NewPassword)
+            return jsonify({"message":"success","data":"Password Changed Successfully"})
+        except Exception as e:
+            return jsonify({"message":"failure","data":"Something went wrong"})
+
+
+class ForgotPassword(Resource):
+    def post(self):
+        userEmail = request.json["UserEmail"]
+        print(userEmail)
+        collection = db.get_collection("User")
+        data = collection.find_one({"UserEmail":userEmail},{"_id":0})
+        if data:
+            NewPassWordd = generate_random_string(10)
+            hashed_password = hash_password(NewPassWordd)
+            collection.update_one({"UserEmail":userEmail},{
+                "$set":{
+                    "UserPassword":hashed_password.decode('utf-8')
+                }
+            })
+            print(hashed_password)
+            return jsonify({"message":"success","data":"Please Check Your Email Address For New Password","NewPaddword":NewPassWordd})
+        else:
+            return jsonify({"message":"failure","data":"This User is NOT Registered with Vivah Bandhan"})
+ 
+
+def generate_random_string(length):
+        characters = string.ascii_letters + string.digits
+        return ''.join(random.choice(characters) for i in range(length))
 
 def hash_password(password):
     hashed_password = hashpw(password.encode('utf-8'), gensalt())
