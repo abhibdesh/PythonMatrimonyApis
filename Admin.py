@@ -247,7 +247,6 @@ class FetchAllUsersAdmin(Resource):
                
                 finaldataList.append({"topData": top_data})
             print("finaldataList")
-            print(finaldataList)
             return jsonify({
                 "message": "Success",
                 "users": finaldataList,
@@ -324,11 +323,15 @@ class GetMyReferences(Resource):
         admin = db.get_collection("AdminMapping")
         adminCode = admin.find_one({"AdminEmail":cu})
         col = db.get_collection("PaymentInfo")
-        print(adminCode )
+        print(adminCode['ReferenceCode'] )
         data = col.find({
-            "ReferenceCode":adminCode['ReferenceCode']
+            "ReferenceCode":adminCode['ReferenceCode'],
+            "IsApproved":1
+           
         },{"_id":0})
         for i in data:
+            print(i)
+            print("_______________________________")
             referals.append(i)
         return jsonify({"message":"suucess","data":referals})
 
