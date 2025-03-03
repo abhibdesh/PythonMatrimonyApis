@@ -7,7 +7,7 @@ from itsdangerous import URLSafeTimedSerializer
 from PaymentApi import GetContactDetails,GenerateQRCode,GetMyPayments,MarkPaymentDone,GetPaymentsToApprove,ApprovePayment
 from pymongo import MongoClient
 from UserApis import MySavedProfiles,GetMyContacts,ChangePassword,ForgotPassword,GetProfilePicture,LogOutFromPreviousDevice,UserLogin,UpdatePreferences, AddNewUser,DeactivateAccount, FetchAllUsers, FetchMyProfile, LogoutUser, UpdateProfile, GetSingleProfileData
-from UpdateExistingRecords import UpdateUserCollection
+from UpdateExistingRecords import TruncateAllCollections,UpdateUserCollection
 from GetMasters import GetNewUserFormMasters
 from CronJobs import CheckActiveUsers
 from datetime import datetime, timedelta
@@ -128,6 +128,8 @@ api.add_resource(GetMyReferences,"/GetMyReferences")
 api.add_resource(GetContactDetails,"/GetContactDetails")
 api.add_resource(GetMyContacts,"/GetMyContacts")
 api.add_resource(MySavedProfiles,"/MySavedProfiles")
+api.add_resource(TruncateAllCollections,"/TruncateAllCollections")
+
 
 
 if __name__ == "__main__":

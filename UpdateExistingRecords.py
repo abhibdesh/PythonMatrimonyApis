@@ -62,3 +62,16 @@ class UpdateUserCollection(Resource):
         # );         
         print("End")
         return jsonify({"MessageVariable":"DONE"})
+
+
+class TruncateAllCollections(Resource):
+    def post(self):
+        userCollection = db.get_collection('User')
+        adminCollection = db.get_collection('AdminMapping')
+        paymentCollection = db.get_collection('PaymentInfo')
+
+        userCollection.delete_many({})
+        adminCollection.delete_many({})
+        paymentCollection.delete_many({})
+
+
