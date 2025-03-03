@@ -272,3 +272,34 @@ class ApprovePayment(Resource):
             }
         })
         return jsonify({"message":"success","data":"Payment Approved Successfully"})
+
+class GetContactDetails(Resource):
+    @jwt_required()
+    def post(self):
+        try:
+            paid_for_profile = request.json["paid_for_profile"]
+            user_id = request.json["userId"]
+            paymentCollection = db.get_collection('PaymentInfo')
+            paymentData = paymentCollection.find_one({"UserId":int(user_id)},{"_id":0},sort=[("CreatedDate", -1)])
+            transaction_id = paymentData["transactionId"]
+            print(paymentData)
+            print(len(paymentData["savedProfiles"]))
+            if paymentData["IsApproved"] == 1 and paymentData["ValidTill"] > datetime.now() and int(paymentData["ProfileCount"]) >= len(paymentData["savedProfiles"]):
+                print(paymentData["savedProfiles"])
+                paymentCollection.update_one({"transactionId":transaction_id},
+                                             {"$addToSet":{"savedProfiles":int(paid_for_profile)}})
+                print("Get Contact")
+                return jsonify({"message":"success","data":"This profile has been added to your 'Saved Profiles'"})
+            else:
+                if paymentData["IsApproved"] == 0:
+                    return jsonify({"message":"success","data":"Your payment is still under review. Please wait till the approval"})
+                if paymentData["ValidTill"] > datetime.now():
+                    return jsonify({"message":"success","data":"Your plan validity is expired."})
+                if int(paymentData["ProfileCount"]) >= len(paymentData["savedProfiles"]):
+                    return jsonify({"message":"success","data":"Your limit is exhausted. Please upgrade your plan."})
+
+            
+        except Exception as e:
+            print(e)
+            return jsonify({"message":"failure","data":"Something went wrong."})
+

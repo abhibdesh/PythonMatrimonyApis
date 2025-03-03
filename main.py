@@ -4,9 +4,9 @@ from flask_cors import CORS
 from flask_jwt_extended import JWTManager
 from Admin import FetchDashboardData, VerifyAccount,FetchAllUsersAdmin,PromoteToAdmin,GetAllReferenceCodes,GetMyReferences
 from itsdangerous import URLSafeTimedSerializer
-from PaymentApi import GenerateQRCode,GetMyPayments,MarkPaymentDone,GetPaymentsToApprove,ApprovePayment
+from PaymentApi import GetContactDetails,GenerateQRCode,GetMyPayments,MarkPaymentDone,GetPaymentsToApprove,ApprovePayment
 from pymongo import MongoClient
-from UserApis import ChangePassword,ForgotPassword,GetProfilePicture,LogOutFromPreviousDevice,UserLogin,UpdatePreferences, AddNewUser,DeactivateAccount, FetchAllUsers, FetchMyProfile, LogoutUser, UpdateProfile, GetSingleProfileData
+from UserApis import MySavedProfiles,GetMyContacts,ChangePassword,ForgotPassword,GetProfilePicture,LogOutFromPreviousDevice,UserLogin,UpdatePreferences, AddNewUser,DeactivateAccount, FetchAllUsers, FetchMyProfile, LogoutUser, UpdateProfile, GetSingleProfileData
 from UpdateExistingRecords import UpdateUserCollection
 from GetMasters import GetNewUserFormMasters
 from CronJobs import CheckActiveUsers
@@ -125,6 +125,10 @@ api.add_resource(GetPaymentsToApprove, '/GetPaymentsToApprove')
 api.add_resource(PromoteToAdmin,"/PromoteToAdmin")
 api.add_resource(GetAllReferenceCodes,"/GetAllReferenceCodes")
 api.add_resource(GetMyReferences,"/GetMyReferences")
+api.add_resource(GetContactDetails,"/GetContactDetails")
+api.add_resource(GetMyContacts,"/GetMyContacts")
+api.add_resource(MySavedProfiles,"/MySavedProfiles")
+
 
 if __name__ == "__main__":
     app.run(debug=True)

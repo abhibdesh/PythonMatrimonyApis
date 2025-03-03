@@ -23,10 +23,11 @@ class UpdateUserCollection(Resource):
         print("start")
         print(now_local_tz)
         collection = db.get_collection('User')
-        collection.update_many({},{
+        collection.update_one({
+            "UserId":8
+        },{
             "$set":{
-                "MyRefCode":"",
-                "ReferenceCode":""
+                "UserRole":"1",
             }
         })
         # collection.update_one({"UserId":1},

@@ -659,12 +659,15 @@ class GetSingleProfileData(Resource):
         print("Authenticated User:", current_user)
         userId = request.json["UserId"]
         print(userId)
-        try:
-            print(current_user)
-           
+        try:           
             newFilter = {"UserId" : int(userId)}
             print(newFilter)
             collection = db.get_collection('User')
+            paymentCollection = db.get_collection("PaymentInfo")
+            paymnetInfo = paymentCollection.find_one(
+                {"UserEmail": current_user},
+                sort=[("CreatedDate", -1)]  
+            )
             data2 = collection.find_one({"UserEmail" : current_user},{"_id":0,"image":0})
             if(data2['isLoggedIn'] == 0):
                 return jsonify({"message":"Failure","data":"Session Timed Out"})
@@ -688,30 +691,39 @@ class GetSingleProfileData(Resource):
                 final_data["image"] = data["image"] if data["image"] is not None else ""
                 final_data["Name"] = data["firstName"]+" " + data["lastName"]
                 # Contact Details
-                if curr_user["UserPaid"] == True:
-                    if curr_user["isEmailVerified"] == True:
-                        final_data["UserEmail"] = data["UserEmail"]
-                    else:
-                        final_data["UserEmail"]  = "Verify Your Email"     
-                    if data["isEmailVerified"] == True:
-                        final_data["UserEmail"] = data["UserEmail"]
-                    else:
-                        final_data["UserEmail"]  = "Unverified Email"      
-                else:
-                    final_data["UserEmail"] = "Buy Our Services For Contact Information"
-                
-                if curr_user["UserPaid"] == True:
-                    if curr_user["isPhoneVerified"] == True:
-                        final_data["PhoneNumber"] = data["PhoneNumber"]
-                    else:
-                        final_data["PhoneNumber"]  = "Verify Your Mobile Number" 
-                    if data["isPhoneVerified"] == True:
-                        final_data["PhoneNumber"] = data["PhoneNumber"]
-                    else:
-                        final_data["PhoneNumber"]  = "Unverified Phone Number"        
-                else:
-                    final_data["PhoneNumber"] = "Buy Our Services For Contact Information"
 
+                contactNumberString = ""
+                emailIdString = ""
+                print(paymnetInfo["savedProfiles"])
+                
+                if userId in paymnetInfo["savedProfiles"] and paymnetInfo["IsApproved"] == 1 and paymnetInfo["ValidTill"] > datetime.now():
+                    emailIdString = data["UserEmail"]
+                    contactNumberString = data["PhoneNumber"]
+                    if curr_user["isEmailVerified"] == True:
+                        emailIdString = data["UserEmail"]
+                    else:
+                        emailIdString  = "Verify Your Email"     
+                    if data["isEmailVerified"] == True:
+                        emailIdString = data["UserEmail"]
+                    else:
+                        emailIdString  = "Unverified Email" 
+
+
+                    if curr_user["isPhoneVerified"] == True:
+                        contactNumberString = data["PhoneNumber"]
+                    else:
+                        contactNumberString  = "Verify Your Mobile Number" 
+                    if data["isPhoneVerified"] == True:
+                        contactNumberString = data["PhoneNumber"]
+                    else:
+                        contactNumberString  = "Unverified Phone Number"        
+                else:
+                    emailIdString = "Buy Our Services For Contact Information"
+                    contactNumberString = "Buy Our Services For Contact Information"
+                    
+                    
+                final_data["PhoneNumber"] = contactNumberString
+                final_data["UserEmail"] = emailIdString
                 final_data["JobBis"]= data["JobBis"] if  data["JobBis"] != "" else "Not Provided"
                 final_data["DegDip"]= data["DegDip"] if data["DegDip"] !="" else "Not Provided"
                 final_data["FieldOrPost"]= data["Field"] if data["Field"] !="" else "Not Provided"
@@ -1029,6 +1041,53 @@ class FetchAllUsers(Resource):
             })
             return jsonify({"message": "Failure", "error": "Something Went Wrong"})
         
+class MySavedProfiles(Resource):
+    def post(self):
+        filters = request.json['filters']
+        isPaidUser = request.json["isPaid"]
+        page = int(request.json['pageNumber'])
+        rowsPerPage = int(request.json['rowsPerPage'])
+        Userid = request.json["Userid"]
+        print("sdfsdfsdfsdfdsf")
+        print(Userid)
+        paymentCollection = db.get_collection("PaymentInfo")
+        userCollection = db.get_collection("User")
+        data = paymentCollection.find_one({"UserId":int(Userid)},{"_id":0},sort=[("CreatedDate", -1)])
+        print(data['savedProfiles'])
+        data2 = userCollection.find({"UserId":{"$in":data["savedProfiles"]}},{"_id":0})
+        total_count = userCollection.count_documents({"UserId":{"$in":data["savedProfiles"]}}) 
+        users = []
+        for u in data2:
+            income = "NA"
+            print(u["birthDate"])
+            if u["JobBis"] and u['IncomeGroup']:
+                income = u["JobBis"] + ", earns " + u['IncomeGroup']
+
+            top_data = {
+                    "Name": u['firstName'] + ' ' + u["lastName"],
+                    "Address": str(u['Address']) + ' ' + str(u["CurrentAddress"]),
+                    "Education": str(u["DegDip"]) + ', ' + str(u['Field']),
+                    "Income": income,
+                    "Userid": u['UserId'],
+                    "IsVerified":u["IsVerified"],
+                    "image": "" if (u['image'] == None)  else u['image'] ,
+                    "Birthdate": u['birthDate'],
+                    "Birthtime": u['birthTime'],
+                    "BirthPlace": u['BirthPlace'],
+                    "Bloodgroup": u["BloodGrp"] 
+                }
+
+            users.append({"topData": top_data})
+
+            return jsonify({
+                "message": "Success",
+                "users": users,
+                "totalCount": total_count,  
+                "currentPage": page,
+                "rowsPerPage": rowsPerPage
+            })
+
+        
 
 class DeactivateAccount(Resource):
     @jwt_required()
@@ -1139,7 +1198,10 @@ class ForgotPassword(Resource):
             return jsonify({"message":"success","data":"Please Check Your Email Address For New Password","NewPaddword":NewPassWordd})
         else:
             return jsonify({"message":"failure","data":"This User is NOT Registered with Vivah Bandhan"})
- 
+
+class GetMyContacts(Resource):
+    def get(self):
+        print("")
 
 def generate_random_string(length):
         characters = string.ascii_letters + string.digits
