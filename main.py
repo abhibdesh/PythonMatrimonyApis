@@ -9,7 +9,7 @@ from pymongo import MongoClient
 from UserApis import MySavedProfiles,GetMyContacts,ChangePassword,ForgotPassword,GetProfilePicture,LogOutFromPreviousDevice,UserLogin,UpdatePreferences, AddNewUser,DeactivateAccount, FetchAllUsers, FetchMyProfile, LogoutUser, UpdateProfile, GetSingleProfileData
 from UpdateExistingRecords import TruncateAllCollections,UpdateUserCollection
 from GetMasters import GetNewUserFormMasters
-from CronJobs import CheckActiveUsers
+from CronJobs import CheckActiveUsers , CheckPaymentInfo
 from datetime import datetime, timedelta
 import json
 import os
@@ -129,6 +129,7 @@ api.add_resource(GetContactDetails,"/GetContactDetails")
 api.add_resource(GetMyContacts,"/GetMyContacts")
 api.add_resource(MySavedProfiles,"/MySavedProfiles")
 api.add_resource(TruncateAllCollections,"/TruncateAllCollections")
+api.add_resource(CheckPaymentInfo,"/CheckPaymentInfo")
 
 
 

@@ -668,6 +668,7 @@ class GetSingleProfileData(Resource):
                 {"UserEmail": current_user},
                 sort=[("CreatedDate", -1)]  
             )
+            print(paymnetInfo)
             data2 = collection.find_one({"UserEmail" : current_user},{"_id":0,"image":0})
             if(data2['isLoggedIn'] == 0):
                 return jsonify({"message":"Failure","data":"Session Timed Out"})
@@ -692,35 +693,35 @@ class GetSingleProfileData(Resource):
                 final_data["Name"] = data["firstName"]+" " + data["lastName"]
                 # Contact Details
 
-                contactNumberString = ""
-                emailIdString = ""
-                print(paymnetInfo["savedProfiles"])
-                
-                if userId in paymnetInfo["savedProfiles"] and paymnetInfo["IsApproved"] == 1 and paymnetInfo["ValidTill"] > datetime.now():
-                    emailIdString = data["UserEmail"]
-                    contactNumberString = data["PhoneNumber"]
-                    if curr_user["isEmailVerified"] == True:
+                emailIdString = "Buy Our Services For Contact Information"
+                contactNumberString = "Buy Our Services For Contact Information"
+
+                if paymnetInfo is not None:
+                    print("CHeCK 1")
+                    print(userId)
+                    print(paymnetInfo["savedProfiles"])
+                    if int(userId) in paymnetInfo["savedProfiles"] and paymnetInfo["IsApproved"] == 1 and paymnetInfo["ValidTill"] > datetime.now():
                         emailIdString = data["UserEmail"]
-                    else:
-                        emailIdString  = "Verify Your Email"     
-                    if data["isEmailVerified"] == True:
-                        emailIdString = data["UserEmail"]
-                    else:
-                        emailIdString  = "Unverified Email" 
+                        contactNumberString = data["PhoneNumber"]
+                        if curr_user["isEmailVerified"] == True:
+                            emailIdString = data["UserEmail"]
+                        else:
+                            emailIdString  = "Verify Your Email"     
+                        if data["isEmailVerified"] == True:
+                            emailIdString = data["UserEmail"]
+                        else:
+                            emailIdString  = "Unverified Email" 
 
 
-                    if curr_user["isPhoneVerified"] == True:
-                        contactNumberString = data["PhoneNumber"]
-                    else:
-                        contactNumberString  = "Verify Your Mobile Number" 
-                    if data["isPhoneVerified"] == True:
-                        contactNumberString = data["PhoneNumber"]
-                    else:
-                        contactNumberString  = "Unverified Phone Number"        
-                else:
-                    emailIdString = "Buy Our Services For Contact Information"
-                    contactNumberString = "Buy Our Services For Contact Information"
-                    
+                        if curr_user["isPhoneVerified"] == True:
+                            contactNumberString = data["PhoneNumber"]
+                        else:
+                            contactNumberString  = "Verify Your Mobile Number" 
+                        if data["isPhoneVerified"] == True:
+                            contactNumberString = data["PhoneNumber"]
+                        else:
+                            contactNumberString  = "Unverified Phone Number"        
+                  
                     
                 final_data["PhoneNumber"] = contactNumberString
                 final_data["UserEmail"] = emailIdString

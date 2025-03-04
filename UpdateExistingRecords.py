@@ -24,12 +24,15 @@ class UpdateUserCollection(Resource):
         print(now_local_tz)
         collection = db.get_collection('User')
         collection.update_one({
-            "UserId":8
+            "UserId":3
         },{
             "$set":{
-                "UserRole":"1",
+                "UserRole":"2",
+                "isPhoneVerified":True,
+                "isEmailVerified":True
             }
         })
+       
         # collection.update_one({"UserId":1},
         #                        {"$set":
         #                         {

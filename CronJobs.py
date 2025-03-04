@@ -37,9 +37,21 @@ class CheckActiveUsers(Resource):
                 collection.update_one({"UserId":int(i["UserId"])},{
                     "$set":{
                         "lastLogOutTime": str(TIMESTAMP_NOW),
-                        "isLoggedIn":0
+                        "isLoggedIn":0,
+                        "access_token":""
                     }
               
             })  
                 print(i["lastActivity"] + "   " + str(i["UserId"]))
         print("Executing CheckActiveUsers Done")
+
+
+class CheckPaymentInfo(Resource):
+    def get(self):
+        collection = db.get_collection("PaymentInfo")
+        data = collection.find({"IsApproved":1,"LimitExhausted":False, "ValidTill": {"$gt":datetime.datetime.now()}})
+        for i in data :
+            if len(i["savedProfiles"]) < i["ProfileCount"]:
+                print("")
+
+        print("Hello")
