@@ -77,6 +77,9 @@ class GetMyPayments(Resource):
             for payment in doc.get("payments", []):
                 if payment.get("isActive"): 
                     hasActivePlan = True
+                if len(paymentData.get("ProfileCount")) !=0 :
+
+                    print(doc)
             paymentData.append(doc)
 
         return jsonify({
