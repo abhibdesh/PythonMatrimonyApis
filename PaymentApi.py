@@ -69,18 +69,18 @@ class GetMyPayments(Resource):
         #     }
         # ])            
         paycol = db.get_collection("PaymentInfo")
-        result = paycol.find({"UserId": int(userId)},{"_id":0})
+        result = paycol.find({"UserId": int(userId)},{"_id":0},sort=[("_id", -1)])
         paymentData = []
         hasActivePlan = False 
 
         for doc in result:
-            for payment in doc.get("payments", []):
-                if payment.get("isActive"): 
-                    hasActivePlan = True
-                if len(paymentData.get("ProfileCount")) !=0 :
-
-                    print(doc)
+            doc["TotalProfilesView"] = len(doc["savedProfiles"])
+            if doc["ProfileCount"] != 0  and len(doc["savedProfiles"]) >= doc["ProfileCount"]:
+                doc["ValidTill"] = "Validity Expired"
             paymentData.append(doc)
+        
+        
+        
 
         return jsonify({
             "message": "success",
@@ -193,7 +193,7 @@ class GenerateQRCode(Resource):
         if ProfileCount == "Unlimited":
             ProfileCount = 0
         else:
-            ProfileCount = int(ProfileCount)
+            ProfileCount = int(1)
 
         paymentCollection.insert_one(
             {
