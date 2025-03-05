@@ -193,7 +193,7 @@ class GenerateQRCode(Resource):
         if ProfileCount == "Unlimited":
             ProfileCount = 0
         else:
-            ProfileCount = int(1)
+            ProfileCount = int(ProfileCount)
 
         paymentCollection.insert_one(
             {
