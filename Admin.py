@@ -119,7 +119,7 @@ class FetchAllUsersAdmin(Resource):
         try:
             if cu["UserRole"] == "3":
                 adminMapp = db.get_collection("AdminMapping")
-                d = adminMapp.find_one({"AdminEmail":currentUser})
+                d = adminMapp.find_one({"AdminEmail":cu["UserEmail"]})
                 data = collection.find({"ReferenceCode":d["ReferenceCode"],"UserRole":"2"},{"image":0, "_id":0, "UserPassword":0,"access_token":0})
                 print("asd")
                 for i in data:
