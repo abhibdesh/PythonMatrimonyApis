@@ -126,7 +126,7 @@ class FetchAllUsersAdmin(Resource):
                 print("asd")
                 total_count = userCollection.count_documents({"ReferenceCode":d["ReferenceCode"],"UserRole":"2"}) 
                 data = (
-                    userCollection.find({"ReferenceCode":d["ReferenceCode"],"UserRole":"2"},{"image":0, "_id":0, "UserPassword":0,"access_token":0})
+                    userCollection.find({"ReferenceCode":d["ReferenceCode"],"UserRole":"2"},{ "_id":0, "UserPassword":0,"access_token":0})
                     .skip((page - 1) * rowsPerPage) 
                     .limit(rowsPerPage)  
                 )
