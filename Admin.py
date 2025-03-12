@@ -124,7 +124,7 @@ class FetchAllUsersAdmin(Resource):
                 d = adminMapp.find_one({"AdminEmail":cu["UserEmail"]})
                 data = userCollection.find({"ReferenceCode":d["ReferenceCode"],"UserRole":"2"},{"image":0, "_id":0, "UserPassword":0,"access_token":0})
                 print("asd")
-                total_count = userCollection.count_documents({"ReferenceCode":d["ReferenceCode"],"UserRole":"2"},{"image":0, "_id":0, "UserPassword":0,"access_token":0}) 
+                total_count = userCollection.count_documents({"ReferenceCode":d["ReferenceCode"],"UserRole":"2"}) 
                 data = (
                     collection.find(newFilter, projection)
                     .skip((page - 1) * rowsPerPage) 
