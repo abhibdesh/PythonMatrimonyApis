@@ -114,19 +114,54 @@ class FetchAllUsersAdmin(Resource):
         page = int(request.json['pageNumber'])
         rowsPerPage = int(request.json['rowsPerPage'])
         Userid = request.json["Userid"]
-        userCollection = db.get_collection("User");
+        userCollection = db.get_collection("User")
+        finaldataList = []
         cu = userCollection.find_one({"UserId": int(Userid)})
+        projection = {"_id":0}
         try:
             if cu["UserRole"] == "3":
                 adminMapp = db.get_collection("AdminMapping")
                 d = adminMapp.find_one({"AdminEmail":cu["UserEmail"]})
-                data = collection.find({"ReferenceCode":d["ReferenceCode"],"UserRole":"2"},{"image":0, "_id":0, "UserPassword":0,"access_token":0})
+                data = userCollection.find({"ReferenceCode":d["ReferenceCode"],"UserRole":"2"},{"image":0, "_id":0, "UserPassword":0,"access_token":0})
                 print("asd")
-                for i in data:
-                    finaldataList.append(i)
+                total_count = userCollection.count_documents({"ReferenceCode":d["ReferenceCode"],"UserRole":"2"},{"image":0, "_id":0, "UserPassword":0,"access_token":0}) 
+                data = (
+                    collection.find(newFilter, projection)
+                    .skip((page - 1) * rowsPerPage) 
+                    .limit(rowsPerPage)  
+                )
+                for u in data:
+                    income = "Income Details Not Provided"
+                    print(u["birthDate"])
+                    if u["JobBis"] and u['IncomeGroup']:
+                        income = u["JobBis"] + ", earns " + u['IncomeGroup']
+
+                    top_data = {
+                        "Name": u['firstName'] + ' ' + u["lastName"],
+                        "Address": str(u['Address']) + ' ' + str(u["CurrentAddress"]),
+                        "Education": str(u["DegDip"]) + ', ' + str(u['Field']),
+                        "Income": income,
+                        "Userid": u['UserId'],
+                        "IsVerified":u["IsVerified"],
+                        "image": "" if (u['image'] == None)  else u['image'] ,
+                        "Birthdate": u['birthDate'],
+                        "Birthtime": u['birthTime'],
+                        "BirthPlace": u['BirthPlace'],
+                        "Bloodgroup": u["BloodGrp"] 
+                    }
+
+                
+                    finaldataList.append({"topData": top_data})
+                    print("finaldataList")
+                return jsonify({
+                    "message": "Success",
+                    "users": finaldataList,
+                    "totalCount": total_count,  
+                    "currentPage": page, 
+                    "rowsPerPage": rowsPerPage
+                })
             else:
                 print("asdasd")
-                finaldataList = []
 
                 # Final Filters List 
                 allLocalities =[]
