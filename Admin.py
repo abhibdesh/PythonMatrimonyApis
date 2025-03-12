@@ -24,6 +24,29 @@ databse = os.getenv('DATABSE',"Matrimony")
 client = MongoClient(mongoURI)
 db = client.get_database(databse)
 
+
+class FetchAdminDashboard(Resource):
+    @jwt_required()
+    def post(self):
+        try:
+            print("FetchAdminDashboard")
+            cu = get_jwt_identity()
+            referals = []
+            admin = db.get_collection("AdminMapping")
+            adminCode = admin.find_one({"AdminEmail":cu})
+            col = db.get_collection("User")
+            print(adminCode['ReferenceCode'] )
+            data = col.find({
+            "ReferenceCode":adminCode['ReferenceCode'],
+            },{"_id":0})
+            for i in data:
+                print(i)
+                referals.append(i)
+                return jsonify({"message":"success", "data":referals})
+        except:
+            return jsonify({"message":"failure","data":[]})
+        
+
 class FetchDashboardData(Resource):
     @jwt_required()
     def post(self):
@@ -41,7 +64,7 @@ class FetchDashboardData(Resource):
                 if curUser["UserRole"] == "3":
                     adminMapp = db.get_collection("AdminMapping")
                     d = adminMapp.find_one({"AdminEmail":currentUser})
-                    data = collection.find({"ReferenceCode":d["ReferenceCode"]},{"image":0, "_id":0, "UserPassword":0,"access_token":0})
+                    data = collection.find({"ReferenceCode":d["ReferenceCode"],"UserRole":"2"},{"image":0, "_id":0, "UserPassword":0,"access_token":0})
                     print("asd")
                     for i in data:
                         allData.append(i)

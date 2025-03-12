@@ -2,7 +2,7 @@ from flask import Flask, redirect, request, jsonify, session
 from flask_restful import Resource, Api
 from flask_cors import CORS
 from flask_jwt_extended import JWTManager
-from Admin import FetchDashboardData, VerifyAccount,FetchAllUsersAdmin,PromoteToAdmin,GetAllReferenceCodes,GetMyReferences
+from Admin import FetchAdminDashboard,FetchDashboardData, VerifyAccount,FetchAllUsersAdmin,PromoteToAdmin,GetAllReferenceCodes,GetMyReferences
 from itsdangerous import URLSafeTimedSerializer
 from PaymentApi import GetContactDetails,GenerateQRCode,GetMyPayments,MarkPaymentDone,GetPaymentsToApprove,ApprovePayment
 from pymongo import MongoClient
@@ -115,6 +115,7 @@ api.add_resource(DeactivateAccount, '/DeactivateAccount')
 api.add_resource(UpdatePreferences, '/UpdateExpectations')
 api.add_resource(GetMyPayments, '/GetMyPayments')
 api.add_resource(FetchAllUsersAdmin, '/FetchAllUsersAdmin')
+api.add_resource(FetchAdminDashboard, '/FetchAdminDashboard')
 api.add_resource(GenerateQRCode, '/GenerateQRCode')
 api.add_resource(CheckActiveUsers, '/CheckActiveUsers')
 api.add_resource(MarkPaymentDone, '/MarkPaymentDone')
