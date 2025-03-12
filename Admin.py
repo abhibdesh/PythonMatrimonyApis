@@ -295,7 +295,8 @@ class PromoteToAdmin(Resource):
         userCollection = db.get_collection("User")
         adminCollection = db.get_collection("AdminMapping")
         data = userCollection.find_one({ "UserId": int(userId)})
-        refCode = (data["firstName"][0:3]).upper()+str(random.randint(1000, 9999))
+        name = data["firstName"] + data["lastName"]
+        refCode = (name[0:3]).upper()+str(random.randint(1000, 9999))
         admin = adminCollection.find_one({"AdminEmail":data["UserEmail"]})
         if(admin):
             print(admin)
