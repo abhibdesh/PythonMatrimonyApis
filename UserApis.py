@@ -1138,7 +1138,10 @@ def profileComplete(user_data):
             print(value)
             count += 1
     print(100*count/33)
-    return int(100*count/33)
+    if(user_data["UserRole"] =="2"):
+        return int(100*count/33)
+    else:
+        return 100
 
 def ValidateUser(email, password):
     try:
