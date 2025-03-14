@@ -578,7 +578,8 @@ class UpdateProfile(Resource):
            
             collection = db.get_collection('User')
             data = collection.find_one({"UserId":int(UserId)})
-            if(data["isLoggedIn"] == 0):
+            
+            if(checkUserDevice(get_jwt_identity(),request.headers.get("Authorization")) == False):
                 return jsonify({"message": "Failure","data":"Session Timed Out"})
             else:
                 collection.update_one({"UserId":int(UserId)},{"$set":newData})
@@ -1138,6 +1139,7 @@ def profileComplete(user_data):
             print(value)
             count += 1
     print(100*count/33)
+    print
     if(user_data["UserRole"] =="2"):
         return int(100*count/33)
     else:
@@ -1234,3 +1236,16 @@ def parse_birth_date(birthDate):
             continue  # Try the next format
 
     raise ValueError(f"Unsupported date format: {birthDate}")
+
+
+
+def checkUserDevice(userEmail,accessToken):
+    print("__________________________________________________________________________________")
+    print(userEmail)
+    token = accessToken.split(" ")[1]
+    collection = db.get_collection("User")
+    data = collection.find_one({"UserEmail":userEmail})
+    if data["access_token"] == token :
+        return True
+    else:
+        return False
