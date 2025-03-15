@@ -13,6 +13,8 @@ import pytz
 import random
 import string
 
+
+
 local_timezone = pytz.timezone('Asia/Kolkata')  
 now_local_tz = datetime.now(local_timezone)
 
@@ -582,6 +584,7 @@ class UpdateProfile(Resource):
             if(checkUserDevice(get_jwt_identity(),request.headers.get("Authorization")) == False):
                 return jsonify({"message": "Failure","data":"Session Timed Out"})
             else:
+                collection.update_one({"UserEmail":get_jwt_identity()},{"$set":{"lastActivity":str(now_local_tz)}})
                 collection.update_one({"UserId":int(UserId)},{"$set":newData})
                 return jsonify({"message": "Success","data":"Profile Updated Successfully"})
 
@@ -616,12 +619,12 @@ class UpdatePreferences(Resource):
         profileWithImages = request.json['profileWithImages']
 
         try:
-            print("k")
-            collection = db.get_collection('User')
-            data = collection.find_one({"UserEmail":current_user})
+            print("k")         
             if(checkUserDevice(get_jwt_identity(),request.headers.get("Authorization")) == False):
                 return jsonify({"message": "Failure","data":"Session Timed Out"})
             else:
+                collection = db.get_collection('User')
+                data = collection.find_one({"UserEmail":current_user})
                 newdata = {
                     "lastActivity":str(now_local_tz),
                     "selectedIncome":selectedIncome,
@@ -642,7 +645,7 @@ class UpdatePreferences(Resource):
                     "profileWithImages":profileWithImages,
                 }
                 print(newdata)
-                collection.update_one({"UserId":int(UserId)},{"$set":newdata})
+                collection.update_one({"UserId":int(UserId)},{"$set":newdata,"lastActivity":str(now_local_tz)})
                 return jsonify({"message":"Success","data":"Preferences Updated Successfully!"})
 
         except Exception as e:
@@ -663,20 +666,19 @@ class GetSingleProfileData(Resource):
         try:           
             newFilter = {"UserId" : int(userId)}
             print(newFilter)
-            collection = db.get_collection('User')
-            paymentCollection = db.get_collection("PaymentInfo")
-            paymnetInfo = paymentCollection.find_one(
-                {"UserEmail": current_user},
-                sort=[("CreatedDate", -1)]  
-            )
-            print(paymnetInfo)
-            data2 = collection.find_one({"UserEmail" : current_user},{"_id":0,"image":0})
+            
             if(checkUserDevice(get_jwt_identity(),request.headers.get("Authorization")) == False):
                 return jsonify({"message": "Failure","data":"Session Timed Out"})
             else:
-                collection.update_one({"UserEmail":current_user},{
-                    "$set":{"lastActivity":str(now_local_tz)}
-                })
+                collection = db.get_collection('User')
+                paymentCollection = db.get_collection("PaymentInfo")
+                paymnetInfo = paymentCollection.find_one(
+                {"UserEmail": current_user},
+                sort=[("CreatedDate", -1)]  
+            )
+                print(paymnetInfo)
+                data2 = collection.find_one({"UserEmail" : current_user},{"_id":0,"image":0})
+                collection.update_one({"UserEmail":current_user},{"$set":{"lastActivity":str(now_local_tz)}})
                 curr_user =  collection.find_one({"UserEmail":current_user})
                 print(curr_user["isPhoneVerified"])
                 print(curr_user["isEmailVerified"])
@@ -805,14 +807,18 @@ class LogoutUser(Resource):
             current_user = get_jwt_identity()
             print("Authenticated User:", current_user)
             collection = db.get_collection("User")
-            collection.update_one({"UserEmail":current_user},{
-                "$set":{
-                    "lastActivity":str(now_local_tz),
-                    "lastLogOutTime":str(now_local_tz),
-                    "isLoggedIn":0
-                    }
-            })
-            return jsonify({MessageVariable: "Done"})
+            if(checkUserDevice(get_jwt_identity(),request.headers.get("Authorization")) == False):
+                return jsonify({"message": "Failure","data":"Session Timed Out"})
+            else:
+                collection.update_one({"UserEmail":current_user},{
+                    "$set":{
+                        "lastActivity":str(now_local_tz),
+                        "lastLogOutTime":str(now_local_tz),
+                        "isLoggedIn":0,
+                        "access_token":None
+                        }
+                })
+                return jsonify({MessageVariable: "Done"})
         except Exception as e:
             print("Error:", e)
             return jsonify({"message": "An error occurred during logout", "error": str(e)}), 500
@@ -830,8 +836,8 @@ class FetchMyProfile(Resource):
             print(newFilter)
             collection = db.get_collection('User')
             data = collection.find_one({"UserEmail":current_user})
-            if(data["isLoggedIn"] == 0):
-                return jsonify({"message":"Failure","data":"Session Timed Out"})
+            if(checkUserDevice(get_jwt_identity(),request.headers.get("Authorization")) == False):
+                return jsonify({"message": "Failure","data":"Session Timed Out"})
             else:
                 collection.update_one(newFilter,{
                     "$set":{
@@ -888,16 +894,12 @@ class FetchAllUsers(Resource):
 
             currentUser = collection.find_one({"UserId": int(Userid)})
             # print(current_user)
-            if(currentUser["isLoggedIn"] == 0):
-                return jsonify({"message": "Session Times Out", "users": []})
+            if(checkUserDevice(get_jwt_identity(),request.headers.get("Authorization")) == False):
+                return jsonify({"message": "Failure","data":"Session Timed Out"})
             if not currentUser:
                 return jsonify({"message": "User not found", "users": []})
             
-            collection.update_one({"UserId": int(Userid)},{
-                "$set":{
-                    "lastActivity":str(now_local_tz)
-                }
-            })
+            collection.update_one({"UserId": int(Userid)},{"$set":{"lastActivity":str(now_local_tz)}})
             print("getting new filters")
             newFilter = {"UserId": {"$ne":int(Userid)}
                          ,"UserRole": "2", "IsDeleted": False, "IsActive":True, 
@@ -1044,6 +1046,7 @@ class FetchAllUsers(Resource):
             return jsonify({"message": "Failure", "error": "Something Went Wrong"})
         
 class MySavedProfiles(Resource):
+    @jwt_required()
     def post(self):
         filters = request.json['filters']
         isPaidUser = request.json["isPaid"]
@@ -1052,6 +1055,8 @@ class MySavedProfiles(Resource):
         Userid = request.json["Userid"]
         print("sdfsdfsdfsdfdsf")
         print(Userid)
+        if(checkUserDevice(get_jwt_identity(),request.headers.get("Authorization")) == False):
+            return jsonify({"message": "Failure","data":"Session Timed Out"})
         paymentCollection = db.get_collection("PaymentInfo")
         userCollection = db.get_collection("User")
         data = paymentCollection.find_one({"UserId":int(Userid)},{"_id":0},sort=[("CreatedDate", -1)])
@@ -1059,6 +1064,7 @@ class MySavedProfiles(Resource):
         data2 = userCollection.find({"UserId":{"$in":data["savedProfiles"]}},{"_id":0})
         total_count = userCollection.count_documents({"UserId":{"$in":data["savedProfiles"]}}) 
         users = []
+        
         for u in data2:
             income = "NA"
             print(u["birthDate"])
@@ -1101,12 +1107,12 @@ class DeactivateAccount(Resource):
             print(userId)
             collection = db.get_collection('User')
             print("hagsjdgahsjdgasjdgjashgdjhasgdjhsagdjhgasdjhgasjdghsjdgha")
-            currentUser = collection.find_one({"UserId": int(userId)})
-            if(currentUser["isLoggedIn"] == 0):
-                return jsonify({"message":"Failure","error":"Session Timed Out"})
+            if(checkUserDevice(get_jwt_identity(),request.headers.get("Authorization")) == False):
+                return jsonify({"message": "Failure","data":"Session Timed Out"})
             if not currentUser:
                 return jsonify({"message": "Failure", "error": "Something Went Wrong"})
             
+            currentUser = collection.find_one({"UserId": int(userId)})
             collection.update_one({"UserId": int(userId)},
                                   {"$set":{"IsActive":False,"lastActivity":str(now_local_tz),
                                             "deactivationReason":deactivationReason}})
@@ -1175,9 +1181,10 @@ class ChangePassword(Resource):
             userId = request.json["userId"]
             NewPassword = request.json["NewPassword"]
             hashed_password = hash_password(NewPassword)
-
+            if(checkUserDevice(get_jwt_identity(),request.headers.get("Authorization")) == False):
+                return jsonify({"message": "Failure","data":"Session Timed Out"})
             collection = db.get_collection("User")
-            collection.update_one({"UserId":int(userId)},{"$set":{"UserPassword":hashed_password.decode('utf-8')}})            
+            collection.update_one({"UserId":int(userId)},{"$set":{"lastActivity":str(now_local_tz),"UserPassword":hashed_password.decode('utf-8')}})            
 
             print(userId)
             print(NewPassword)

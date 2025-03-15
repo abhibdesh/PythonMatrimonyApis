@@ -24,6 +24,16 @@ databse = os.getenv('DATABSE',"Matrimony")
 client = MongoClient(mongoURI)
 db = client.get_database(databse)
 
+def checkUserDevice(userEmail,accessToken):
+    print("__________________________________________________________________________________")
+    print(userEmail)
+    token = accessToken.split(" ")[1]
+    collection = db.get_collection("User")
+    data = collection.find_one({"UserEmail":userEmail})
+    if data["access_token"] == token :
+        return True
+    else:
+        return False
 
 class FetchAdminDashboard(Resource):
     @jwt_required()
@@ -32,13 +42,15 @@ class FetchAdminDashboard(Resource):
             print("FetchAdminDashboard")
             cu = get_jwt_identity()
             referals = []
+            if(checkUserDevice(get_jwt_identity(),request.headers.get("Authorization")) == False):
+                return jsonify({"message": "Failure","data":"Session Timed Out"})
+            UserCollection = db.get_collection("User")
+            UserCollection.update_one({"UserEmail":get_jwt_identity()},{"$set":{"lastActivity":str(now_local_tz)}})
             admin = db.get_collection("AdminMapping")
             adminCode = admin.find_one({"AdminEmail":cu})
             col = db.get_collection("User")
             print(adminCode['ReferenceCode'] )
-            data = col.find({
-            "ReferenceCode":adminCode['ReferenceCode'],
-            },{"_id":0})
+            data = col.find({"ReferenceCode":adminCode['ReferenceCode'],},{"_id":0})
             for i in data:
                 print(i)
                 referals.append(i)
@@ -52,14 +64,12 @@ class FetchDashboardData(Resource):
     def post(self):
         try:
             currentUser = get_jwt_identity()
-            collection = db.get_collection("User")
             curUser = collection.find_one({"UserEmail":currentUser})
-            if(curUser["isLoggedIn"] == 0):
-                return jsonify({
-                        "message": "Failure",
-                        "users": "Session Time Out", 
-                    })
+            if(checkUserDevice(get_jwt_identity(),request.headers.get("Authorization")) == False):
+                return jsonify({"message": "Failure","data":"Session Timed Out"})
             else:
+                collection = db.get_collection("User")
+                collection.update_one({"UserEmail":get_jwt_identity()},{"$set":{"lastActivity":str(now_local_tz)}})
                 allData = []
                 if curUser["UserRole"] == "3":
                     adminMapp = db.get_collection("AdminMapping")
@@ -91,7 +101,10 @@ class VerifyAccount(Resource):
         print("userId")
         print(userId)
         try:
+            if(checkUserDevice(get_jwt_identity(),request.headers.get("Authorization")) == False):
+                return jsonify({"message": "Failure","data":"Session Timed Out"})
             collection = db.get_collection("User")
+            collection.update_one({"UserEmail":get_jwt_identity()},{"$set":{"lastActivity":str(now_local_tz)}})
             data = collection.update_one({"UserId":int(userId)},{"$set":{ "IsVerified":"1"}})
             return jsonify({"msg":"success","data":"This Profile is verified"})
         except Exception as e:
@@ -114,7 +127,11 @@ class FetchAllUsersAdmin(Resource):
         page = int(request.json['pageNumber'])
         rowsPerPage = int(request.json['rowsPerPage'])
         Userid = request.json["Userid"]
+        if(checkUserDevice(get_jwt_identity(),request.headers.get("Authorization")) == False):
+            return jsonify({"message": "Failure","data":"Session Timed Out"})
         userCollection = db.get_collection("User")
+        userCollection.update_one({"UserEmail":get_jwt_identity()},{"$set":{"lastActivity":str(now_local_tz)}})
+
         finaldataList = []
         cu = userCollection.find_one({"UserId": int(Userid)})
         projection = {"_id":0}
@@ -332,11 +349,15 @@ class FetchAllUsersAdmin(Resource):
 
         
 class PromoteToAdmin(Resource):
+    @jwt_required()
     def post(self):
         userId = request.json["UserId"]
         userCollection = db.get_collection("User")
         adminCollection = db.get_collection("AdminMapping")
+        if(checkUserDevice(get_jwt_identity(),request.headers.get("Authorization")) == False):
+            return jsonify({"message": "Failure","data":"Session Timed Out"})
         data = userCollection.find_one({ "UserId": int(userId)})
+        userCollection.update_one({"UserEmail":get_jwt_identity()},{"$set":{"lastActivity":str(now_local_tz)}})
         name = data["firstName"] + data["lastName"]
         refCode = (name[0:3]).upper()+str(random.randint(1000, 9999))
         admin = adminCollection.find_one({"AdminEmail":data["UserEmail"]})
@@ -386,6 +407,10 @@ class GetMyReferences(Resource):
         # This will be used for ADMINS to see how much business they got.
         cu = get_jwt_identity()
         referals = []
+        if(checkUserDevice(get_jwt_identity(),request.headers.get("Authorization")) == False):
+            return jsonify({"message": "Failure","data":"Session Timed Out"})
+        userCollection = db.get_collection("User")
+        userCollection.update_one({"UserEmail":get_jwt_identity()},{"$set":{"lastActivity":str(now_local_tz)}})
         admin = db.get_collection("AdminMapping")
         adminCode = admin.find_one({"AdminEmail":cu})
         col = db.get_collection("PaymentInfo")

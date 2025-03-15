@@ -24,20 +24,29 @@ db = client.get_database(databse)
 local_timezone = pytz.timezone('Asia/Kolkata')  
 now_local_tz = datetime.now(local_timezone)
 
+def checkUserDevice(userEmail,accessToken):
+    print("__________________________________________________________________________________")
+    print(userEmail)
+    token = accessToken.split(" ")[1]
+    collection = db.get_collection("User")
+    data = collection.find_one({"UserEmail":userEmail})
+    if data["access_token"] == token :
+        return True
+    else:
+        return False
         
 class GetMyPayments(Resource):
+    @jwt_required()
     def post(self):
         userId = request.json["userId"]
         today_date = datetime.now() 
         print("userIduserIduserIduserIduserIduserIduserIduserIduserIduserId")
         print(userId)
         print("userIduserIduserIduserIduserIduserIduserIduserIduserIduserId")
-        collection = db.get_collection("User")
-        collection.update_one({ "UserId": int(userId)},{
-            "$set":{
-            "lastActivity": str(now_local_tz)
-            }
-        })
+        if(checkUserDevice(get_jwt_identity(),request.headers.get("Authorization")) == False):
+            return jsonify({"message": "Failure","data":"Session Timed Out"})
+        Usercollection = db.get_collection("User")
+        Usercollection.update_one({"UserEmail":get_jwt_identity()},{"$set":{"lastActivity":str(now_local_tz)}})
         # result = db.User.aggregate([
         #     {
         #         "$match": {  
@@ -109,16 +118,11 @@ class GenerateQRCode(Resource):
         print("____________________")    
         print("ProfileCount")        
         print(ProfileCount)
-        collection = db.get_collection("User")
-        collection.update_one({
-            "UserId":int(UserId)
-        },{
-            "$set":{
-                "lastActivity":str(now_local_tz)
-            }
-        })
-
-        ddd = collection.find_one({"UserId":int(UserId)})
+        if(checkUserDevice(get_jwt_identity(),request.headers.get("Authorization")) == False):
+            return jsonify({"message": "Failure","data":"Session Timed Out"})
+        UserCollection = db.get_collection("User")
+        UserCollection.update_one({"UserEmail":get_jwt_identity()},{"$set":{"lastActivity":str(now_local_tz)}})
+        ddd = UserCollection.find_one({"UserId":int(UserId)})
         ReferenceCode = ddd["ReferenceCode"]
         
         paymentCollection = db.get_collection("PaymentInfo")
@@ -234,7 +238,10 @@ class MarkPaymentDone(Resource):
         txn_id = request.json["txn_id"]
         print(txn_id)
         try:
-        
+            if(checkUserDevice(get_jwt_identity(),request.headers.get("Authorization")) == False):
+                return jsonify({"message": "Failure","data":"Session Timed Out"})
+            UserCollection = db.get_collection("User")
+            UserCollection.update_one({"UserEmail":get_jwt_identity()},{"$set":{"lastActivity":str(now_local_tz)}})
             paymentCollection = db.get_collection("PaymentInfo")
             paymentCollection.update_one({"transactionId":txn_id},
                                         {
@@ -256,6 +263,10 @@ class MarkPaymentDone(Resource):
 class GetPaymentsToApprove(Resource):
     @jwt_required()
     def post(self):
+        if(checkUserDevice(get_jwt_identity(),request.headers.get("Authorization")) == False):
+                return jsonify({"message": "Failure","data":"Session Timed Out"})
+        UserCollection = db.get_collection("User")
+        UserCollection.update_one({"UserEmail":get_jwt_identity()},{"$set":{"lastActivity":str(now_local_tz)}})
         collection = db.get_collection("PaymentInfo")
         data = collection.find({"IsPaymentDone":1,"IsApproved":0},{"_id":0})
         final = []
@@ -268,6 +279,10 @@ class ApprovePayment(Resource):
     @jwt_required()
     def post(self):
         transactionId = request.json["transactionId"]
+        if(checkUserDevice(get_jwt_identity(),request.headers.get("Authorization")) == False):
+            return jsonify({"message": "Failure","data":"Session Timed Out"})
+        UserCollection = db.get_collection("User")
+        UserCollection.update_one({"UserEmail":get_jwt_identity()},{"$set":{"lastActivity":str(now_local_tz)}})
         collection = db.get_collection("PaymentInfo")
         collection.update_one({"transactionId":transactionId},{
             "$set":{
@@ -282,9 +297,13 @@ class GetContactDetails(Resource):
         try:
             paid_for_profile = request.json["paid_for_profile"]
             user_id = request.json["userId"]
+            transaction_id = paymentData["transactionId"]  
+            UserCollection = db.get_collection("User")
+            UserCollection.update_one({"UserEmail":get_jwt_identity()},{"$set":{"lastActivity":str(now_local_tz)}})
+            if(checkUserDevice(get_jwt_identity(),request.headers.get("Authorization")) == False):
+                return jsonify({"message": "Failure","data":"Session Timed Out"})
             paymentCollection = db.get_collection('PaymentInfo')
             paymentData = paymentCollection.find_one({"UserId":int(user_id)},{"_id":0},sort=[("CreatedDate", -1)])
-            transaction_id = paymentData["transactionId"]
             print(paymentData)
             print(len(paymentData["savedProfiles"]))
             if paymentData["IsApproved"] == 1 and paymentData["ValidTill"] > datetime.now() and int(paymentData["ProfileCount"]) >= len(paymentData["savedProfiles"]):
