@@ -619,8 +619,8 @@ class UpdatePreferences(Resource):
             print("k")
             collection = db.get_collection('User')
             data = collection.find_one({"UserEmail":current_user})
-            if(data["isLoggedIn"] == 0):
-                return jsonify({"message":"Failure","data":"Session Timed Out"})
+            if(checkUserDevice(get_jwt_identity(),request.headers.get("Authorization")) == False):
+                return jsonify({"message": "Failure","data":"Session Timed Out"})
             else:
                 newdata = {
                     "lastActivity":str(now_local_tz),
@@ -671,8 +671,8 @@ class GetSingleProfileData(Resource):
             )
             print(paymnetInfo)
             data2 = collection.find_one({"UserEmail" : current_user},{"_id":0,"image":0})
-            if(data2['isLoggedIn'] == 0):
-                return jsonify({"message":"Failure","data":"Session Timed Out"})
+            if(checkUserDevice(get_jwt_identity(),request.headers.get("Authorization")) == False):
+                return jsonify({"message": "Failure","data":"Session Timed Out"})
             else:
                 collection.update_one({"UserEmail":current_user},{
                     "$set":{"lastActivity":str(now_local_tz)}
