@@ -34,6 +34,11 @@ db = client.get_database(databse)
 
 app.config['JWT_SECRET_KEY'] = os.getenv('SECERT_KEY','asdfghjklpoiuytrewfgvbndcksdhfjgjhejbdsjbcsbh')
 serializer = URLSafeTimedSerializer(os.getenv('SECERT_KEY','asdfghjklpoiuytrewfgvbndcksdhfjgjhejbdsjbcsbh'))
+
+META_ACCESS_TOKEN = os.getenv('META_ACCESS_TOKEN','EAAN1yyNSqyIBO5e6SKy7ciDW0djMhSiSnSoZBZA4KNmJHiZCK9YMY4DcXei1TWmBA319mW4uZA5zj1K0ESk7iXUWWM8SvY04zSHeGcNDlMEuvL8ZCpQilE4UZAZCt9ljZAGXqVuuasfpZCO1GTIrpTEMyrAdPqkm4pNP4bPXZCkujGWs9L6mJecplcZCrxrKrMFAwDHBND0m9pa0aUEffqLu9hhMxZB97X9gezkeGDYZD')
+META_PHONE_NUMBER_ID = os.getenv('META_PHONE_NUMBER_ID','607370069123259')
+WHATSAPP_API_URL = f"https://graph.facebook.com/v19.0/{META_PHONE_NUMBER_ID}/messages"
+
 app.config["JWT_ACCESS_TOKEN_EXPIRES"] = timedelta(hours=1) 
 
 jwt = JWTManager(app)
@@ -77,6 +82,37 @@ def verify_email():
     except Exception as e:
         print(e)
         return jsonify({"error": str(e)}), 400
+
+@app.route('/webhook', methods=['GET'])
+def verify_webhook():
+    VERIFY_TOKEN = "YOUR_VERIFY_TOKEN"
+    if request.args.get("hub.mode") == "subscribe" and request.args.get("hub.verify_token") == VERIFY_TOKEN:
+        return request.args.get("hub.challenge"), 200
+    return "Verification failed", 403
+
+@app.route('/webhook', methods=['POST'])
+def receive_message():
+    data = request.json
+    if "entry" in data and "changes" in data["entry"][0]:
+        message_data = data["entry"][0]["changes"][0]["value"]
+        if "messages" in message_data:
+            sender_phone = message_data["messages"][0]["from"]
+            message_text = message_data["messages"][0]["text"]["body"]
+            send_whatsapp_message(sender_phone, "Thanks for messaging us!")
+    return jsonify({"status": "received"}), 200
+
+def send_whatsapp_message(phone, message):
+    headers = {
+        "Authorization": f"Bearer {ACCESS_TOKEN}",
+        "Content-Type": "application/json"
+    }
+    payload = {
+        "messaging_product": "whatsapp",
+        "to": phone,
+        "type": "text",
+        "text": {"body": message}
+    }
+    requests.post(WHATSAPP_API_URL, json=payload, headers=headers)
 
 class SendVerificationLink(Resource):
     def post(self):
