@@ -92,13 +92,9 @@ def verify_webhook():
 
 @app.route('/webhook', methods=['POST'])
 def receive_message():
-    data = request.json
-    if "entry" in data and "changes" in data["entry"][0]:
-        message_data = data["entry"][0]["changes"][0]["value"]
-        if "messages" in message_data:
-            sender_phone = message_data["messages"][0]["from"]
-            message_text = message_data["messages"][0]["text"]["body"]
-            send_whatsapp_message(sender_phone, "Thanks for messaging us!")
+    data = request.json["PhoneNumber"]
+    print(data)
+    send_whatsapp_message(data, "Thanks for messaging us!")
     return jsonify({"status": "received"}), 200
 
 def send_whatsapp_message(phone, message):
