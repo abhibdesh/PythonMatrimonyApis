@@ -64,11 +64,11 @@ class FetchDashboardData(Resource):
     def post(self):
         try:
             currentUser = get_jwt_identity()
-            curUser = collection.find_one({"UserEmail":currentUser})
             if(checkUserDevice(get_jwt_identity(),request.headers.get("Authorization")) == False):
                 return jsonify({"message": "Failure","data":"Session Timed Out"})
             else:
                 collection = db.get_collection("User")
+                curUser = collection.find_one({"UserEmail":currentUser})
                 collection.update_one({"UserEmail":get_jwt_identity()},{"$set":{"lastActivity":str(now_local_tz)}})
                 allData = []
                 if curUser["UserRole"] == "3":
