@@ -111,7 +111,7 @@ class GenerateQRCode(Resource):
         # txn_id = "TXN123456"
         txn_id = "TXN123456"
         # note = "Payment for Order #123"
-        note = "Payment for Vivaah Bandhan "
+        note = "VB "
         print (now_local_tz)
         print("PlanTimeSelected")
         print(PlanTimeSelected)
@@ -219,7 +219,7 @@ class GenerateQRCode(Resource):
             }
         )
 
-        note = note + " PlanTimeSelected "+PlanTimeSelected +" ProfileCount "+ str(ProfileCount)
+        note = note + " Plan period "+PlanTimeSelected +" Profile Count "+ str(ProfileCount) + " Transaction " + str(transactionId)
         upi_link = f"upi://pay?pa={upi_id}&pn={urllib.parse.quote(payer_name)}&mc=&tid={transactionId}&tr={transactionId}&tn={urllib.parse.quote(note)}&am={amount}&cu=INR"
         img_io = io.BytesIO()
         qr = qrcode.make(upi_link)
