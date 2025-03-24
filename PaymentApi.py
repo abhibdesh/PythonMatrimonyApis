@@ -204,6 +204,7 @@ class GenerateQRCode(Resource):
                 "PlanTimeSelected":PlanTimeSelected,
                 "ProfileCount":ProfileCount,
                 "CreatedDate" : now_local_tz,
+                "CreatedDateStr" : str(now_local_tz),
                 "IsPaymentDone":1,
                 "IsApproved":0,
                 "amount":amount,
