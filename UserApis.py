@@ -706,25 +706,25 @@ class GetSingleProfileData(Resource):
                     if int(userId) in paymnetInfo["savedProfiles"] and paymnetInfo["IsApproved"] == 1 and paymnetInfo["ValidTill"] > datetime.now():
                         emailIdString = data["UserEmail"]
                         contactNumberString = data["PhoneNumber"]
-                        if curr_user["isEmailVerified"] == True:
-                            emailIdString = data["UserEmail"]
-                        else:
-                            emailIdString  = "Verify Your Email"     
-                        if data["isEmailVerified"] == True:
-                            emailIdString = data["UserEmail"]
-                        else:
-                            emailIdString  = "Unverified Email" 
+                    if curr_user["isEmailVerified"] == True:
+                        emailIdString = data["UserEmail"]
+                    else:
+                        emailIdString  = "Verify Your Email"     
+                    if data["isEmailVerified"] == True:
+                        emailIdString = data["UserEmail"]
+                    else:
+                        emailIdString  = "Unverified Email" 
 
 
-                        if curr_user["isPhoneVerified"] == True:
-                            contactNumberString = data["PhoneNumber"]
-                        else:
-                            contactNumberString  = "Verify Your Mobile Number" 
-                        if data["isPhoneVerified"] == True:
-                            contactNumberString = data["PhoneNumber"]
-                        else:
-                            contactNumberString  = "Unverified Phone Number"        
-                  
+                    if curr_user["isPhoneVerified"] == True:
+                        contactNumberString = data["PhoneNumber"]
+                    else:
+                        contactNumberString  = "Verify Your Mobile Number" 
+                    if data["isPhoneVerified"] == True:
+                        contactNumberString = data["PhoneNumber"]
+                    else:
+                        contactNumberString  = "Unverified Phone Number"        
+                
                     
                 final_data["PhoneNumber"] = contactNumberString
                 final_data["UserEmail"] = emailIdString
