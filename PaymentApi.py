@@ -221,7 +221,7 @@ class GenerateQRCode(Resource):
         )
 
         note = note + " Plan period "+PlanTimeSelected +" Profile Count "+ str(ProfileCount) + " Transaction " + str(transactionId)
-        upi_link = f"upi://pay?pa={upi_id}&pn={urllib.parse.quote("Fyjix")}&mc=&tid={transactionId}&tr={transactionId}&tn={urllib.parse.quote(note)}&am={amount}&cu=INR"
+        upi_link = f"upi://pay?pa={upi_id}&pn={urllib.parse.quote('Fyjix')}&mc=&tid={transactionId}&tr={transactionId}&tn={urllib.parse.quote(note)}&am={amount}&cu=INR"
         img_io = io.BytesIO()
         qr = qrcode.make(upi_link)
         print(qr)
