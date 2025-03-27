@@ -296,6 +296,8 @@ class GetContactDetails(Resource):
     @jwt_required()
     def post(self):
         try:
+            paymentCollection = db.get_collection('PaymentInfo')
+            paymentData = paymentCollection.find_one({"UserEmail":get_jwt_identity()},{"_id":0},sort=[("CreatedDate", -1)])
             paid_for_profile = request.json["paid_for_profile"]
             user_id = request.json["userId"]
             transaction_id = paymentData["transactionId"]  
@@ -303,8 +305,6 @@ class GetContactDetails(Resource):
             UserCollection.update_one({"UserEmail":get_jwt_identity()},{"$set":{"lastActivity":str(now_local_tz)}})
             if(checkUserDevice(get_jwt_identity(),request.headers.get("Authorization")) == False):
                 return jsonify({"message": "Failure","data":"Session Timed Out"})
-            paymentCollection = db.get_collection('PaymentInfo')
-            paymentData = paymentCollection.find_one({"UserId":int(user_id)},{"_id":0},sort=[("CreatedDate", -1)])
             print(paymentData)
             print(len(paymentData["savedProfiles"]))
             if paymentData["IsApproved"] == 1 and paymentData["ValidTill"] > datetime.now() and int(paymentData["ProfileCount"]) >= len(paymentData["savedProfiles"]):

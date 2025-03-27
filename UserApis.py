@@ -662,11 +662,8 @@ class GetSingleProfileData(Resource):
         current_user = get_jwt_identity()
         print("Authenticated User:", current_user)
         userId = request.json["UserId"]
-        print(userId)
         try:           
-            newFilter = {"UserId" : int(userId)}
-            print(newFilter)
-            
+            newFilter = {"UserId" : int(userId)}            
             if(checkUserDevice(get_jwt_identity(),request.headers.get("Authorization")) == False):
                 return jsonify({"message": "Failure","data":"Session Timed Out"})
             else:
@@ -674,14 +671,9 @@ class GetSingleProfileData(Resource):
                 paymentCollection = db.get_collection("PaymentInfo")
                 paymnetInfo = paymentCollection.find_one(
                 {"UserEmail": current_user},
-                sort=[("CreatedDate", -1)]  
-            )
-                print(paymnetInfo)
-                data2 = collection.find_one({"UserEmail" : current_user},{"_id":0,"image":0})
+                sort=[("CreatedDate", -1)])
                 collection.update_one({"UserEmail":current_user},{"$set":{"lastActivity":str(now_local_tz)}})
                 curr_user =  collection.find_one({"UserEmail":current_user})
-                print(curr_user["isPhoneVerified"])
-                print(curr_user["isEmailVerified"])
                 projection = {"_id": 0,"UserPassword":0,"CreatedDatetime":0,"LastLogin":0,"CreatedBy":0,
                             "IsActive":0, "IsDeleted":0, "UserRole":0, "UserPaid":0}
             
@@ -700,31 +692,26 @@ class GetSingleProfileData(Resource):
                 contactNumberString = "Buy Our Services For Contact Information"
 
                 if paymnetInfo is not None:
-                    print("CHeCK 1")
-                    print(userId)
-                    print(paymnetInfo["savedProfiles"])
                     if int(userId) in paymnetInfo["savedProfiles"] and paymnetInfo["IsApproved"] == 1 and paymnetInfo["ValidTill"] > datetime.now():
                         emailIdString = data["UserEmail"]
                         contactNumberString = data["PhoneNumber"]
-                    if curr_user["isEmailVerified"] == True:
-                        emailIdString = data["UserEmail"]
-                    else:
-                        emailIdString  = "Verify Your Email"     
+                       
                     if data["isEmailVerified"] == True:
                         emailIdString = data["UserEmail"]
                     else:
                         emailIdString  = "Unverified Email" 
 
 
-                    if curr_user["isPhoneVerified"] == True:
-                        contactNumberString = data["PhoneNumber"]
-                    else:
-                        contactNumberString  = "Verify Your Mobile Number" 
+                    
                     if data["isPhoneVerified"] == True:
                         contactNumberString = data["PhoneNumber"]
                     else:
                         contactNumberString  = "Unverified Phone Number"        
                 
+                if curr_user["isEmailVerified"] != True:
+                    emailIdString  = "Verify Your Email"  
+                if curr_user["isPhoneVerified"] != True:
+                    contactNumberString  = "Verify Your Mobile Number" 
                     
                 final_data["PhoneNumber"] = contactNumberString
                 final_data["UserEmail"] = emailIdString
@@ -771,7 +758,6 @@ class GetSingleProfileData(Resource):
                 final_data["expectedAgeGap"]= str(data["expectedAgeGapMin"]) + "-"  + str(data["expectedAgeGapMax"]) if str(data["expectedAgeGapMin"])  != "0" and str(data["expectedAgeGapMax"]) != "0" else "No bar"
                 final_data["strictMatch"]= "Yes" if data["strictMatch"] == True else "No" 
                 final_data["IsVerified"] = "1" if data["IsVerified"] == "1" else "0" 
-                print( "final_data[""]")
             return jsonify({MessageVariable:SuccessString,"data":final_data})
         except Exception as e:
             print(e)
@@ -1053,14 +1039,11 @@ class MySavedProfiles(Resource):
         page = int(request.json['pageNumber'])
         rowsPerPage = int(request.json['rowsPerPage'])
         Userid = request.json["Userid"]
-        print("sdfsdfsdfsdfdsf")
-        print(Userid)
         if(checkUserDevice(get_jwt_identity(),request.headers.get("Authorization")) == False):
             return jsonify({"message": "Failure","data":"Session Timed Out"})
         paymentCollection = db.get_collection("PaymentInfo")
         userCollection = db.get_collection("User")
         data = paymentCollection.find_one({"UserId":int(Userid)},{"_id":0},sort=[("CreatedDate", -1)])
-        print(data['savedProfiles'])
         data2 = userCollection.find({"UserId":{"$in":data["savedProfiles"]}},{"_id":0})
         total_count = userCollection.count_documents({"UserId":{"$in":data["savedProfiles"]}}) 
         users = []
@@ -1103,10 +1086,7 @@ class DeactivateAccount(Resource):
         userId = request.json["UserId"]
         deactivationReason = request.json["deactivationReason"]
         try:
-            print(deactivationReason)
-            print(userId)
             collection = db.get_collection('User')
-            print("hagsjdgahsjdgasjdgjashgdjhasgdjhsagdjhgasdjhgasjdghsjdgha")
             if(checkUserDevice(get_jwt_identity(),request.headers.get("Authorization")) == False):
                 return jsonify({"message": "Failure","data":"Session Timed Out"})
             if not currentUser:
