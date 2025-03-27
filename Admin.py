@@ -169,7 +169,6 @@ class FetchAllUsersAdmin(Resource):
 
                 
                     finaldataList.append({"topData": top_data})
-                    print("finaldataList")
                 return jsonify({
                     "message": "Success",
                     "users": finaldataList,
@@ -328,7 +327,6 @@ class FetchAllUsersAdmin(Resource):
 
                 
                     finaldataList.append({"topData": top_data})
-                print("finaldataList")
                 return jsonify({
                     "message": "Success",
                     "users": finaldataList,
@@ -403,8 +401,35 @@ class GetAllReferenceCodes(Resource):
 
 class GetMyReferences(Resource):
     @jwt_required()
-    def get(self):
+    def post(self):
         # This will be used for ADMINS to see how much business they got.
+        cu = get_jwt_identity()
+        pagenumber = int(request.json["pageNumber"])
+        rowsPerPage = int(request.json["rowsPerPage"])
+        referals = []
+        if(checkUserDevice(get_jwt_identity(),request.headers.get("Authorization")) == False):
+            return jsonify({"message": "Failure","data":"Session Timed Out"})
+        userCollection = db.get_collection("User")
+        userCollection.update_one({"UserEmail":get_jwt_identity()},{"$set":{"lastActivity":str(now_local_tz)}})
+        admin = db.get_collection("AdminMapping")
+        adminCode = admin.find_one({"AdminEmail":cu})
+        col = db.get_collection("PaymentInfo")
+        total_Count = col.count_documents({
+            "ReferenceCode":adminCode['ReferenceCode'],
+            "IsApproved":1,
+        })
+        data = col.find({
+            "ReferenceCode":adminCode['ReferenceCode'],
+            "IsApproved":1
+        },{"_id":0}).skip((pagenumber-1)*rowsPerPage).limit(rowsPerPage)
+        for i in data:
+            referals.append(i)
+        return jsonify({"message":"success","data":referals,"totalCount":total_Count})
+    
+class DownloadMyPaymentSettlement(Resource):
+    @jwt_required()
+    def get(self):
+        print("k")
         cu = get_jwt_identity()
         referals = []
         if(checkUserDevice(get_jwt_identity(),request.headers.get("Authorization")) == False):
@@ -414,17 +439,12 @@ class GetMyReferences(Resource):
         admin = db.get_collection("AdminMapping")
         adminCode = admin.find_one({"AdminEmail":cu})
         col = db.get_collection("PaymentInfo")
-        print(adminCode['ReferenceCode'] )
         data = col.find({
             "ReferenceCode":adminCode['ReferenceCode'],
             "IsApproved":1
-           
         },{"_id":0})
         for i in data:
-            print(i)
-            print("_______________________________")
             referals.append(i)
-        return jsonify({"message":"suucess","data":referals})
-
+        return jsonify({"message":"success","data":referals})
 
 
