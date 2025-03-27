@@ -903,7 +903,7 @@ class FetchAllUsers(Resource):
             print("getting new filters")
             newFilter = {"UserId": {"$ne":int(Userid)}
                          ,"UserRole": "2", "IsDeleted": False, "IsActive":True, 
-                         "LookingFor": {"$ne": currentUser.get("LookingFor")},"isPhoneVerified":True,"isEmailVerified":True }
+                         "LookingFor": {"$ne": currentUser.get("LookingFor")},"isEmailVerified":True }
             if int(filters["selectedFromHeight"]) > 0 :
                 newFilter["Height"] = {"$gte": int(filters["selectedFromHeight"])}
             if int(filters["selectedToHeight"]) > 0 :
