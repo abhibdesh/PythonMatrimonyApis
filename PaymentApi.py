@@ -287,7 +287,8 @@ class ApprovePayment(Resource):
         collection = db.get_collection("PaymentInfo")
         collection.update_one({"transactionId":transactionId},{
             "$set":{
-                "IsApproved":1
+                "IsApproved":1,
+                "ApprovalDateTime": str(now_local_tz)
             }
         })
         return jsonify({"message":"success","data":"Payment Approved Successfully"})

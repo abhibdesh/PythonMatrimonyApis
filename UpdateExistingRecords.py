@@ -22,13 +22,10 @@ class UpdateUserCollection(Resource):
     def post(self):
         print("start")
         print(now_local_tz)
-        collection = db.get_collection('User')
-        collection.update_one({
-            "UserId":4
-        },{
+        collection = db.get_collection('PaymentInfo')
+        collection.update_many({},{
             "$set":{
-                "isPhoneVerified":True,
-                "isEmailVerified":True
+                "ApprovalDateTime":str(now_local_tz),
             }
         })
        
