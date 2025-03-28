@@ -485,19 +485,14 @@ class GetAggregateAmount(Resource):
         
         
 class GetPaymentSettlement(Resource):
-    @jwt_required()
-    def get(self):
-        cu = get_jwt_identity()
+    # @jwt_required()
+    def post(self):
+        # cu = get_jwt_identity()
         pagenumber = int(request.json["pageNumber"])
         rowsPerPage = int(request.json["rowsPerPage"])
-        if(checkUserDevice(get_jwt_identity(),request.headers.get("Authorization")) == False):
-            return jsonify({"message": "Failure","data":"Session Timed Out"})
         referalsdic = {}
-        cu = get_jwt_identity()
-        if(checkUserDevice(get_jwt_identity(),request.headers.get("Authorization")) == False):
-            return jsonify({"message": "Failure","data":"Session Timed Out"})
-        admin = db.get_collection("AdminMapping")
-        adminCode = admin.find_one({"AdminEmail":cu})
+        # if(checkUserDevice(get_jwt_identity(),request.headers.get("Authorization")) == False):
+        #     return jsonify({"message": "Failure","data":"Session Timed Out"})
         col = db.get_collection("PaymentInfo")
         pipeline = [
             {
@@ -520,13 +515,18 @@ class GetPaymentSettlement(Resource):
                 "$sort": {"_id.year": 1, "_id.month": 1}
             }
         ]
-        result = list(col.aggregate(pipeline))
-        totalCount = col.count_documents(pipeline)
+        result = col.aggregate(pipeline)
+        totalCount = 10
+        referals = []
         for entry in result:
             referalsdic["Month"] = getMonthName(entry['_id']['month'])
             referalsdic["Year"] = entry['_id']['year']
             referalsdic["Amount"] = entry['totalAmount']
-        return jsonify({"message":"success","data":referalsdic,"totalCount":totalCount})
+            referalsdic["ReferenceCode"] = entry['_id']['ReferenceCode']
+            referals.append(referalsdic)
+        print(referalsdic)
+        print(totalCount)
+        return jsonify({"message":"success","data":referals,"totalCount":totalCount})
     
 class SettlePaymentOwner(Resource):
     @jwt_required()
