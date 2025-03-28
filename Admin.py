@@ -427,11 +427,10 @@ class GetMyReferences(Resource):
 class DownloadMyPaymentSettlement(Resource):
     # @jwt_required()
     def get(self):
-        # cu = get_jwt_identity()
-        cu = "coadmin1@vb.com"
+        cu = get_jwt_identity()
         referals = []
-        # if(checkUserDevice(get_jwt_identity(),request.headers.get("Authorization")) == False):
-        #     return jsonify({"message": "Failure","data":"Session Timed Out"})
+        if(checkUserDevice(get_jwt_identity(),request.headers.get("Authorization")) == False):
+            return jsonify({"message": "Failure","data":"Session Timed Out"})
         userCollection = db.get_collection("User")
         userCollection.update_one({"UserEmail":cu},{"$set":{"lastActivity":str(now_local_tz)}})
         admin = db.get_collection("AdminMapping")
@@ -443,35 +442,6 @@ class DownloadMyPaymentSettlement(Resource):
         },{"_id":0})
         for i in data:
             referals.append(i)
-        # pipeline = [
-        #     {
-        #         "$match": {  # Filter documents based on ReferenceCode and IsApproved
-        #             "ReferenceCode": adminCode['ReferenceCode'],
-        #             "IsApproved": 1
-        #         }
-        #     },
-        #     {
-        #         "$group": {
-        #             "_id": {
-        #                 "ReferenceCode": "$ReferenceCode",
-        #                 "month": {"$month": "$CreatedDate"},  
-        #                 "year": {"$year": "$CreatedDate"}    
-        #             },
-        #             "totalAmount": {"$sum": {"$toDouble": "$amount"}} 
-        #         }
-        #     },
-        #     {
-        #         "$sort": {"_id.year": 1, "_id.month": 1}
-        #     }
-        # ]
-        # result = list(col.aggregate(pipeline))
-        # referalsdic = {}
-        # for entry in result:
-        #     referalsdic["Month"] = getMonthName(entry['_id']['month'])
-        #     referalsdic["Year"] = entry['_id']['year']
-        #     referalsdic["Amount"] = entry['totalAmount']
-        #     referals.append(referalsdic)
-        # print(referals)
         return jsonify({"message":"success","data":referals})
 
 class GetAggregateAmount(Resource):
@@ -479,6 +449,8 @@ class GetAggregateAmount(Resource):
     def get(self):
         referalsdic = {}
         cu = get_jwt_identity()
+        if(checkUserDevice(get_jwt_identity(),request.headers.get("Authorization")) == False):
+            return jsonify({"message": "Failure","data":"Session Timed Out"})
         admin = db.get_collection("AdminMapping")
         adminCode = admin.find_one({"AdminEmail":cu})
         col = db.get_collection("PaymentInfo")
@@ -486,7 +458,8 @@ class GetAggregateAmount(Resource):
             {
                 "$match": {  # Filter documents based on ReferenceCode and IsApproved
                     "ReferenceCode": adminCode['ReferenceCode'],
-                    "IsApproved": 1
+                    "IsApproved": 1,
+                    "IsPaymentSettled":False
                 }
             },
             {
@@ -510,6 +483,58 @@ class GetAggregateAmount(Resource):
             referalsdic["Amount"] = entry['totalAmount']
         return jsonify({"message":"success","data":referalsdic})
         
+        
+class GetPaymentSettlement(Resource):
+    @jwt_required()
+    def get(self):
+        cu = get_jwt_identity()
+        pagenumber = int(request.json["pageNumber"])
+        rowsPerPage = int(request.json["rowsPerPage"])
+        if(checkUserDevice(get_jwt_identity(),request.headers.get("Authorization")) == False):
+            return jsonify({"message": "Failure","data":"Session Timed Out"})
+        referalsdic = {}
+        cu = get_jwt_identity()
+        if(checkUserDevice(get_jwt_identity(),request.headers.get("Authorization")) == False):
+            return jsonify({"message": "Failure","data":"Session Timed Out"})
+        admin = db.get_collection("AdminMapping")
+        adminCode = admin.find_one({"AdminEmail":cu})
+        col = db.get_collection("PaymentInfo")
+        pipeline = [
+            {
+                "$match": {  # Filter documents based on ReferenceCode and IsApproved
+                    "IsApproved": 1,
+                    "IsPaymentSettled":False
+                }
+            },
+            {
+                "$group": {
+                    "_id": {
+                        "ReferenceCode": "$ReferenceCode",
+                        "month": {"$month": "$CreatedDate"},  
+                        "year": {"$year": "$CreatedDate"}    
+                    },
+                    "totalAmount": {"$sum": {"$toDouble": "$amount"}} 
+                }
+            },
+            {
+                "$sort": {"_id.year": 1, "_id.month": 1}
+            }
+        ]
+        result = list(col.aggregate(pipeline))
+        totalCount = col.count_documents(pipeline)
+        for entry in result:
+            referalsdic["Month"] = getMonthName(entry['_id']['month'])
+            referalsdic["Year"] = entry['_id']['year']
+            referalsdic["Amount"] = entry['totalAmount']
+        return jsonify({"message":"success","data":referalsdic,"totalCount":totalCount})
+    
+class SettlePaymentOwner(Resource):
+    @jwt_required()
+    def post(self):
+        ReferenceCode = request.json['ReferenceCode']
+        if(checkUserDevice(get_jwt_identity(),request.headers.get("Authorization")) == False):
+            return jsonify({"message": "Failure","data":"Session Timed Out"})
+        return jsonify({"message": "Failure","data":"Session Timed Out"})
         
 def getMonthName(number):
     return calendar.month_name[number]
