@@ -485,14 +485,13 @@ class GetAggregateAmount(Resource):
         
         
 class GetPaymentSettlement(Resource):
-    # @jwt_required()
+    @jwt_required()
     def post(self):
-        # cu = get_jwt_identity()
+        cu = get_jwt_identity()
         pagenumber = int(request.json["pageNumber"])
         rowsPerPage = int(request.json["rowsPerPage"])
-        referalsdic = {}
-        # if(checkUserDevice(get_jwt_identity(),request.headers.get("Authorization")) == False):
-        #     return jsonify({"message": "Failure","data":"Session Timed Out"})
+        if(checkUserDevice(get_jwt_identity(),request.headers.get("Authorization")) == False):
+            return jsonify({"message": "Failure","data":"Session Timed Out"})
         col = db.get_collection("PaymentInfo")
         pipeline = [
             {
@@ -508,33 +507,37 @@ class GetPaymentSettlement(Resource):
                         "month": {"$month": "$CreatedDate"},  
                         "year": {"$year": "$CreatedDate"}    
                     },
-                    "totalAmount": {"$sum": {"$toDouble": "$amount"}} 
+                    "totalAmount": {"$sum": {"$toDouble": "$amount"}} ,
+                    
                 }
             },
             {
                 "$sort": {"_id.year": 1, "_id.month": 1}
             }
         ]
-        result = col.aggregate(pipeline)
-        totalCount = 10
+        result = list(col.aggregate(pipeline))
         referals = []
         for entry in result:
+            referalsdic = {}
             referalsdic["Month"] = getMonthName(entry['_id']['month'])
             referalsdic["Year"] = entry['_id']['year']
             referalsdic["Amount"] = entry['totalAmount']
             referalsdic["ReferenceCode"] = entry['_id']['ReferenceCode']
             referals.append(referalsdic)
-        print(referalsdic)
-        print(totalCount)
+        totalCount = len(referals)
         return jsonify({"message":"success","data":referals,"totalCount":totalCount})
     
 class SettlePaymentOwner(Resource):
     @jwt_required()
     def post(self):
         ReferenceCode = request.json['ReferenceCode']
+        print(ReferenceCode)
+        print("Settled")
         if(checkUserDevice(get_jwt_identity(),request.headers.get("Authorization")) == False):
             return jsonify({"message": "Failure","data":"Session Timed Out"})
-        return jsonify({"message": "Failure","data":"Session Timed Out"})
+        paymentCollection = db.get_collection("PaymentInfo")
+        paymentCollection.update_many({"ReferenceCode":ReferenceCode},{"$set":{"IsPaymentSettled":True}})
+        return jsonify({"message": "success","data":"Payment Settled Successfully"})
         
 def getMonthName(number):
     return calendar.month_name[number]
