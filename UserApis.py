@@ -586,7 +586,9 @@ class UpdateProfile(Resource):
             else:
                 collection.update_one({"UserEmail":get_jwt_identity()},{"$set":{"lastActivity":str(now_local_tz)}})
                 collection.update_one({"UserId":int(UserId)},{"$set":newData})
-                return jsonify({"message": "Success","data":"Profile Updated Successfully"})
+                d = collection.find_one({"UserId":int(UserId)})
+                profileUpdate = profileComplete(d)
+                return jsonify({"message": "Success","data":"Profile Updated Successfully","profileUpdate":profileUpdate,"image":d['image']})
 
         except Exception as e:
             print("Error:", e)
@@ -1147,10 +1149,9 @@ def profileComplete(user_data):
 def ValidateUser(email, password):
     try:
         query = {"UserEmail": email}
-        projection = {"_id": 0,"UserPaid":0, "image":0}
+        projection = {"_id": 0,"UserPaid":0}
         collection = db.get_collection('User')
         data = collection.find_one(query,projection)
-        print(data)
         if data and checkpw(password.encode('utf-8'), data["UserPassword"].encode('utf-8')):
             return data 
         else:
