@@ -690,29 +690,33 @@ class GetSingleProfileData(Resource):
 
                 emailIdString = "Buy Our Services For Contact Information"
                 contactNumberString = "Buy Our Services For Contact Information"
-
+                paymentplan = ""
+                print(paymnetInfo)
                 if paymnetInfo is not None:
+                    if paymnetInfo["IsApproved"] == 1 and len(paymnetInfo["savedProfiles"]) < paymnetInfo["ProfileCount"] and  paymnetInfo["ValidTill"] > datetime.now():
+                        paymentplan = "Active"
                     if int(userId) in paymnetInfo["savedProfiles"] and paymnetInfo["IsApproved"] == 1 and paymnetInfo["ValidTill"] > datetime.now():
                         emailIdString = data["UserEmail"]
                         contactNumberString = data["PhoneNumber"]
+                        
                        
                     if data["isEmailVerified"] == True:
                         emailIdString = data["UserEmail"]
                     else:
                         emailIdString  = "Unverified Email" 
-
-
                     
                     if data["isPhoneVerified"] == True:
                         contactNumberString = data["PhoneNumber"]
                     else:
                         contactNumberString  = "Unverified Phone Number"        
                 
-                if curr_user["isEmailVerified"] != True:
-                    emailIdString  = "Verify Your Email"  
-                if curr_user["isPhoneVerified"] != True:
-                    contactNumberString  = "Verify Your Mobile Number" 
-                    
+                    if curr_user["isEmailVerified"] != True:
+                        emailIdString  = "Verify Your Email"  
+                    if curr_user["isPhoneVerified"] != True:
+                        contactNumberString  = "Verify Your Mobile Number" 
+                else:
+                    paymentplan = "None"
+
                 final_data["PhoneNumber"] = contactNumberString
                 final_data["UserEmail"] = emailIdString
                 final_data["JobBis"]= data["JobBis"] if  data["JobBis"] != "" else "Not Provided"
@@ -758,6 +762,7 @@ class GetSingleProfileData(Resource):
                 final_data["expectedAgeGap"]= str(data["expectedAgeGapMin"]) + "-"  + str(data["expectedAgeGapMax"]) if str(data["expectedAgeGapMin"])  != "0" and str(data["expectedAgeGapMax"]) != "0" else "No bar"
                 final_data["strictMatch"]= "Yes" if data["strictMatch"] == True else "No" 
                 final_data["IsVerified"] = "1" if data["IsVerified"] == "1" else "0" 
+                final_data["paymentplan"] = paymentplan
             return jsonify({MessageVariable:SuccessString,"data":final_data})
         except Exception as e:
             print(e)
@@ -1044,10 +1049,18 @@ class MySavedProfiles(Resource):
         paymentCollection = db.get_collection("PaymentInfo")
         userCollection = db.get_collection("User")
         data = paymentCollection.find_one({"UserId":int(Userid)},{"_id":0},sort=[("CreatedDate", -1)])
+        users = []
+        if data is None:
+            return jsonify({
+                "message": "Success",
+                "users": [],
+                "totalCount": 0,  
+                "currentPage": 1,
+                "rowsPerPage": rowsPerPage
+            })
         data2 = userCollection.find({"UserId":{"$in":data["savedProfiles"]}},{"_id":0})
         total_count = userCollection.count_documents({"UserId":{"$in":data["savedProfiles"]}}) 
-        users = []
-        
+        print(total_count)
         for u in data2:
             income = "NA"
             print(u["birthDate"])
@@ -1070,7 +1083,7 @@ class MySavedProfiles(Resource):
 
             users.append({"topData": top_data})
 
-            return jsonify({
+        return jsonify({
                 "message": "Success",
                 "users": users,
                 "totalCount": total_count,  
