@@ -1058,7 +1058,7 @@ class MySavedProfiles(Resource):
                 "currentPage": 1,
                 "rowsPerPage": rowsPerPage
             })
-        data2 = userCollection.find({"UserId":{"$in":data["savedProfiles"]}},{"_id":0})
+        data2 = userCollection.find({"UserId":{"$in":data["savedProfiles"]}},{"_id":0}).skip((page - 1) * rowsPerPage) .limit(rowsPerPage) 
         total_count = userCollection.count_documents({"UserId":{"$in":data["savedProfiles"]}}) 
         print(total_count)
         for u in data2:

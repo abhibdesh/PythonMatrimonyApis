@@ -312,7 +312,7 @@ class GetContactDetails(Resource):
             transaction_id = paymentData["transactionId"]  
             print(paymentData)
             print(len(paymentData["savedProfiles"]))
-            if paymentData["IsApproved"] == 1 and paymentData["ValidTill"] > datetime.now() and int(paymentData["ProfileCount"]) == len(paymentData["savedProfiles"]):
+            if paymentData["IsApproved"] == 1 and paymentData["ValidTill"] > datetime.now() and int(paymentData["ProfileCount"]) >= len(paymentData["savedProfiles"]):
                 print(paymentData["savedProfiles"])
                 paymentCollection.update_one({"transactionId":transaction_id},
                                              {"$addToSet":{"savedProfiles":int(paid_for_profile)}})
