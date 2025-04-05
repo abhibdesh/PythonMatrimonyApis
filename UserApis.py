@@ -692,7 +692,7 @@ class GetSingleProfileData(Resource):
 
                 emailIdString = "Buy Our Services For Contact Information"
                 contactNumberString = "Buy Our Services For Contact Information"
-                paymentplan = ""
+                paymentplan = "None"
                 print(paymnetInfo)
                 if paymnetInfo is not None:
                     if paymnetInfo["IsApproved"] == 1 and len(paymnetInfo["savedProfiles"]) < paymnetInfo["ProfileCount"] and  paymnetInfo["ValidTill"] > datetime.now():
@@ -727,7 +727,8 @@ class GetSingleProfileData(Resource):
                 final_data["DegreeName"]= data["degreeName"] if data["degreeName"] !="" else "Not Provided"
                 final_data["CompanyName"]= data["CompanyName"] if data["CompanyName"] !="" else "Not Provided"
                 final_data["IncomeGroup"]= data["IncomeGroup"] if data["IncomeGroup"] !="" else "Not Provided"
-                final_data["CurrentAddress"]= str(data["Address"])+", " + str(data["CurrentAddress"]) if str(data["Address"])+", " + str(data["CurrentAddress"]) != "" else "Not Provided"
+                final_data["CurrentAddress"]= str(data["CurrentAddress"]) if str(data["CurrentAddress"])  else "Not Provided"
+                final_data["FullAddress"]= str(data["Address"])+", " + str(data["CurrentAddress"]) if str(data["Address"])+", " + str(data["CurrentAddress"]) != "" else "Not Provided"
                 # Mandatory to know for patrika match section
                 if data["birthDate"] == None:
                     final_data["BirthDate"]  = "Not Provided"
@@ -1007,7 +1008,7 @@ class FetchAllUsers(Resource):
 
                 top_data = {
                     "Name": u['firstName'] + ' ' + u["lastName"],
-                    "Address": str(u['Address']) + ' ' + str(u["CurrentAddress"]),
+                    "Address":  str(u["CurrentAddress"]),
                     "Education": str(u["DegDip"]) + ', ' + str(u['Field']),
                     "Income": income,
                     "Userid": u['UserId'],

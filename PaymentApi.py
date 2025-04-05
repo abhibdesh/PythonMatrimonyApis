@@ -317,7 +317,7 @@ class GetContactDetails(Resource):
                 paymentCollection.update_one({"transactionId":transaction_id},
                                              {"$addToSet":{"savedProfiles":int(paid_for_profile)}})
                 print("Get Contact")
-                return jsonify({"message":"success","data":"This profile has been added to your 'Saved Profiles'"})
+                return jsonify({"message":"success","data":"Profile Saved"})
             else:
                 if paymentData["IsApproved"] == 0:
                     return jsonify({"message":"success","data":"Your payment is still under review. Please wait till the approval"})
