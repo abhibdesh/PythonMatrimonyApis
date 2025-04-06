@@ -86,6 +86,7 @@ def verify_email():
 
 @app.route("/webhook", methods=["GET"])
 def verify():
+    print("WEBHOOK get")
     mode = request.args.get("hub.mode")
     token = request.args.get("hub.verify_token")
     challenge = request.args.get("hub.challenge")
@@ -96,6 +97,7 @@ def verify():
 
 @app.route("/webhook", methods=["POST"])
 def receive_message():
+    print("WEBHOOK post")
     data = request.get_json()
     print("Incoming:", data)
 
@@ -116,6 +118,7 @@ def generate_otp():
     return random.randint(100000, 999999)
 
 def send_otp_to_user(phone_number, otp):
+    print("OTP get")
     # TODO: integrate with WhatsApp Cloud API to send OTP
     print(f"Sending OTP to {phone_number}...")
     url = f"https://graph.facebook.com/v19.0/{META_PHONE_NUMBER_ID}/messages"
