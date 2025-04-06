@@ -84,34 +84,60 @@ def verify_email():
         print(e)
         return jsonify({"error": str(e)}), 400
 
-@app.route('/webhook', methods=['GET'])
-def verify_webhook():
-    VERIFY_TOKEN = META_ACCESS_TOKEN
-    print("webhookGet")
-    if request.args.get("hub.mode") == "subscribe" and request.args.get("hub.verify_token") == VERIFY_TOKEN:
-        return request.args.get("hub.challenge"), 200
-    return "Verification failed", 403
+@app.route("/webhook", methods=["GET"])
+def verify():
+    mode = request.args.get("hub.mode")
+    token = request.args.get("hub.verify_token")
+    challenge = request.args.get("hub.challenge")
 
-@app.route('/webhook', methods=['POST'])
+    if mode == "subscribe" and token == META_ACCESS_TOKEN:
+        return challenge, 200
+    return "Forbidden", 403
+
+@app.route("/webhook", methods=["POST"])
 def receive_message():
-    data = request.json["PhoneNumber"]
-    print(data)
-    send_whatsapp_message(data, "Thanks for messaging us!")
-    return jsonify({"status": "received"}), 200
+    data = request.get_json()
+    print("Incoming:", data)
 
-def send_whatsapp_message(phone, message):
+    if data.get("object") == "whatsapp_business_account":
+        for entry in data.get("entry", []):
+            for change in entry.get("changes", []):
+                value = change.get("value", {})
+                messages = value.get("messages", [])
+                for message in messages:
+                    user_number = message["from"]
+                    message_body = message["text"]["body"].strip().lower()
+                    # Example: Trigger OTP reply on "verify" keyword
+                    if "verify" in message_body:
+                        send_otp_to_user(user_number,generate_otp())
+    return "OK", 200
+
+def generate_otp():
+    return random.randint(100000, 999999)
+
+def send_otp_to_user(phone_number, otp):
+    # TODO: integrate with WhatsApp Cloud API to send OTP
+    print(f"Sending OTP to {phone_number}...")
+     url = f"https://graph.facebook.com/v19.0/{META_PHONE_NUMBER_ID}/messages"
+
     headers = {
         "Authorization": f"Bearer {META_ACCESS_TOKEN}",
         "Content-Type": "application/json"
     }
-    payload = {
-        "messaging_product": "whatsapp",
-        "to": phone,
-        "type": "text",
-        "text": {"body": message}
-    }
-    requests.post(WHATSAPP_API_URL, json=payload, headers=headers)
 
+    data = {
+        "messaging_product": "whatsapp",
+        "to": phone_number,
+        "type": "text",
+        "text": {
+            "body": f"Your OTP is: {otp}"
+        }
+    }
+
+    response = requests.post(url, json=data, headers=headers)
+    return response.status_code == 200
+    # Implement the actual POST request here to Meta API
+    
 class SendVerificationLink(Resource):
     def post(self):
         data = request.json
