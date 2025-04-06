@@ -118,7 +118,7 @@ def generate_otp():
 def send_otp_to_user(phone_number, otp):
     # TODO: integrate with WhatsApp Cloud API to send OTP
     print(f"Sending OTP to {phone_number}...")
-     url = f"https://graph.facebook.com/v19.0/{META_PHONE_NUMBER_ID}/messages"
+    url = f"https://graph.facebook.com/v19.0/{META_PHONE_NUMBER_ID}/messages"
 
     headers = {
         "Authorization": f"Bearer {META_ACCESS_TOKEN}",
@@ -132,6 +132,7 @@ def send_otp_to_user(phone_number, otp):
         "text": {
             "body": f"Your OTP is: {otp}"
         }
+        
     }
 
     response = requests.post(url, json=data, headers=headers)
