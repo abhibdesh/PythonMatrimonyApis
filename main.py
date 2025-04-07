@@ -7,7 +7,7 @@ from Admin import GetPaymentSettlement,SettlePaymentOwner,GetAggregateAmount,Dow
 from itsdangerous import URLSafeTimedSerializer
 from PaymentApi import GetContactDetails,GenerateQRCode,GetMyPayments,MarkPaymentDone,GetPaymentsToApprove,ApprovePayment
 from pymongo import MongoClient
-from UserApis import MySavedProfiles,GetMyContacts,ChangePassword,ForgotPassword,GetProfilePicture,LogOutFromPreviousDevice,UserLogin,UpdatePreferences, AddNewUser,DeactivateAccount, FetchAllUsers, FetchMyProfile, LogoutUser, UpdateProfile, GetSingleProfileData
+from UserApis import VerifyOPT,MySavedProfiles,GetMyContacts,ChangePassword,ForgotPassword,GetProfilePicture,LogOutFromPreviousDevice,UserLogin,UpdatePreferences, AddNewUser,DeactivateAccount, FetchAllUsers, FetchMyProfile, LogoutUser, UpdateProfile, GetSingleProfileData
 from UpdateExistingRecords import TruncateAllCollections,UpdateUserCollection
 from GetMasters import GetNewUserFormMasters
 from CronJobs import CheckActiveUsers , CheckPaymentInfo
@@ -183,7 +183,8 @@ def save_otp(phone,otp):
         "UserPhoneNumber" : str(phone),
         "OTP" : str(otp),
         "IsValid" : True,
-        "ValidTill":validTill
+        "ValidTill":validTill,
+        "created_at": datetime.now()
     })
     
     
@@ -208,6 +209,7 @@ class SendVerificationLink(Resource):
 api.add_resource(HelloWorld, '/HelloWorld')
 api.add_resource(UserLogin, '/UserLogin')
 api.add_resource(AddNewUser, '/AddUser')
+api.add_resource(VerifyOPT, '/VerifyOPT')
 api.add_resource(ForgotPassword, '/ForgotPassword')
 api.add_resource(ChangePassword, '/ChangePassword')
 api.add_resource(FetchAllUsers, '/GetClients')
@@ -244,9 +246,6 @@ api.add_resource(DownloadMyPaymentSettlement,"/DownloadMyPaymentSettlement")
 api.add_resource(GetAggregateAmount,"/GetAggregateAmount")
 api.add_resource(GetPaymentSettlement,"/GetPaymentSettlement")
 api.add_resource(SettlePaymentOwner,"/SettlePaymentOwner")
-
-
-
 
 if __name__ == "__main__":
     app.run(debug=True)

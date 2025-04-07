@@ -1251,3 +1251,31 @@ def checkUserDevice(userEmail,accessToken):
         return True
     else:
         return False
+    
+class VerifyOPT(Resource):
+    @jwt_required()
+    def post(self):
+        otp = request.json["OTP"] 
+        PhoneNumber = request.json["PhoneNumber"] 
+        try:
+            current_user = get_jwt_identity()
+            print(current_user)
+            print(otp)
+            print(PhoneNumber)
+            collectionOTP = db.get_collection("OTPValidations")
+            collectionUsers = db.get_collection("User")
+            number = "91" + str(PhoneNumber)
+            otp_data = collectionOTP.find_one({"UserPhoneNumber":number},sort=[("_id", -1)])
+            if(otp_data["ValidTill"] <= datetime.now()):
+                if(otp_data["OTP"] == otp):
+                    print("Yes")
+                else:
+                    print("NO")
+            else:
+                print("Token Expired")
+            print("otp_data")
+            print(otp_data)
+            return jsonify({"message":"success","data":"Your number is verified Successfully!"})
+        except Exception as e:
+            print(e)
+            return jsonify({"message":"failure","data":"Something Went Wrong.Please Try Again Later."})
