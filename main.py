@@ -49,6 +49,9 @@ logger = logging.getLogger(__name__)
 
 local_timezone = pytz.timezone('Asia/Kolkata')  
 now_local_tz = datetime.now(local_timezone)
+otp_cache = {}
+MAX_OTPS = 3
+WINDOW_SECONDS = 600  # 10 minutes
 
 class HelloWorld(Resource):
     def get(self):
@@ -121,9 +124,25 @@ def receive_message():
                     print(message_body)
                     # Example: Trigger OTP reply on "verify" keyword
                     if "verify" in message_body:
-                        otp = generate_otp()
-                        send_otp_to_user(user_number,str(otp))
+                        if can_send_otp(user_number):
+                            otp = generate_otp()
+                            send_otp_to_user(user_number,str(otp))
+                        else:
+                            print(f"Rate limit hit for {user_number}")
     return "OK", 200
+
+def can_send_otp(phone_number):
+    now = time.time()
+    if phone_number not in otp_cache:
+        otp_cache[phone_number] = []
+
+    recent = [t for t in otp_cache[phone_number] if now - t < WINDOW_SECONDS]
+    otp_cache[phone_number] = recent
+
+    if len(recent) < MAX_OTPS:
+        otp_cache[phone_number].append(now)
+        return True
+    return False
 
 def generate_otp():
     return random.randint(100000, 999999)
@@ -144,7 +163,7 @@ def send_otp_to_user(phone_number, otp):
         "to": phone_number,
         "type": "text",
         "text": {
-            "body": f"Your OTP is: {otp}.This OTP will be valid for 1 hour. Do not share this OTP with anyone"
+            "body": f"Your OTP is: {otp}.This OTP will be valid for 1 hour. Do not share this OTP with anyone."
         }
         
     }
@@ -164,7 +183,6 @@ def save_otp(phone,otp):
         "OTP" : str(otp),
         "IsValid" : True,
         "ValidTill":validTill
-        
     })
     
     
