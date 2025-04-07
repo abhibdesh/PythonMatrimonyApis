@@ -118,8 +118,9 @@ def receive_message():
                     print("message_body")
                     print(message_body)
                     # Example: Trigger OTP reply on "verify" keyword
-                    otp = generate_otp()
-                    send_otp_to_user(user_number,otp)
+                    if "verify" in message_body:
+                        otp = generate_otp()
+                        send_otp_to_user(user_number,otp)
     return "OK", 200
 
 def generate_otp():
