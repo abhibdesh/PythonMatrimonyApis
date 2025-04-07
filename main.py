@@ -140,7 +140,7 @@ def send_otp_to_user(phone_number, otp):
 
     data = {
         "messaging_product": "whatsapp",
-        "to": "8369469508",
+        "to": phone_number,
         "type": "text",
         "text": {
             "body": f"Your OTP is: {otp}"
