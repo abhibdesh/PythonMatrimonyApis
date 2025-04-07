@@ -103,15 +103,19 @@ def receive_message():
 
     if data.get("object") == "whatsapp_business_account":
         for entry in data.get("entry", []):
-            print("entry:" + entry)
+            print("entry:" )
+            print(entry)
             for change in entry.get("changes", []):
-                print("change:"+change)
+                print("change:")
+                print(change)
                 value = change.get("value", {})
                 messages = value.get("messages", [])
                 for message in messages:
-                    print("message:"+message)
+                    print("message:")
+                    print(message)
                     user_number = message["from"]
                     message_body = message["text"]["body"].strip().lower()
+                    print("message_body")
                     print(message_body)
                     # Example: Trigger OTP reply on "verify" keyword
                     if "verify" in message_body:
