@@ -16,6 +16,7 @@ import json
 import os
 import logging
 import pytz
+import random
 
 
 app = Flask(__name__)
@@ -120,7 +121,7 @@ def receive_message():
                     # Example: Trigger OTP reply on "verify" keyword
                     if "verify" in message_body:
                         otp = generate_otp()
-                        send_otp_to_user(user_number,otp)
+                        send_otp_to_user(user_number,str(otp))
     return "OK", 200
 
 def generate_otp():
