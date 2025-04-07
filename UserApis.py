@@ -1269,10 +1269,11 @@ class VerifyOPT(Resource):
             if(otp_data["ValidTill"] <= datetime.now()):
                 if(otp_data["OTP"] == otp):
                     print("Yes")
+                    collectionUsers.update_one({"UserEmail":current_user},{"$set":{"isPhoneVerified":True}})
                 else:
-                    print("NO")
+                    return jsonify({"message":"failure","data":"Invalid OTP"})
             else:
-                print("Token Expired")
+                return jsonify({"message":"failure","data":"This OTP is expired"})
             print("otp_data")
             print(otp_data)
             return jsonify({"message":"success","data":"Your number is verified Successfully!"})
