@@ -12,6 +12,7 @@ from UpdateExistingRecords import TruncateAllCollections,UpdateUserCollection
 from GetMasters import GetNewUserFormMasters
 from CronJobs import CheckActiveUsers , CheckPaymentInfo
 from datetime import datetime, timedelta
+from dateutil.relativedelta import relativedelta
 import json
 import os
 import logging
@@ -143,15 +144,29 @@ def send_otp_to_user(phone_number, otp):
         "to": phone_number,
         "type": "text",
         "text": {
-            "body": f"Your OTP is: {otp}"
+            "body": f"Your OTP is: {otp}.This OTP will be valid for 1 hour. Do not share this OTP with anyone"
         }
         
     }
 
     response = requests.post(url, json=data, headers=headers)
+    save_otp(phone_number,otp)   
     print("Meta response:", response.status_code, response.text)  # ADD THIS
     return response.status_code == 200
     # Implement the actual POST request here to Meta API
+    
+def save_otp(phone,otp):
+    print("save Otp")
+    collection = db.get_collection("OTPValidations")
+    validTill = datetime.now() + relativedelta(hours=1)
+    collection.insert_one({
+        "UserPhoneNumber" : str(phone),
+        "OTP" : str(otp),
+        "IsValid" : True,
+        "ValidTill":validTill
+        
+    })
+    
     
 class SendVerificationLink(Resource):
     def post(self):
