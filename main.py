@@ -149,6 +149,7 @@ def send_otp_to_user(phone_number, otp):
     }
 
     response = requests.post(url, json=data, headers=headers)
+    print("Meta response:", response.status_code, response.text)  # ADD THIS
     return response.status_code == 200
     # Implement the actual POST request here to Meta API
     
