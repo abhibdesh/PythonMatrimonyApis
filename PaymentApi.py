@@ -84,13 +84,11 @@ class GetMyPayments(Resource):
 
         for doc in result:
             doc["TotalProfilesView"] = len(doc["savedProfiles"])
+            doc["validity"] = doc["ValidTill"]
             if doc["ProfileCount"] != 0  and len(doc["savedProfiles"]) >= doc["ProfileCount"]:
                 doc["ValidTill"] = "Validity Expired"
             paymentData.append(doc)
-        
-        
-        
-
+            
         return jsonify({
             "message": "success",
             "data": paymentData,
