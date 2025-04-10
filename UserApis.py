@@ -647,7 +647,7 @@ class UpdatePreferences(Resource):
                     "profileWithImages":profileWithImages,
                 }
                 print(newdata)
-                collection.update_one({"UserId":int(UserId)},{"$set":newdata,"lastActivity":str(now_local_tz)})
+                collection.update_one({"UserId":int(UserId)},{"$set":newdata, "$set":{"lastActivity":str(now_local_tz)}})
                 return jsonify({"message":"Success","data":"Preferences Updated Successfully!"})
 
         except Exception as e:
