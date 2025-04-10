@@ -425,7 +425,7 @@ class GetMyReferences(Resource):
         return jsonify({"message":"success","data":referals,"totalCount":total_Count})
     
 class DownloadMyPaymentSettlement(Resource):
-    # @jwt_required()
+    @jwt_required()
     def get(self):
         cu = get_jwt_identity()
         referals = []
