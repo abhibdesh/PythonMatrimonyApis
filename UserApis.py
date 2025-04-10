@@ -901,6 +901,8 @@ class FetchAllUsers(Resource):
                          "LookingFor": {"$ne": currentUser.get("LookingFor")},"isEmailVerified":True }
             if int(filters["selectedFromHeight"]) > 0 :
                 newFilter["Height"] = {"$lte": int(filters["selectedFromHeight"])}
+            if int(filters["selectedToHeight"]) > 0 :
+                newFilter["Height"] = {"$lte": int(filters["selectedToHeight"])}
             if int(filters["expectedAgeGapMin"]) > 0 and currentUser["expectedAgeGapMin"] > 0:
                 currentUserAge = float(currentUser["age"])
                 lessThanAge = currentUserAge - int(currentUser["expectedAgeGapMin"])
