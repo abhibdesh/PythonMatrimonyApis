@@ -880,6 +880,7 @@ class FetchAllUsers(Resource):
         selectedHeight = 0
         expectedAgeGapMin = 0
         expectedAgeGapMax = 0
+        print(filters)
 
         try:
             filters["IsDeleted"] = False
@@ -899,9 +900,7 @@ class FetchAllUsers(Resource):
                          ,"UserRole": "2", "IsDeleted": False, "IsActive":True, 
                          "LookingFor": {"$ne": currentUser.get("LookingFor")},"isEmailVerified":True }
             if int(filters["selectedFromHeight"]) > 0 :
-                newFilter["Height"] = {"$gte": int(filters["selectedFromHeight"])}
-            if int(filters["selectedToHeight"]) > 0 :
-                newFilter["Height"] = {"$lte": int(filters["selectedToHeight"])}
+                newFilter["Height"] = {"$lte": int(filters["selectedFromHeight"])}
             if int(filters["expectedAgeGapMin"]) > 0 and currentUser["expectedAgeGapMin"] > 0:
                 currentUserAge = float(currentUser["age"])
                 lessThanAge = currentUserAge - int(currentUser["expectedAgeGapMin"])
