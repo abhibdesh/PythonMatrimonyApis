@@ -389,7 +389,7 @@ class UpdateProfile(Resource):
                         "birthTime":time.strftime("%H:%M:%S"),
                         "age":age,
                         "BirthPlace":BirthPlace,"Raas":Raas,
-                        "Height": Height,
+                        "Height": float(Height),
                         "BloodGrp":BloodGrp,
                         "Disablity":Disablity,
                         "DegDip":DegDip,
@@ -439,7 +439,7 @@ class UpdateProfile(Resource):
                         "Address":Address,
                         "CurrentAddress":CurrentAddress,
                         "BirthPlace":BirthPlace,"Raas":Raas,
-                        "Height": Height,
+                        "Height": float(Height),
                         "BloodGrp":BloodGrp,
                         "Disablity":Disablity,
                         "DegDip":DegDip,
@@ -494,7 +494,7 @@ class UpdateProfile(Resource):
                     "birthDate":date_obj,
                     "age":age,
                     "BirthPlace":BirthPlace,"Raas":Raas,
-                    "Height": Height,
+                    "Height": float(Height),
                     "BloodGrp":BloodGrp,
                     "Disablity":Disablity,
                     "DegDip":DegDip,
@@ -537,7 +537,7 @@ class UpdateProfile(Resource):
                         "lastName":lastName,
                         "Address":Address,
                         "BirthPlace":BirthPlace,"Raas":Raas,
-                        "Height": Height,
+                        "Height": float(Height),
                         "BloodGrp":BloodGrp,
                         "lastActivity":str(now_local_tz),
                         "Disablity":Disablity,
@@ -899,16 +899,22 @@ class FetchAllUsers(Resource):
             newFilter = {"UserId": {"$ne":int(Userid)}
                          ,"UserRole": "2", "IsDeleted": False, "IsActive":True, 
                          "LookingFor": {"$ne": currentUser.get("LookingFor")},"isEmailVerified":True }
-            if int(filters["selectedFromHeight"]) > 0 :
-                newFilter["Height"] = {"$lte": int(filters["selectedFromHeight"])}
-            if int(filters["selectedToHeight"]) > 0 :
-                newFilter["Height"] = {"$lte": int(filters["selectedToHeight"])}
-            if int(filters["expectedAgeGapMin"]) > 0 and currentUser["expectedAgeGapMin"] > 0:
+            if int(filters["selectedFromHeight"]) > 0 and int(filters["selectedToHeight"]) > 0:
+                newFilter["Height"] = {"$gte": float(filters["selectedFromHeight"]),"$lte": float(filters["selectedToHeight"])}
+            # if int(filters["expectedAgeGapMin"]) > 0 and currentUser["expectedAgeGapMin"] > 0:
+            #     currentUserAge = float(currentUser["age"])
+            #     lessThanAge = currentUserAge - int(currentUser["expectedAgeGapMin"])
+            #     newFilter["age"] = {"$gte": lessThanAge}
+            # if int(filters["expectedAgeGapMax"]) > 0 and currentUser["expectedAgeGapMin"] > 0:
+            #     currentUserAge = float(currentUser["expectedAgeGapMax"])
+            #     greterThanAge = currentUserAge + int(currentUser["expectedAgeGapMax"]) 
+            #     newFilter["age"] = {"$lte": greterThanAge}
+            if int(filters["expectedAgeGapMin"]) > 0 :
                 currentUserAge = float(currentUser["age"])
                 lessThanAge = currentUserAge - int(currentUser["expectedAgeGapMin"])
                 newFilter["age"] = {"$gte": lessThanAge}
-            if int(filters["expectedAgeGapMax"]) > 0 and currentUser["expectedAgeGapMin"] > 0:
-                currentUserAge = float(currentUser["expectedAgeGapMax"])
+            if int(filters["expectedAgeGapMax"]) > 0:
+                currentUserAge = float(currentUser["age"])
                 greterThanAge = currentUserAge + int(currentUser["expectedAgeGapMax"]) 
                 newFilter["age"] = {"$lte": greterThanAge}
             # newFilter["age"] = {"$gte": lessThanAge, "$lte":greterThanAge}
