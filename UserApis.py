@@ -901,24 +901,13 @@ class FetchAllUsers(Resource):
                          "LookingFor": {"$ne": currentUser.get("LookingFor")},"isEmailVerified":True }
             if int(filters["selectedFromHeight"]) > 0 and int(filters["selectedToHeight"]) > 0:
                 newFilter["Height"] = {"$gte": float(filters["selectedFromHeight"]),"$lte": float(filters["selectedToHeight"])}
-            # if int(filters["expectedAgeGapMin"]) > 0 and currentUser["expectedAgeGapMin"] > 0:
-            #     currentUserAge = float(currentUser["age"])
-            #     lessThanAge = currentUserAge - int(currentUser["expectedAgeGapMin"])
-            #     newFilter["age"] = {"$gte": lessThanAge}
-            # if int(filters["expectedAgeGapMax"]) > 0 and currentUser["expectedAgeGapMin"] > 0:
-            #     currentUserAge = float(currentUser["expectedAgeGapMax"])
-            #     greterThanAge = currentUserAge + int(currentUser["expectedAgeGapMax"]) 
-            #     newFilter["age"] = {"$lte": greterThanAge}
-            if int(filters["expectedAgeGapMin"]) > 0 :
-                currentUserAge = float(currentUser["age"])
-                lessThanAge = currentUserAge - int(currentUser["expectedAgeGapMin"])
-                newFilter["age"] = {"$gte": lessThanAge}
-            if int(filters["expectedAgeGapMax"]) > 0:
-                currentUserAge = float(currentUser["age"])
-                greterThanAge = currentUserAge + int(currentUser["expectedAgeGapMax"]) 
-                newFilter["age"] = {"$lte": greterThanAge}
-            # newFilter["age"] = {"$gte": lessThanAge, "$lte":greterThanAge}
-
+            if filters["expectedAgeGapMin"] is not None :
+                newFilter["birthDate"] = {"$gte": datetime(filters["expectedAgeGapMin"], 1, 1, hour=0, minute=0, second=0, microsecond=0, tzinfo=None)}
+            if filters["expectedAgeGapMax"] is not None :
+                newFilter["birthDate"] = {"$lte": datetime(filters["expectedAgeGapMax"], 12, 31, hour=0, minute=0, second=0, microsecond=0, tzinfo=None)}
+            if filters["expectedAgeGapMin"] is not None and filters["expectedAgeGapMax"] is not None:
+                newFilter["birthDate"] = {"$gte": datetime(filters["expectedAgeGapMin"], 1, 1, hour=0, minute=0, second=0, microsecond=0, tzinfo=None) ,"$lte": datetime(filters["expectedAgeGapMax"], 1, 1, hour=0, minute=0, second=0, microsecond=0, tzinfo=None)}
+           
 
              
             # Checking Incomes
