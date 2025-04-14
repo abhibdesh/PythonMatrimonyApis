@@ -134,6 +134,9 @@ class FetchAllUsersAdmin(Resource):
         cu = userCollection.find_one({"UserId": int(Userid)})
         projection = {"_id":0}
         try:
+            print(cu["UserRole"])
+            print(type(cu["UserRole"]))
+            print("USER ROLLEEEE")
             if cu["UserRole"] == "3":
                 adminMapp = db.get_collection("AdminMapping")
                 d = adminMapp.find_one({"AdminEmail":cu["UserEmail"]})
@@ -174,6 +177,47 @@ class FetchAllUsersAdmin(Resource):
                     "currentPage": page, 
                     "rowsPerPage": rowsPerPage
                 })
+            if cu["UserRole"] == 1:
+                print("HHH")
+                collection = db.get_collection('User')
+                curUser = collection.find_one({"UserEmail":current_user})
+                total_count = collection.count_documents({}) 
+            
+                data = (
+                    collection.find({}, projection)
+                    .skip((page - 1) * rowsPerPage) 
+                    .limit(rowsPerPage)  
+                )
+
+                for u in data:
+                    income = "Income Details Not Provided"
+                    print(u["birthDate"])
+                    if u["JobBis"] and u['IncomeGroup']:
+                        income = u["JobBis"] + ", earns " + u['IncomeGroup']
+
+                    top_data = {
+                        "Name": u['firstName'] + ' ' + u["lastName"],
+                        "Address": str(u['Address']) + ' ' + str(u["CurrentAddress"]),
+                        "Education": str(u["DegDip"]) + ', ' + str(u['Field']),
+                        "Income": income,
+                        "Userid": u['UserId'],
+                        "IsVerified":u["IsVerified"],
+                        "image": "" if (u['image'] == None)  else u['image'] ,
+                        "Birthdate": u['birthDate'],
+                        "Birthtime": u['birthTime'],
+                        "BirthPlace": u['BirthPlace'],
+                        "Bloodgroup": u["BloodGrp"] 
+                    }
+
+                
+                    finaldataList.append({"topData": top_data})
+                return jsonify({
+                    "message": "Success",
+                    "users": finaldataList,
+                    "totalCount": total_count,  
+                    "currentPage": page, 
+                    "rowsPerPage": rowsPerPage
+                })  
             else:
                 print("asdasd")
 
@@ -348,6 +392,7 @@ class PromoteToAdmin(Resource):
     @jwt_required()
     def post(self):
         userId = request.json["UserId"]
+        communities = request.json["Communities"]
         userCollection = db.get_collection("User")
         adminCollection = db.get_collection("AdminMapping")
         if(checkUserDevice(get_jwt_identity(),request.headers.get("Authorization")) == False):
@@ -359,29 +404,16 @@ class PromoteToAdmin(Resource):
         admin = adminCollection.find_one({"AdminEmail":data["UserEmail"]})
         if(admin):
             print(admin)
-            adminCollection.update_one({"AdminEmail":admin["AdminEmail"]},{"$set":{"ReferenceCode" : refCode}})
-            userCollection.update_one({
-            "UserId": int(userId)
-        },
-        {"$set":{
-            "UserRole":"3",
-            "ReferenceCode":refCode
-        }}
-        )
+            adminCollection.update_one({"AdminEmail":admin["AdminEmail"]},{"$set":{"ReferenceCode" : refCode,"communityList":communities}})
+            userCollection.update_one({"UserId": int(userId)},{"$set":{"UserRole":"3","ReferenceCode":refCode}})
         else:
             adminCollection.insert_one({
             "AdminEmail":data["UserEmail"],
             "ReferenceCode":refCode,
-            "CreatedDateTime": datetime.now()
+            "CreatedDateTime": datetime.now(),
+            "communityList":communities
             })
-            userCollection.update_one({
-            "UserId": int(userId)
-        },
-        {"$set":{
-            "UserRole":"3",
-            "ReferenceCode":refCode
-        }}
-        )
+            userCollection.update_one({"UserId": int(userId)},{"$set":{"UserRole":"3","ReferenceCode":refCode}})
        
       
 
@@ -538,10 +570,82 @@ class SettlePaymentOwner(Resource):
         paymentCollection = db.get_collection("PaymentInfo")
         paymentCollection.update_many({"ReferenceCode":ReferenceCode},{"$set":{"IsPaymentSettled":True}})
         return jsonify({"message": "success","data":"Payment Settled Successfully"})
-        
+
+
+class AddAsAdmin(Resource):
+    @jwt_required()
+    def post(self):
+        try:
+            firstName = request.json["firstName"]
+            lastName = request.json["lastName"]
+            UserEmail = request.json["UserEmail"]
+            PhoneNumber = request.json["PhoneNumber"]
+            communitiesList = request.json["communitiesList"]
+            if(checkUserDevice(get_jwt_identity(),request.headers.get("Authorization")) == False):
+                return jsonify({"message": "Failure","data":"Session Timed Out"})
+            collection = db.get_collection('User')
+            existing_data_check = collection.find_one({"UserEmail":UserEmail})
+            print(existing_data_check)
+            if existing_data_check is not None:
+                return jsonify({"message":"failure","data":"User Already Exists"})
+            top_user = collection.find().sort('UserId', -1).limit(1)
+            for user in top_user:
+                newUserId = user['UserId']+1
+            print(newUserId)
+            name = firstName + lastName
+            refCode = (name[0:3]).upper()+str(random.randint(1000, 9999))
+            print(refCode)
+            new_data = {
+                "firstName" : firstName,
+                 "lastName":lastName,
+                 "UserEmail":UserEmail,
+                 "UserPassword":hash_password("VBAdmin@12345").decode('utf-8'),
+                 "PhoneNumber":PhoneNumber,
+                 "communitiesList":communitiesList,
+                 "CreatedDatetime": str(datetime.now()),
+                 "UserRole":"3",
+                 "CreatedBy":"Owner",
+                 "UserId": newUserId,
+                 "isLoggedIn":0,
+                 "IsActive":True,
+                 "ReferenceCode" : refCode
+            }
+            print(new_data)
+            collection.insert_one(new_data)
+            admin_collection = db.get_collection("AdminMapping")
+            admin_collection.insert_one({
+                "AdminEmail" : UserEmail,
+                "ReferenceCode":refCode,
+                "CreatedDateTime":datetime.now(),
+                "communitiesList":communitiesList
+            })
+            return jsonify({"message":"success","data":"Adding Admin Successful"})
+        except Exception as e:
+            print(e)
+            return jsonify({"message":"failure","data":"Something went wrong. Please Try Again Later."})
+
+
+class GetUserWithoutCommunity(Resource):
+    @jwt_required()
+    def get(self):
+        cu = get_jwt_identity() 
+        # cu = "coadmin1@vb.com" 
+        final_data = []
+        user_collection = db.get_collection("User")
+        admin_collection = db.get_collection("AdminMapping")
+        admin = admin_collection.find_one({"AdminEmail":cu})
+        data = user_collection.find({"ReferenceCode": admin["ReferenceCode"], "Community":"" },{"_id":0})
+        for u in data:
+           final_data.append(u) 
+           
+        return jsonify({"message":"success","data":final_data,"total_count":len(final_data)})
+    
+    
 def getMonthName(number):
     return calendar.month_name[number]
     
 
 
-
+def hash_password(password):
+    hashed_password = hashpw(password.encode('utf-8'), gensalt())
+    return hashed_password

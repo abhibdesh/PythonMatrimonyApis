@@ -22,12 +22,16 @@ class UpdateUserCollection(Resource):
     def post(self):
         print("start")
         print(now_local_tz)
-        collection = db.get_collection('PaymentInfo')
-        collection.update_many({},{
-            "$set":{
-                "ApprovalDateTime":str(now_local_tz),
-            }
-        })
+        collection = db.get_collection('AdminMapping')
+        collection.update_many({"AdminEmail": {"$in":["coadmin2@vb.com"]}}, [{ "$set": { "communitiesList": ["96 Kuli Maratha"]} }])
+
+        # collection.update_many({
+        #     "UserEmail": {"$in":["fyjixtech@gmail.com","coadmin1@vb.com","coadmin2@vb.com"]} 
+        #     },{
+        #     "$set":{
+        #         "isPhoneVerified":True,
+        #     }
+        # })
        
         # collection.update_one({"UserId":1},
         #                        {"$set":

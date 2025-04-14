@@ -264,6 +264,7 @@ class AddNewUser(Resource):
                                                  "profileWithImages": False,
                                                  "isLoggedIn":1,
                                                  "access_token":access_token,
+                                                 "Community":""
                                                 })
                     
                     userData = {
@@ -1261,9 +1262,10 @@ class VerifyOPT(Resource):
             collectionOTP = db.get_collection("OTPValidations")
             collectionUsers = db.get_collection("User")
             number = "91" + str(PhoneNumber)
-            otp_data = collectionOTP.find_one({"UserPhoneNumber":number},sort=[("_id", -1)])
+            otp_data = collectionOTP.find_one({"UserPhoneNumber":str(number)},sort=[("created_at", -1)])
+            print(otp_data)
             if(otp_data["ValidTill"] <= datetime.now()):
-                if(otp_data["OTP"] == otp):
+                if(otp_data["OTP"] == str(otp)):
                     print("Yes")
                     collectionUsers.update_one({"UserEmail":current_user},{"$set":{"isPhoneVerified":True}})
                 else:
