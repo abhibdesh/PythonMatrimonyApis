@@ -631,6 +631,8 @@ class GetUserWithoutCommunity(Resource):
         cu = get_jwt_identity() 
         # cu = "coadmin1@vb.com" 
         final_data = []
+        if(checkUserDevice(get_jwt_identity(),request.headers.get("Authorization")) == False):
+            return jsonify({"message": "Failure","data":"Session Timed Out"})
         user_collection = db.get_collection("User")
         admin_collection = db.get_collection("AdminMapping")
         admin = admin_collection.find_one({"AdminEmail":cu})
@@ -640,6 +642,21 @@ class GetUserWithoutCommunity(Resource):
            
         return jsonify({"message":"success","data":final_data,"total_count":len(final_data)})
     
+    @jwt_required()
+    def post(self):
+        print("hello")
+        userId = request.json["userId"]
+        community = request.json["community"]
+        print(type(userId),community)
+        if(checkUserDevice(get_jwt_identity(),request.headers.get("Authorization")) == False):
+            return jsonify({"message": "Failure","data":"Session Timed Out"})
+        try:
+            collection = db.get_collection("User")
+            collection.update_one({"UserId":userId},{"$set":{"Community":community}})
+            return jsonify({"message":"success","data":"Updated Successfully"})
+        except Exception as e:
+            print(e)
+            return jsonify({"message":"failure","data":"Something went wrong. Please Try Again Later!"})
     
 def getMonthName(number):
     return calendar.month_name[number]

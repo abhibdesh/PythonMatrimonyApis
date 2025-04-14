@@ -241,7 +241,7 @@ class AddNewUser(Resource):
                                                 "lastLogOutTime": None,
                                                 "isLoggedIn":1,
                                                 "expectedNakshatra":expectedNakshatra,
-                                                "strictMatch":strictMatch,
+                                                "strictMatch":True,
                                                 "CreatedBy":"User",
                                                 "IsActive":True,
                                                 "IsDeleted":False,
