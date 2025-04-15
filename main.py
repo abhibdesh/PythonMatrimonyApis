@@ -3,7 +3,7 @@ from flask_restful import Resource, Api
 from flask_cors import CORS
 from flask_jwt_extended import JWTManager
 import requests
-from Admin import GetUserWithoutCommunity,AddAsAdmin,GetPaymentSettlement,SettlePaymentOwner,GetAggregateAmount,DownloadMyPaymentSettlement,FetchAdminDashboard,FetchDashboardData, VerifyAccount,FetchAllUsersAdmin,PromoteToAdmin,GetAllReferenceCodes,GetMyReferences
+from Admin import GetUserCommunityList,GetUserWithoutCommunity,AddAsAdmin,GetPaymentSettlement,SettlePaymentOwner,GetAggregateAmount,DownloadMyPaymentSettlement,FetchAdminDashboard,FetchDashboardData, VerifyAccount,FetchAllUsersAdmin,PromoteToAdmin,GetAllReferenceCodes,GetMyReferences
 from itsdangerous import URLSafeTimedSerializer
 from PaymentApi import GetContactDetails,GenerateQRCode,GetMyPayments,MarkPaymentDone,GetPaymentsToApprove,ApprovePayment
 from pymongo import MongoClient
@@ -248,6 +248,7 @@ api.add_resource(GetPaymentSettlement,"/GetPaymentSettlement")
 api.add_resource(SettlePaymentOwner,"/SettlePaymentOwner")
 api.add_resource(AddAsAdmin,"/AddAsAdmin")
 api.add_resource(GetUserWithoutCommunity,"/GetUserWithoutCommunity")
+api.add_resource(GetUserCommunityList,"/GetUserCommunityList")
 
 
 

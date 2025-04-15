@@ -660,7 +660,16 @@ class GetUserWithoutCommunity(Resource):
         except Exception as e:
             print(e)
             return jsonify({"message":"failure","data":"Something went wrong. Please Try Again Later!"})
-    
+
+
+class GetUserCommunityList(Resource):
+    @jwt_required()
+    def get(self):
+        cu = get_jwt_identity()
+        collection = db.get_collection("AdminMapping")
+        data = collection.find_one({"AdminEmail":cu})
+        return jsonify({"message":"success","data":data["communitiesList"]})
+ 
 def getMonthName(number):
     return calendar.month_name[number]
     
