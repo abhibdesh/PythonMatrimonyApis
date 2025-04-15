@@ -899,7 +899,7 @@ class FetchAllUsers(Resource):
             print("getting new filters")
             newFilter = {"UserId": {"$ne":int(Userid)}
                          ,"UserRole": "2", "IsDeleted": False, "IsActive":True, 
-                         "LookingFor": {"$ne": currentUser.get("LookingFor")},"isEmailVerified":True }
+                         "LookingFor": {"$ne": currentUser.get("LookingFor")},"isEmailVerified":True,"isPhoneVerified":True,"Community":currentUser.get("Community") }
             if int(filters["selectedFromHeight"]) > 0 and int(filters["selectedToHeight"]) > 0:
                 newFilter["Height"] = {"$gte": float(filters["selectedFromHeight"]),"$lte": float(filters["selectedToHeight"])}
             if filters["expectedAgeGapMin"] is not None :

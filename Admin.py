@@ -652,7 +652,7 @@ class GetUserWithoutCommunity(Resource):
             return jsonify({"message": "Failure","data":"Session Timed Out"})
         try:
             collection = db.get_collection("User")
-            collection.update_one({"UserId":userId},{"$set":{"Community":community}})
+            collection.update_one({"UserId":userId},{"$set":{"Community":community,"IsVerified":"1"}})
             return jsonify({"message":"success","data":"Updated Successfully"})
         except Exception as e:
             print(e)
