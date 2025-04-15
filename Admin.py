@@ -636,7 +636,10 @@ class GetUserWithoutCommunity(Resource):
         user_collection = db.get_collection("User")
         admin_collection = db.get_collection("AdminMapping")
         admin = admin_collection.find_one({"AdminEmail":cu})
-        data = user_collection.find({"ReferenceCode": admin["ReferenceCode"], "Community":"" },{"_id":0})
+        if cu == "fyjixtech@gmail.com":
+            data = user_collection.find({"ReferenceCode": "", "Community":"" },{"_id":0})
+        else:
+            data = user_collection.find({"ReferenceCode": admin["ReferenceCode"], "Community":"" },{"_id":0})
         for u in data:
            final_data.append(u) 
            
