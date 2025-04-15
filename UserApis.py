@@ -335,18 +335,7 @@ class UpdateProfile(Resource):
         EduMother = request.json['EduMother']
         EduFather = request.json['EduFather']
         MotherFamily = request.json['MotherFamily']
-        FatherFamily = request.json['FatherFamily']
-        #Step 4
-        selectedIncome = request.json['selectedIncome']
-        eatingHabits = request.json['eatingHabits']
-        expectedGana = request.json['expectedGana']     
-        selectedEducations = request.json['selectedEducations']
-        expectedNakshatra = request.json['expectedNakshatra']
-        expectedAgeGapMin = request.json['expectedAgeGap']
-        expectedAgeGapMin = request.json['expectedAgeGap']
-        selectedLocatities = request.json['selectedLocatities']
-        # New Fields
-        strictMatch = request.json['strictMatch']
+        FatherFamily = request.json['FatherFamily']        
         try:
             print(strictMatch)
             print("birthDate")
