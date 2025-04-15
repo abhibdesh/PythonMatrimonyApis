@@ -1224,7 +1224,6 @@ class UploadImages(Resource):
                     {"UserEmail": get_jwt_identity()},
                     {"$addToSet": {"images": str(file_id)}}
                 )
-
             return jsonify({'file_ids': file_ids,"data":"succ"})  # Respond with file ids
         except Exception as e:
             print(e)
@@ -1240,7 +1239,6 @@ class GetImages(Resource):
             print(get_jwt_identity())
             files = list(db.fs.files.find({ "metadata.UserEmail":get_jwt_identity() }))
             media = []
-            print(files)
             for file in files:
                 chunks_cursor = db.fs.chunks.find({ "files_id": file["_id"] }).sort("n", 1)
                 base64_chunks = [base64.b64encode(chunk["data"]).decode("utf-8") for chunk in chunks_cursor]
@@ -1251,13 +1249,36 @@ class GetImages(Resource):
                     "length": file.get("length", 0),
                     "chunks": base64_chunks,
                 })
-
-           
-
             return jsonify({ "message": "success", "data": media })
-           
         except Exception as e:
             print(str(e))
+            
+class DeleteImages(Resource):
+    @jwt_required()
+    def post(self):
+        image_id = request.json["imageId"]
+        print(image_id)
+        try:
+            collection = db.get_collection("User")
+            collection.update_one({"UserEmail": get_jwt_identity()},{"$pull": {"images": str(image_id)}})
+            db.fs.files.delete_many({ "_id": ObjectId(image_id) })
+            db.fs.chunks.delete_many({ "files_id":ObjectId(image_id) })
+            return jsonify({"message":"success","data":"Image Deleted Successfully"})
+        except Exception as e:
+            print(e)
+            return jsonify({"message":"failure","data":"Something went wrong. Please try again later"})
+            
+class SetProfileImage(Resource):
+    @jwt_required()
+    def post(self):
+        image_id = request.json["imageId"]
+        print(image_id)
+        try:
+            return jsonify({"message":"success","data":"Profile Image Changed Successfully"})
+        except Exception as e:
+            print(e)
+            return jsonify({"message":"failure","data":"Something went wrong. Please try again later"})
+        
 
 def generate_random_string(length):
         characters = string.ascii_letters + string.digits
