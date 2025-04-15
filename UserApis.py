@@ -11,6 +11,9 @@ from datetime import datetime
 import os
 import pytz
 import random
+import base64
+from gridfs import GridFS
+from bson import ObjectId
 import string
 
 
@@ -23,6 +26,8 @@ mongoURI = os.getenv('MONGO_URL','mongodb+srv://abhibdesh:k6fEWav4Dkc1rQzn@mat.p
 databse = os.getenv('DATABSE',"Matrimony")
 client = MongoClient(mongoURI)
 db = client.get_database(databse)
+fs = GridFS(db)
+
 
 with open('./Config/Strings.json') as g:
     Strings = json.load(g)
@@ -888,7 +893,7 @@ class FetchAllUsers(Resource):
             print("getting new filters")
             newFilter = {"UserId": {"$ne":int(Userid)}
                          ,"UserRole": "2", "IsDeleted": False, "IsActive":True, 
-                         "LookingFor": {"$ne": currentUser.get("LookingFor")},"isEmailVerified":True,"isPhoneVerified":True,"Community":currentUser.get("Community") }
+                         "LookingFor": {"$ne": currentUser.get("LookingFor")},"isEmailVerified":True }
             if int(filters["selectedFromHeight"]) > 0 and int(filters["selectedToHeight"]) > 0:
                 newFilter["Height"] = {"$gte": float(filters["selectedFromHeight"]),"$lte": float(filters["selectedToHeight"])}
             if filters["expectedAgeGapMin"] is not None :
@@ -1196,6 +1201,63 @@ class ForgotPassword(Resource):
 class GetMyContacts(Resource):
     def get(self):
         print("")
+        
+class UploadImages(Resource):
+    @jwt_required()
+    def post(self):
+        files = request.files.getlist('file')
+        file_ids = []
+        try:
+            collection = db.get_collection("User")
+            data = collection.find_one({"UserEmail":get_jwt_identity()})
+            if(len(data["images"]) > 2):
+                return jsonify({"message":"failure","data":"Cannot Upload More Than Three Images. Please Delete At Least One Image Before Adding More."})
+            for file in files:
+                if file:
+                    file_id = fs.put(file, filename=file.filename,
+                                     metadata={"UserEmail": get_jwt_identity()}
+                                     )
+                    
+                    file_ids.append(str(file_id))
+                    print(type(file_id))
+                    collection.update_one(
+                    {"UserEmail": get_jwt_identity()},
+                    {"$addToSet": {"images": str(file_id)}}
+                )
+
+            return jsonify({'file_ids': file_ids,"data":"succ"})  # Respond with file ids
+        except Exception as e:
+            print(e)
+            return jsonify({'error': str(e),"message":"fail"})
+
+class GetImages(Resource):
+    @jwt_required()
+    def get(self):
+        try:
+            user_collection = db.get_collection("User")
+            data = user_collection.find_one({"UserEmail":get_jwt_identity()})
+            print(data["images"])
+            print(get_jwt_identity())
+            files = list(db.fs.files.find({ "metadata.UserEmail":get_jwt_identity() }))
+            media = []
+            print(files)
+            for file in files:
+                chunks_cursor = db.fs.chunks.find({ "files_id": file["_id"] }).sort("n", 1)
+                base64_chunks = [base64.b64encode(chunk["data"]).decode("utf-8") for chunk in chunks_cursor]
+                media.append({
+                    "fileId": str(file["_id"]),
+                    "filename": file.get("filename", ""),
+                    "contentType": file.get("contentType", "image/jpeg"),
+                    "length": file.get("length", 0),
+                    "chunks": base64_chunks,
+                })
+
+           
+
+            return jsonify({ "message": "success", "data": media })
+           
+        except Exception as e:
+            print(str(e))
 
 def generate_random_string(length):
         characters = string.ascii_letters + string.digits

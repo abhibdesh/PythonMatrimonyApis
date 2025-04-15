@@ -7,7 +7,7 @@ from Admin import GetUserCommunityList,GetUserWithoutCommunity,AddAsAdmin,GetPay
 from itsdangerous import URLSafeTimedSerializer
 from PaymentApi import GetContactDetails,GenerateQRCode,GetMyPayments,MarkPaymentDone,GetPaymentsToApprove,ApprovePayment
 from pymongo import MongoClient
-from UserApis import VerifyOPT,MySavedProfiles,GetMyContacts,ChangePassword,ForgotPassword,GetProfilePicture,LogOutFromPreviousDevice,UserLogin,UpdatePreferences, AddNewUser,DeactivateAccount, FetchAllUsers, FetchMyProfile, LogoutUser, UpdateProfile, GetSingleProfileData
+from UserApis import GetImages,UploadImages,VerifyOPT,MySavedProfiles,GetMyContacts,ChangePassword,ForgotPassword,GetProfilePicture,LogOutFromPreviousDevice,UserLogin,UpdatePreferences, AddNewUser,DeactivateAccount, FetchAllUsers, FetchMyProfile, LogoutUser, UpdateProfile, GetSingleProfileData
 from UpdateExistingRecords import TruncateAllCollections,UpdateUserCollection
 from GetMasters import GetNewUserFormMasters
 from CronJobs import CheckActiveUsers , CheckPaymentInfo
@@ -249,6 +249,8 @@ api.add_resource(SettlePaymentOwner,"/SettlePaymentOwner")
 api.add_resource(AddAsAdmin,"/AddAsAdmin")
 api.add_resource(GetUserWithoutCommunity,"/GetUserWithoutCommunity")
 api.add_resource(GetUserCommunityList,"/GetUserCommunityList")
+api.add_resource(UploadImages,"/UploadImages")
+api.add_resource(GetImages,"/GetImages")
 
 
 
