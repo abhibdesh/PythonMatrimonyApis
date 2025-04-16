@@ -1010,7 +1010,19 @@ class FetchAllUsers(Resource):
                 print(u["birthDate"])
                 if u["JobBis"] and u['IncomeGroup']:
                     income = u["JobBis"] + ", earns " + u['IncomeGroup']
-
+                media = []
+                if(len(u["image"])>0):
+                    file_id = ObjectId(u["image"][0])
+                    file = db.fs.files.find_one({"_id": file_id})
+                    chunks_cursor = db.fs.chunks.find({"files_id": file_id}).sort("n", 1)
+                    base64_chunks = [base64.b64encode(chunk["data"]).decode("utf-8") for chunk in chunks_cursor]
+                    media.append({
+                    "fileId": str(file["_id"]),
+                    "filename": file.get("filename", ""),
+                    "contentType": file.get("contentType", "image/jpeg"),
+                    "length": file.get("length", 0),
+                    "chunks": base64_chunks,
+                    }) 
                 top_data = {
                     "Name": u['firstName'] + ' ' + u["lastName"],
                     "Address":  str(u["CurrentAddress"]),
@@ -1018,7 +1030,7 @@ class FetchAllUsers(Resource):
                     "Income": income,
                     "Userid": u['UserId'],
                     "IsVerified":u["IsVerified"],
-                    "image": "" if (u['image'] == None)  else u['image'] ,
+                    "image": media ,
                     "Birthdate": u['birthDate'],
                     "Birthtime": u['birthTime'],
                     "BirthPlace": u['BirthPlace'],
@@ -1175,24 +1187,22 @@ class GetProfilePicture(Resource):
         print(image_doc)
         if not image_doc or "image" not in image_doc:
             return jsonify({"message": "NoDP", "data": []})
-        print(image_doc["image"][0])
-        file_id = ObjectId(image_doc["image"][0])
-        print(file_id)
-        print(type(file_id))
-        file = db.fs.files.find_one({"_id": file_id})
         media = []
-        if not file:
-            return jsonify({"message": "FileNotFound", "data": media})
-
-        chunks_cursor = db.fs.chunks.find({"files_id": file_id}).sort("n", 1)
-        base64_chunks = [base64.b64encode(chunk["data"]).decode("utf-8") for chunk in chunks_cursor]
-        media.append({
-        "fileId": str(file["_id"]),
-        "filename": file.get("filename", ""),
-        "contentType": file.get("contentType", "image/jpeg"),
-        "length": file.get("length", 0),
-        "chunks": base64_chunks,
-        })        
+        if(len(image_doc["image"]) > 0):
+            print(image_doc["image"][0])
+            file_id = ObjectId(image_doc["image"][0])
+            print(file_id)
+            print(type(file_id))
+            file = db.fs.files.find_one({"_id": file_id})
+            chunks_cursor = db.fs.chunks.find({"files_id": file_id}).sort("n", 1)
+            base64_chunks = [base64.b64encode(chunk["data"]).decode("utf-8") for chunk in chunks_cursor]
+            media.append({
+            "fileId": str(file["_id"]),
+            "filename": file.get("filename", ""),
+            "contentType": file.get("contentType", "image/jpeg"),
+            "length": file.get("length", 0),
+            "chunks": base64_chunks,
+            })        
         return jsonify({"message":"success","data":media})
 
 class ChangePassword(Resource):
