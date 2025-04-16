@@ -1157,8 +1157,29 @@ class GetProfilePicture(Resource):
     def post(self):
         userid = request.json["userid"]
         coll = db.get_collection("User")
-        image = coll.find_one({"UserId":int(userid)},{"image":1,'_id':0})
-        return ({"message":"success","image":image})
+        image_doc = coll.find_one({"UserId": int(userid)}, {"image": 1, "_id": 0})
+        print(image_doc)
+        if not image_doc or "image" not in image_doc:
+            return jsonify({"message": "NoDP", "data": []})
+        print(image_doc["image"][0])
+        file_id = ObjectId(image_doc["image"][0])
+        print(file_id)
+        print(type(file_id))
+        file = db.fs.files.find_one({"_id": file_id})
+        media = []
+        if not file:
+            return jsonify({"message": "FileNotFound", "data": media})
+
+        chunks_cursor = db.fs.chunks.find({"files_id": file_id}).sort("n", 1)
+        base64_chunks = [base64.b64encode(chunk["data"]).decode("utf-8") for chunk in chunks_cursor]
+        media.append({
+        "fileId": str(file["_id"]),
+        "filename": file.get("filename", ""),
+        "contentType": file.get("contentType", "image/jpeg"),
+        "length": file.get("length", 0),
+        "chunks": base64_chunks,
+        })        
+        return jsonify({"message":"success","data":media})
 
 class ChangePassword(Resource):
     @jwt_required()
@@ -1224,7 +1245,7 @@ class UploadImages(Resource):
                     {"UserEmail": get_jwt_identity()},
                     {"$addToSet": {"images": str(file_id)}}
                 )
-            return jsonify({'file_ids': file_ids,"data":"succ"})  # Respond with file ids
+            return jsonify({'file_ids': file_ids,"data":"Image uploaded Successfully"})  # Respond with file ids
         except Exception as e:
             print(e)
             return jsonify({'error': str(e),"message":"fail"})
@@ -1235,7 +1256,6 @@ class GetImages(Resource):
         try:
             user_collection = db.get_collection("User")
             data = user_collection.find_one({"UserEmail":get_jwt_identity()})
-            print(data["images"])
             print(get_jwt_identity())
             files = list(db.fs.files.find({ "metadata.UserEmail":get_jwt_identity() }))
             media = []
@@ -1273,7 +1293,17 @@ class SetProfileImage(Resource):
     def post(self):
         image_id = request.json["imageId"]
         print(image_id)
+        print(get_jwt_identity())
+        collection = db.get_collection("User")
+        data = collection.find_one({"UserEmail":get_jwt_identity()})
+        
         try:
+            print(data["image"])
+            if(len(data["image"]) == 0):
+                collection.update_one({"UserEmail":get_jwt_identity()},{"$addToSet":{"image":str(image_id)}})
+            else:
+                collection.update_one({"UserEmail":get_jwt_identity()},{"$set":{"image":[]}})
+                collection.update_one({"UserEmail":get_jwt_identity()},{"$addToSet":{"image":str(image_id)}})
             return jsonify({"message":"success","data":"Profile Image Changed Successfully"})
         except Exception as e:
             print(e)
