@@ -762,18 +762,19 @@ class GetSingleProfileData(Resource):
                 final_data["IsVerified"] = "1" if data["IsVerified"] == "1" else "0" 
                 final_data["paymentplan"] = paymentplan
                 media=[]    
-                if(len(data["image"]) > 0) :           
-                    file_id = ObjectId(data["image"][0])
-                    file = db.fs.files.find_one({"_id": file_id})
-                    chunks_cursor = db.fs.chunks.find({"files_id": file_id}).sort("n", 1)
-                    base64_chunks = [base64.b64encode(chunk["data"]).decode("utf-8") for chunk in chunks_cursor]
-                    media.append({
-                    "fileId": str(file["_id"]),
-                    "filename": file.get("filename", ""),
-                    "contentType": file.get("contentType", "image/jpeg"),
-                    "length": file.get("length", 0),
-                    "chunks": base64_chunks,
-                    })   
+                if(len(data["images"]) > 0) :  
+                    files = list(db.fs.files.find({ "metadata.UserEmail":data["UserEmail"] }))
+                    for file in files:
+                        chunks_cursor = db.fs.chunks.find({ "files_id": file["_id"] }).sort("n", 1)
+                        base64_chunks = [base64.b64encode(chunk["data"]).decode("utf-8") for chunk in chunks_cursor]
+                        media.append({
+                            "fileId": str(file["_id"]),
+                            "filename": file.get("filename", ""),
+                            "contentType": file.get("contentType", "image/jpeg"),
+                            "length": file.get("length", 0),
+                            "chunks": base64_chunks,
+                        })        
+                    
                 final_data["image"] = media
             return jsonify({MessageVariable:SuccessString,"data":final_data})
         except Exception as e:
@@ -1296,6 +1297,29 @@ class GetImages(Resource):
             return jsonify({ "message": "success", "data": media })
         except Exception as e:
             print(str(e))
+
+class GetImagesById(Resource):
+    @jwt_required()
+    def get(self):
+        media = []
+        userId = request.json["userId"]
+        try:
+            data = user_collection.find_one({"UserId":int(userId)})
+            files = list(db.fs.files.find({ "metadata.UserEmail":data["UserEmail"] }))
+            for file in files:
+                chunks_cursor = db.fs.chunks.find({ "files_id": file["_id"] }).sort("n", 1)
+                base64_chunks = [base64.b64encode(chunk["data"]).decode("utf-8") for chunk in chunks_cursor]
+                media.append({
+                    "fileId": str(file["_id"]),
+                    "filename": file.get("filename", ""),
+                    "contentType": file.get("contentType", "image/jpeg"),
+                    "length": file.get("length", 0),
+                    "chunks": base64_chunks,
+                })
+            return jsonify({"message":"success","data":media})
+        except Exception as e:
+            print(e)
+            return jsonify({"message":"failure","data":media})
             
 class DeleteImages(Resource):
     @jwt_required()
