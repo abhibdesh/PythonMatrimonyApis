@@ -768,7 +768,7 @@ class GetSingleProfileData(Resource):
                         chunks_cursor = db.fs.chunks.find({ "files_id": file["_id"] }).sort("n", 1)
                         base64_chunks = [base64.b64encode(chunk["data"]).decode("utf-8") for chunk in chunks_cursor]
                         media.append({
-                            "fileId": str(file["_id"]),
+                            "fileId":  str(file["_id"]),
                             "filename": file.get("filename", ""),
                             "contentType": file.get("contentType", "image/jpeg"),
                             "length": file.get("length", 0),
