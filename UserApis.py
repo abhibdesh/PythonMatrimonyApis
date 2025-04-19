@@ -255,7 +255,7 @@ class AddNewUser(Resource):
                                                 "IsVerified":"0",
                                                  "UserId": 
                                                  userIdNew,
-                                                 "image":None,
+                                                 "image":[],
                                                  "readTCP":readTCP,
                                                  "expectedAgeGapMin": 0,
                                                  "expectedAgeGapMax": 0,
@@ -1185,10 +1185,12 @@ class GetProfilePicture(Resource):
         userid = request.json["userid"]
         coll = db.get_collection("User")
         image_doc = coll.find_one({"UserId": int(userid)}, {"image": 1, "_id": 0})
+        print("image_docimage_docimage_docimage_docimage_docimage_docimage_doc")
         print(image_doc)
-        if not image_doc or "image" not in image_doc:
+        if len(image_doc["image"]) == 0 :
             return jsonify({"message": "NoDP", "data": []})
         media = []
+        
         if(len(image_doc["image"]) > 0):
             print(image_doc["image"][0])
             file_id = ObjectId(image_doc["image"][0])
