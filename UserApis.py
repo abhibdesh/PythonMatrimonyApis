@@ -1411,6 +1411,7 @@ class VerifyOPT(Resource):
             print(current_user)
             print(otp)
             print(PhoneNumber)
+            print(datetime.now())
             collectionOTP = db.get_collection("OTPValidations")
             collectionUsers = db.get_collection("User")
             number = "91" + str(PhoneNumber)
