@@ -1420,7 +1420,7 @@ class VerifyOPT(Resource):
             if(datetime.now() <= otp_data["ValidTill"]):
                 if(otp_data["OTP"] == str(otp)):
                     print("Yes")
-                    collectionUsers.update_one({"UserEmail":current_user},{"$set":{"isPhoneVerified":True}})
+                    collectionUsers.update_one({"UserEmail":current_user},{"$set":{"isPhoneVerified":True,"PhoneNumber":PhoneNumber}})
                 else:
                     return jsonify({"message":"failure","data":"Invalid OTP"})
             else:
