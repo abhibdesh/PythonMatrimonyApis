@@ -1417,7 +1417,7 @@ class VerifyOPT(Resource):
             number = "91" + str(PhoneNumber)
             otp_data = collectionOTP.find_one({"UserPhoneNumber":str(number)},sort=[("created_at", -1)])
             print(otp_data)
-            if(otp_data["ValidTill"] <= datetime.now()):
+            if(datetime.now() <= otp_data["ValidTill"]):
                 if(otp_data["OTP"] == str(otp)):
                     print("Yes")
                     collectionUsers.update_one({"UserEmail":current_user},{"$set":{"isPhoneVerified":True}})
