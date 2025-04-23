@@ -688,8 +688,13 @@ class GetSingleProfileData(Resource):
                 emailIdString = "Buy Our Services For Contact Information"
                 contactNumberString = "Buy Our Services For Contact Information"
                 paymentplan = "None"
-                print(paymnetInfo)
                 if paymnetInfo is not None:
+                    print(paymnetInfo["savedProfiles"])
+                    print(data["UserId"])
+                    if(data["UserId"] in paymnetInfo["savedProfiles"]):
+                        final_data["isAlreadyAdded"] = True
+                    else:
+                        final_data["isAlreadyAdded"] = False
                     if paymnetInfo["IsApproved"] == 1 and len(paymnetInfo["savedProfiles"]) < paymnetInfo["ProfileCount"] and  paymnetInfo["ValidTill"] > datetime.now():
                         paymentplan = "Active"
                     if int(userId) in paymnetInfo["savedProfiles"] and paymnetInfo["IsApproved"] == 1 and paymnetInfo["ValidTill"] > datetime.now():
