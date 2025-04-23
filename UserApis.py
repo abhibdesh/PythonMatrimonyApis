@@ -781,6 +781,7 @@ class GetSingleProfileData(Resource):
                         })        
                     
                 final_data["image"] = media
+                final_data["isVerified"] = data["IsVerified"]
             return jsonify({MessageVariable:SuccessString,"data":final_data})
         except Exception as e:
             print(e)
