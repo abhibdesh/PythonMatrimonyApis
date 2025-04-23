@@ -140,7 +140,7 @@ class FetchAllUsersAdmin(Resource):
             if cu["UserRole"] == "3":
                 adminMapp = db.get_collection("AdminMapping")
                 d = adminMapp.find_one({"AdminEmail":cu["UserEmail"]})
-                data = userCollection.find({"ReferenceCode":d["ReferenceCode"],"UserRole":"2"},{"image":0, "_id":0, "UserPassword":0,"access_token":0})
+                data = userCollection.find({"ReferenceCode":d["ReferenceCode"],"Community":{"$exists":True,"$ne":""}, "UserRole":"2","isPhoneVerified":True,"isEmailVerified":True},{"image":0, "_id":0, "UserPassword":0,"access_token":0})
                 print("asd")
                 total_count = userCollection.count_documents({"ReferenceCode":d["ReferenceCode"],"UserRole":"2"}) 
                 data = (
@@ -156,6 +156,7 @@ class FetchAllUsersAdmin(Resource):
 
                     top_data = {
                         "Name": u['firstName'] + ' ' + u["lastName"],
+                        "Community":u["Community"],
                         "Address": str(u['Address']) + ' ' + str(u["CurrentAddress"]),
                         "Education": str(u["DegDip"]) + ', ' + str(u['Field']),
                         "Income": income,
@@ -337,7 +338,9 @@ class FetchAllUsersAdmin(Resource):
                 if len(allNaadi) > 0:
                     newFilter["Naadi"] =  {"$in": allNaadi}
                 
+                newFilter["Community"] = {"$exists":True,"$ne":""}
                 print(newFilter)
+
 
                 total_count = collection.count_documents(newFilter) 
             
@@ -355,6 +358,7 @@ class FetchAllUsersAdmin(Resource):
 
                     top_data = {
                         "Name": u['firstName'] + ' ' + u["lastName"],
+                        "Community":  u["Community"],
                         "Address": str(u['Address']) + ' ' + str(u["CurrentAddress"]),
                         "Education": str(u["DegDip"]) + ', ' + str(u['Field']),
                         "Income": income,

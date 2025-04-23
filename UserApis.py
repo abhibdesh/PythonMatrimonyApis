@@ -908,7 +908,7 @@ class FetchAllUsers(Resource):
             print("getting new filters")
             newFilter = {"UserId": {"$ne":int(Userid)}
                          ,"UserRole": "2", "IsDeleted": False, "IsActive":True, 
-                         "LookingFor": {"$ne": currentUser.get("LookingFor")},"isEmailVerified":True }
+                         "LookingFor": {"$ne": currentUser.get("LookingFor")},"isEmailVerified":True,"isPhoneVerified":True }
             if int(filters["selectedFromHeight"]) > 0 and int(filters["selectedToHeight"]) > 0:
                 newFilter["Height"] = {"$gte": float(filters["selectedFromHeight"]),"$lte": float(filters["selectedToHeight"])}
             if filters["expectedAgeGapMin"] is not None :
@@ -996,6 +996,8 @@ class FetchAllUsers(Resource):
             if len(allNaadi) > 0:
                 newFilter["Naadi"] =  {"$in": allNaadi}
             
+            newFilter["Community"] = {"$exists":True,"$ne":""}
+
             print(newFilter)
 
             total_count = collection.count_documents(newFilter) 
@@ -1026,6 +1028,7 @@ class FetchAllUsers(Resource):
                     }) 
                 top_data = {
                     "Name": u['firstName'] + ' ' + u["lastName"],
+                    "Community":u["Community"],
                     "Address":  str(u["CurrentAddress"]),
                     "Education": str(u["DegDip"]) + ', ' + str(u['Field']),
                     "Income": income,
