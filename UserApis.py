@@ -733,8 +733,18 @@ class GetSingleProfileData(Resource):
                 if data["birthDate"] == None:
                     final_data["BirthDate"]  = "Not Provided"
                 else:
-                    final_data["BirthDate"] = str(data["birthDate"].date())+", "+day_name + " (YYYY-MM-DD)" 
-                final_data["BirthTime"]= data["birthTime"] + " (24 Hour Clock Format)" if data["birthTime"] is not None else "Not Provided"
+                    date_obj4 = data["birthDate"]
+                    formatted_date = date_obj4.strftime("%d %B %Y")
+                    day_name = date_obj4.strftime("%A")  
+                    final_data["BirthDate"] = f"{formatted_date}, {day_name}"
+                 
+                if data["birthTime"] == None:
+                    final_data["birthTime"]  = "Not Provided"
+                else:
+                    time_obj = datetime.strptime(data["birthTime"], "%H:%M:%S")
+                    formatted_time = time_obj.strftime("%I:%M %p")  # e.g., "05:44 AM"
+                    final_data["BirthTime"] = formatted_time
+                    # final_data["BirthTime"]= data["birthTime"] + " (24 Hour Format)" if data["birthTime"] is not None else "Not Provided"
                 final_data["BirthPlace"]= data["BirthPlace"]
                 final_data["Height"]= str(str(data["Height"]) + " Feet") if str(str(data["Height"]) + " Feet") != " Feet" else "Not Provided"
                 final_data["BloodGroup"]= str(data["BloodGrp"]) if  str(data["BloodGrp"]) !="" else "Not Provided"
