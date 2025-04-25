@@ -616,14 +616,16 @@ class UpdatePreferences(Resource):
         profileWithImages = request.json['profileWithImages']
 
         try:
-            print("k")         
             if(checkUserDevice(get_jwt_identity(),request.headers.get("Authorization")) == False):
                 return jsonify({"message": "Failure","data":"Session Timed Out"})
             else:
                 collection = db.get_collection('User')
                 data = collection.find_one({"UserEmail":current_user})
                 newdata = {
-                    "lastActivity":str(now_local_tz),
+                    
+                }
+                collection.update_one({"UserEmail":get_jwt_identity()},{"$set":{
+"lastActivity":str(now_local_tz),
                     "selectedIncome":selectedIncome,
                     "eatingHabits":eatingHabits,
                     "expectedGana":expectedGana,
@@ -631,18 +633,16 @@ class UpdatePreferences(Resource):
                     "expectedNakshatra":expectedNakshatra,
                     "strictMatch":strictMatch,
                     "selectedLocatities":selectedLocatities,
-                    "expectedAgeGapMin":float(expectedAgeGapMin),
-                    "expectedAgeGapMax":float(expectedAgeGapMax),
+                    "expectedAgeGapMin": float(expectedAgeGapMin) if expectedAgeGapMin !="" else "" ,
+                    "expectedAgeGapMax":float(expectedAgeGapMax) if expectedAgeGapMax !="" else "",
                     "selectedBloodGroups":selectedBloodGroups,
                     "selectedNaadi":selectedNaadi,
                     "selectedRaas":selectedRaas,
-                    "selectedHeight":selectedHeight,
+                    "selectedHeight":float(selectedHeight) if selectedHeight !="" else "",
                     "selectedFamilyType":selectedFamilyType,
                     "selectedSiblingsCousinsUpto":selectedSiblingsCousinsUpto,
                     "profileWithImages":profileWithImages,
-                }
-                print(newdata)
-                collection.update_one({"UserId":int(UserId)},{"$set":newdata, "$set":{"lastActivity":str(now_local_tz)}})
+                }})
                 return jsonify({"message":"Success","data":"Preferences Updated Successfully!"})
 
         except Exception as e:
@@ -695,7 +695,7 @@ class GetSingleProfileData(Resource):
                         final_data["isAlreadyAdded"] = True
                     else:
                         final_data["isAlreadyAdded"] = False
-                    if paymnetInfo["IsApproved"] == 1 and len(paymnetInfo["savedProfiles"]) < paymnetInfo["ProfileCount"] and  paymnetInfo["ValidTill"] > datetime.now():
+                    if paymnetInfo["IsApproved"] == 1 and (len(paymnetInfo["savedProfiles"]) < paymnetInfo["ProfileCount"] or paymnetInfo["ProfileCount"]==0) and  paymnetInfo["ValidTill"] > datetime.now():
                         paymentplan = "Active"
                     if int(userId) in paymnetInfo["savedProfiles"] and paymnetInfo["IsApproved"] == 1 and paymnetInfo["ValidTill"] > datetime.now():
                         emailIdString = data["UserEmail"]
@@ -721,6 +721,12 @@ class GetSingleProfileData(Resource):
 
                 final_data["PhoneNumber"] = contactNumberString
                 final_data["UserEmail"] = emailIdString
+                final_data["Community"] = data["Community"]      
+                if(data["ReferenceCode"]!=""):
+                    admindata = collection.find_one({"UserRole":"3","ReferenceCode":data["ReferenceCode"]})
+                    final_data["ReferenceName"] = admindata["firstName"] + " " + admindata["lastName"]
+                else:
+                    final_data["ReferenceName"] = "NA"
                 final_data["JobBis"]= data["JobBis"] if  data["JobBis"] != "" else "Not Provided"
                 final_data["DegDip"]= data["DegDip"] if data["DegDip"] !="" else "Not Provided"
                 final_data["FieldOrPost"]= data["Field"] if data["Field"] !="" else "Not Provided"
@@ -772,7 +778,15 @@ class GetSingleProfileData(Resource):
                 final_data["expectedGana"]= ", ".join(data["expectedGana"]) if ", ".join(data["expectedGana"])  != "" else "No bar"
                 final_data["selectedLocatities"]= ", ".join(data["selectedLocatities"]) if ", ".join(data["selectedLocatities"])  != "" else "No bar"
                 final_data["expectedNakshatra"]= ", ".join(data["expectedNakshatra"]) if ", ".join(data["expectedNakshatra"])  != "" else "No bar"
+                final_data["selectedBloodGroups"]= ", ".join(data["selectedBloodGroups"]) if ", ".join(data["selectedBloodGroups"])  != "" else "No bar"
+                final_data["selectedNaadi"]= ", ".join(data["selectedNaadi"]) if ", ".join(data["selectedNaadi"])  != "" else "No bar"
+                final_data["selectedRaas"]= ", ".join(data["selectedRaas"]) if ", ".join(data["selectedRaas"])  != "" else "No bar"
+                final_data["selectedHeight"]= data["selectedHeight"] if data["selectedHeight"] != "" else "No bar"
+                final_data["selectedFamilyType"]= ", ".join(data["selectedFamilyType"]) if ", ".join(data["selectedFamilyType"])  != "" else "No bar"
+                final_data["selectedSiblingsCousinsUpto"]= data["selectedSiblingsCousinsUpto"] if (data["selectedSiblingsCousinsUpto"])  != "" else "No bar"
                 final_data["expectedAgeGap"]= str(data["expectedAgeGapMin"]) + "-"  + str(data["expectedAgeGapMax"]) if str(data["expectedAgeGapMin"])  != "0" and str(data["expectedAgeGapMax"]) != "0" else "No bar"
+                final_data["expectedAgeGapMax"]= str(int(data["expectedAgeGapMax"])) + " years" if(data["expectedAgeGapMax"]!="") else "No bar"
+                final_data["expectedAgeGapMin"]= str(int(data["expectedAgeGapMin"]))  + " years" if(data["expectedAgeGapMin"]!="") else "No bar"
                 final_data["strictMatch"]= "Yes" if data["strictMatch"] == True else "No" 
                 final_data["IsVerified"] = "1" if data["IsVerified"] == "1" else "0" 
                 final_data["paymentplan"] = paymentplan
@@ -849,7 +863,6 @@ class FetchMyProfile(Resource):
     def post(self):
         userid = request.json["UserId"]
         current_user = get_jwt_identity()
-        print("Authenticated User:", current_user)
         try:
             projection = {"_id": 0,"UserPassword":0}
             newFilter = {"UserId" : int(userid)}
@@ -1079,59 +1092,88 @@ class FetchAllUsers(Resource):
 class MySavedProfiles(Resource):
     @jwt_required()
     def post(self):
-        filters = request.json['filters']
-        isPaidUser = request.json["isPaid"]
-        page = int(request.json['pageNumber'])
-        rowsPerPage = int(request.json['rowsPerPage'])
-        Userid = request.json["Userid"]
-        if(checkUserDevice(get_jwt_identity(),request.headers.get("Authorization")) == False):
-            return jsonify({"message": "Failure","data":"Session Timed Out"})
-        paymentCollection = db.get_collection("PaymentInfo")
-        userCollection = db.get_collection("User")
-        data = paymentCollection.find_one({"UserId":int(Userid)},{"_id":0},sort=[("CreatedDate", -1)])
-        users = []
-        if data is None:
+        data = request.json
+        filters = data.get('filters', {})
+        is_paid_user = data.get("isPaid", False)
+        page = int(data.get('pageNumber', 1))
+        rows_per_page = int(data.get('rowsPerPage', 10))
+        user_id = int(data.get("Userid"))
+
+        if not checkUserDevice(get_jwt_identity(), request.headers.get("Authorization")):
+            return jsonify({"message": "Failure", "data": "Session Timed Out"})
+
+        payment_collection = db.get_collection("PaymentInfo")
+        user_collection = db.get_collection("User")
+
+        # Fetch all saved profile IDs
+        saved_profiles = payment_collection.find({"UserId": user_id}, {"savedProfiles": 1, "_id": 0})
+        users_to_fetch = set()
+        for record in saved_profiles:
+            users_to_fetch.update(record.get("savedProfiles", []))
+
+        users_to_fetch = list(users_to_fetch)
+
+        if not users_to_fetch:
             return jsonify({
                 "message": "Success",
                 "users": [],
-                "totalCount": 0,  
-                "currentPage": 1,
-                "rowsPerPage": rowsPerPage
+                "totalCount": 0,
+                "currentPage": page,
+                "rowsPerPage": rows_per_page
             })
-        data2 = userCollection.find({"UserId":{"$in":data["savedProfiles"]}},{"_id":0}).skip((page - 1) * rowsPerPage) .limit(rowsPerPage) 
-        total_count = userCollection.count_documents({"UserId":{"$in":data["savedProfiles"]}}) 
-        print(total_count)
-        for u in data2:
-            income = "NA"
-            print(u["birthDate"])
-            if u["JobBis"] and u['IncomeGroup']:
-                income = u["JobBis"] + ", earns " + u['IncomeGroup']
 
+        # Fetch user profiles with pagination
+        query = {"UserId": {"$in": users_to_fetch}}
+        projection = {"_id": 0, "UserPassword": 0, "access_token": 0}
+        cursor = user_collection.find(query, projection).skip((page - 1) * rows_per_page).limit(rows_per_page)
+        total_count = user_collection.count_documents(query)
+
+        users = []
+        for user in cursor:
+            # Construct income string
+            job = user.get("JobBis", "")
+            income_group = user.get("IncomeGroup", "")
+            income = f"{job}, earns {income_group}" if job and income_group else "NA"
+
+            # Prepare profile image from GridFS
+            media = []
+            image_ids = user.get("image", [])
+            if image_ids:
+                file_id = ObjectId(image_ids[0])
+                file = db.fs.files.find_one({"_id": file_id})
+                chunks_cursor = db.fs.chunks.find({"files_id": file_id}).sort("n", 1)
+                base64_chunks = [base64.b64encode(chunk["data"]).decode("utf-8") for chunk in chunks_cursor]
+                media.append({
+                    "fileId": str(file["_id"]),
+                    "filename": file.get("filename", ""),
+                    "contentType": file.get("contentType", "image/jpeg"),
+                    "length": file.get("length", 0),
+                    "chunks": base64_chunks,
+                })
+
+            # Construct profile data
             top_data = {
-                    "Name": u['firstName'] + ' ' + u["lastName"],
-                    "Address": str(u['Address']) + ' ' + str(u["CurrentAddress"]),
-                    "Education": str(u["DegDip"]) + ', ' + str(u['Field']),
-                    "Income": income,
-                    "Userid": u['UserId'],
-                    "IsVerified":u["IsVerified"],
-                    "image": "" if (u['image'] == None)  else u['image'] ,
-                    "Birthdate": u['birthDate'],
-                    "Birthtime": u['birthTime'],
-                    "BirthPlace": u['BirthPlace'],
-                    "Bloodgroup": u["BloodGrp"] 
-                }
-
+                "Name": f"{user.get('firstName', '')} {user.get('lastName', '')}",
+                "Address": f"{user.get('Address', '')} {user.get('CurrentAddress', '')}",
+                "Education": f"{user.get('DegDip', '')}, {user.get('Field', '')}",
+                "Income": income,
+                "Userid": user.get("UserId"),
+                "IsVerified": user.get("IsVerified", False),
+                "image": media,
+                "Birthdate": user.get("birthDate"),
+                "Birthtime": user.get("birthTime"),
+                "BirthPlace": user.get("BirthPlace"),
+                "Bloodgroup": user.get("BloodGrp")
+            }
             users.append({"topData": top_data})
 
         return jsonify({
-                "message": "Success",
-                "users": users,
-                "totalCount": total_count,  
-                "currentPage": page,
-                "rowsPerPage": rowsPerPage
-            })
-
-        
+            "message": "Success",
+            "users": users,
+            "totalCount": total_count,
+            "currentPage": page,
+            "rowsPerPage": rows_per_page
+        }) 
 
 class DeactivateAccount(Resource):
     @jwt_required()

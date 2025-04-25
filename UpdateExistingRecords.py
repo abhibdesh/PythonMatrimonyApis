@@ -22,8 +22,8 @@ class UpdateUserCollection(Resource):
     def post(self):
         print("start")
         print(now_local_tz)
-        collection = db.get_collection('AdminMapping')
-        collection.update_many({"AdminEmail": {"$in":["coadmin2@vb.com"]}}, [{ "$set": { "communitiesList": ["96 Kuli Maratha"]} }])
+        collection = db.get_collection('User')
+        collection.update_many({}, [{ "$set": { "image": []} }])
 
         # collection.update_many({
         #     "UserEmail": {"$in":["fyjixtech@gmail.com","coadmin1@vb.com","coadmin2@vb.com"]} 
@@ -72,9 +72,18 @@ class TruncateAllCollections(Resource):
         userCollection = db.get_collection('User')
         adminCollection = db.get_collection('AdminMapping')
         paymentCollection = db.get_collection('PaymentInfo')
+        OTPValidations = db.get_collection("OTPValidations")
+        chunks = db.get_collection("fs.chunks")
+        file = db.get_collection("fs.files")
+        CategoryMaster = db.get_collection("CategoryMaster")
 
         userCollection.delete_many({})
         adminCollection.delete_many({})
         paymentCollection.delete_many({})
+        file.delete_many({})
+        chunks.delete_many({})
+        chOTPValidationsunks.delete_many({})
+        CategoryMaster.delete_many({"categoryId":""})
+
 
 
