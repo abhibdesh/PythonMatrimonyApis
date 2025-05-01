@@ -269,7 +269,9 @@ class AddNewUser(Resource):
                                                  "profileWithImages": False,
                                                  "isLoggedIn":1,
                                                  "access_token":access_token,
-                                                 "Community":""
+                                                 "Community":"",
+                                                 "images" :[]
+                                                 
                                                 })
                     
                     userData = {

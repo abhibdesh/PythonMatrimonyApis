@@ -2,20 +2,26 @@ import csv
 from pymongo import MongoClient
 import json
 import os
+import pandas as pd
 
 
-mongoURI = os.getenv('MONGO_URL','mongodb+srv://abhibdesh:k6fEWav4Dkc1rQzn@mat.podj9wc.mongodb.net/?retryWrites=true&w=majority&appName=Mat')
-databse = os.getenv('DATABSE',"Matrimony")
+
+
+
+mongoURI = os.getenv('MONGO_URL','mongodb+srv://abhibdesh:k6fEWav4Dkc1rQzn@mat.podj9wc.mongodb.net/MERN-MAT?retryWrites=true&w=majority&appName=Mat')
+# mongoURI = os.getenv('MONGO_URL','mongodb+srv://abhibdesh:k6fEWav4Dkc1rQzn@mat.podj9wc.mongodb.net/?retryWrites=true&w=majority&appName=Mat')
+databse = os.getenv('DATABSE',"MERN-MAT")
 client = MongoClient(mongoURI)
 db = client.get_database(databse)
 
-collection = db['CategoryMaster'] 
+collection = db['DistrictMaster'] 
 
 csv_file_path = 'districtList.csv'  
 
-with open(csv_file_path, mode='r', newline='', encoding='utf-8') as file:
-    csv_reader = csv.DictReader(file) 
-    data_list = list(csv_reader)  
+data = pd.read_csv(csv_file_path).dropna(how='all')  # Drop empty rows
+print(data)
+data_list = data.to_dict(orient='records')
+
 
 result = collection.insert_many(data_list)
 
