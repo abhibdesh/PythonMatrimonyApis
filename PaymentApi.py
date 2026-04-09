@@ -16,8 +16,8 @@ from dateutil.relativedelta import relativedelta
 import os
 import pytz
 
-mongoURI = os.getenv('MONGO_URL','mongodb+srv://abhibdesh:k6fEWav4Dkc1rQzn@mat.podj9wc.mongodb.net/?retryWrites=true&w=majority&appName=Mat')
-databse = os.getenv('DATABSE',"Matrimony")
+mongoURI = os.getenv('MONGO_URL','')
+databse = os.getenv('DATABSE',"")
 client = MongoClient(mongoURI)
 db = client.get_database(databse)
 

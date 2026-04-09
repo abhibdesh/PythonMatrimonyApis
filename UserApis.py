@@ -22,8 +22,8 @@ local_timezone = pytz.timezone('Asia/Kolkata')
 now_local_tz = datetime.now(local_timezone)
 
 
-mongoURI = os.getenv('MONGO_URL','mongodb+srv://abhibdesh:k6fEWav4Dkc1rQzn@mat.podj9wc.mongodb.net/?retryWrites=true&w=majority&appName=Mat')
-databse = os.getenv('DATABSE',"Matrimony")
+mongoURI = os.getenv('MONGO_URL')
+databse = os.getenv('DATABSE')
 client = MongoClient(mongoURI)
 db = client.get_database(databse)
 fs = GridFS(db)

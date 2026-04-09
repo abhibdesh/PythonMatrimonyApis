@@ -8,9 +8,8 @@ import pandas as pd
 
 
 
-mongoURI = os.getenv('MONGO_URL','mongodb+srv://abhibdesh:k6fEWav4Dkc1rQzn@mat.podj9wc.mongodb.net/MERN-MAT?retryWrites=true&w=majority&appName=Mat')
-# mongoURI = os.getenv('MONGO_URL','mongodb+srv://abhibdesh:k6fEWav4Dkc1rQzn@mat.podj9wc.mongodb.net/?retryWrites=true&w=majority&appName=Mat')
-databse = os.getenv('DATABSE',"MERN-MAT")
+mongoURI = os.getenv('MONGO_URL','')
+databse = os.getenv('DATABSE',"")
 client = MongoClient(mongoURI)
 db = client.get_database(databse)
 

@@ -31,15 +31,15 @@ CORS(app
     #               }
      )
 
-mongoURI = os.getenv('MONGO_URL','mongodb+srv://abhibdesh:k6fEWav4Dkc1rQzn@mat.podj9wc.mongodb.net/?retryWrites=true&w=majority&appName=Mat')
-databse = os.getenv('DATABSE',"Matrimony")
+mongoURI = os.getenv('MONGO_URL','')
+databse = os.getenv('DATABSE',"")
 client = MongoClient(mongoURI)
 db = client.get_database(databse)
 
-app.config['JWT_SECRET_KEY'] = os.getenv('SECERT_KEY','asdfghjklpoiuytrewfgvbndcksdhfjgjhejbdsjbcsbh')
-serializer = URLSafeTimedSerializer(os.getenv('SECERT_KEY','asdfghjklpoiuytrewfgvbndcksdhfjgjhejbdsjbcsbh'))
+app.config['JWT_SECRET_KEY'] = os.getenv('SECERT_KEY','')
+serializer = URLSafeTimedSerializer(os.getenv('SECERT_KEY',''))
 
-META_ACCESS_TOKEN = os.getenv('META_ACCESS_TOKEN','EAAN1yyNSqyIBO5e6SKy7ciDW0djMhSiSnSoZBZA4KNmJHiZCK9YMY4DcXei1TWmBA319mW4uZA5zj1K0ESk7iXUWWM8SvY04zSHeGcNDlMEuvL8ZCpQilE4UZAZCt9ljZAGXqVuuasfpZCO1GTIrpTEMyrAdPqkm4pNP4bPXZCkujGWs9L6mJecplcZCrxrKrMFAwDHBND0m9pa0aUEffqLu9hhMxZB97X9gezkeGDYZD')
+META_ACCESS_TOKEN = os.getenv('META_ACCESS_TOKEN','')
 META_PHONE_NUMBER_ID = os.getenv('META_PHONE_NUMBER_ID','607370069123259')
 WHATSAPP_API_URL = f"https://graph.facebook.com/v19.0/{META_PHONE_NUMBER_ID}/messages"
 
@@ -84,7 +84,7 @@ def verify_email():
         collection.update_one({"UserEmail":email},{"$set":{"isEmailVerified":True,"lastActivity":datetime.now()}})
         # return redirect(f'http://localhost:5173/Thank-You-Email-Verification')
       
-        return redirect('https://matrimony-livid.vercel.app/Thank-You-Email-Verification', code=302)
+        return redirect('THANKYOUPAGELINK', code=302)
         # return jsonify({"message": f"Email {email} successfully verified!"}), 200
     except Exception as e:
         print(e)
